@@ -1,6 +1,6 @@
-# Welcome to the Agon Light Wiki
+# Welcome to the community Agon Console8 documentation
 
-This Wiki is the official source for all documentation regarding the Agon Quark firmware and any third-party software development.
+This is not the offical documentation for Agon Light or its firmware Quark. You can find it [here](https://github.com/breakintoprogram/agon-docs/wiki). This community documentation was started, because GitHub wiki does not allow easy contributions by users. We don't use the wiki here, but just markdown files which are also automatically generated into a [website](https://agonconsole8.github.io/agon-docs/).
 
 ## What is the Agon Light
 
