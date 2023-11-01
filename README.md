@@ -26,13 +26,12 @@ The Quark firmware is the official operating system for the Agon Light. It consi
 
 ## Where can I buy one?
 
-At time of writing there are six official distributers of the Agon Light:
-
 - [Mouser](https://www.mouser.com/ProductDetail/Olimex-Ltd/AgonLight2?qs=9vOqFld9vZWAIti5ng59Vw%3D%3D)
 - [The Pi Hut](https://thepihut.com/products/agonlight2-z80-bbc-basic-retro-single-board-computer)
 - [Olimex Ltd](https://www.olimex.com/Products/Retro-Computers/AgonLight2/open-source-hardware)
 - [PCBWay](https://www.pcbway.com/project/gifts_detail/Agon_light_3f7ffaa8.html)
 - [Agon Light Australia](https://agonlight.au)
 - [Agon Light Store (UK)](http://agon-light.store)
+- [Agon Console8 from Heber (UK)](https://shop.heber.co.uk/agon-console8/)
 
 Please note that the Olimex version (Agon Light 2) is lightly customised, yet still fully compatible with the original Agon Light.
