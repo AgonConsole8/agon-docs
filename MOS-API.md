@@ -70,7 +70,7 @@ OSWRCH:		RST.LIS	10h			; This calls a RST in the eZ80 address space
 		RET
 ```
 
-### RST 18h: Output a stream of characters to the VPD (MOS 1.03 or above)
+### RST 18h: Output a stream of characters to the VDP (MOS 1.03 or above)
 
 Parameters:
 
