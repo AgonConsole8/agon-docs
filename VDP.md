@@ -1,4 +1,4 @@
-# What is the VPD
+# What is the VDP
 
 The VDP is the Agon's Visual Display Processor. It is responsible for:
 
@@ -8,7 +8,7 @@ The VDP is the Agon's Visual Display Processor. It is responsible for:
 
 It runs on the ESP32 co-processor and uses the FabGL library to support those functions.
 
-At a higher level, its input is a byte stream from the eZ80F92 main CPU over an internal high-speed UART connection @ 1,152,000 baud (384,000 baud for versions of MOS/VPD prior to 1.03). This stream contains a mixture of text and control characters. These control characters are mapped to the BBC BASIC VDU control characters, a choice made as BBC BASIC for Agon is the pre-installed programming language of Agon.
+At a higher level, its input is a byte stream from the eZ80F92 main CPU over an internal high-speed UART connection @ 1,152,000 baud (384,000 baud for versions of MOS/VDP prior to 1.03). This stream contains a mixture of text and control characters. These control characters are mapped to the BBC BASIC VDU control characters, a choice made as BBC BASIC for Agon is the pre-installed programming language of Agon.
 
 The ESP32 also outputs data back to the eZ80F92, for example keyboard data and screen information via a custom serial protocol.
 
@@ -59,7 +59,7 @@ The VDU command is a work-in-progress with a handful of mappings implemented.
 
 All other characters are sent to the screen as ASCII, unaltered.
 
-## VDU 23, 0: VPD commands
+## VDU 23, 0: VDP commands
 
 VDU 23, 0 is reserved for commands sent to the VDP
 
@@ -67,12 +67,12 @@ VDU 23, 0 is reserved for commands sent to the VDP
 - `VDU 23, 0, &82`: Request text cursor position
 - `VDU 23, 0, &83, x; y;`: Get ASCII code of character at character position x, y
 - `VDU 23, 0, &84, x; y;`: Get colour of pixel at pixel position x, y
-- `VDU 23, 0, &85, channel, command, <args>`: Send a command to the [VDP Enhanced Audio API](VDP-‐-Enhanced-Audio-API.md)
+- `VDU 23, 0, &85, channel, command, <args>`: Send a command to the [VDP Enhanced Audio API](VDP---Enhanced-Audio-API.md)
 - `VDU 23, 0, &86`: Fetch the screen dimensions 
 - `VDU 23, 0, &87`: RTC control (Requires MOS 1.03 or above)
 - `VDU 23, 0, &88, delay; rate; led`: Keyboard Control (Requires MOS 1.03 or above)
 - `VDU 23, 0, &89, command, [<args>]`: Mouse control
-- `VDU 23, 0, &A0, bufferId, command, <args>`: Send a command to the [VDP Buffered Commands API](VDP-‐-Buffered-Commands-API.md)
+- `VDU 23, 0, &A0, bufferId, command, <args>`: Send a command to the [VDP Buffered Commands API](VDP---Buffered-Commands-API.md)
 - `VDU 23, 0, &C0, n`: Turn logical screen scaling on and off, where 1=on and 0=off (Requires MOS 1.03 or above)
 - `VDU 23, 0, &C1, n`: Switch legacy modes on or off
 - `VDU 23, 0, &C3`: Flip the screen buffer (double-buffered modes only) or wait for VSYNC (all modes)
@@ -139,7 +139,7 @@ VDU 23, 27 is reserved for the bitmap, sprite, and mouse cursor functionality
 
 ## Serial Protocol
 
-Data sent from the VPD to the eZ80's UART0 is sent as a packet in the following format:
+Data sent from the VDP to the eZ80's UART0 is sent as a packet in the following format:
 
 - cmd: The packet command, with bit 7 set
 - len: Number of data bytes
