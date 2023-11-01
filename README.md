@@ -2,6 +2,10 @@
 
 This is not the offical documentation for Agon Light or its firmware Quark. You can find it [here](https://github.com/breakintoprogram/agon-docs/wiki). This community documentation was started, because GitHub wiki does not allow easy contributions by users. We don't use the wiki here, but just markdown files which are also automatically generated into a [website](https://agonconsole8.github.io/agon-docs/).
 
+## Want to contribute?
+
+Great, please go to the [github repository](https://github.com/AgonConsole8/agon-docs) and create a Pullrequest with your changes.
+
 ## What is the Agon Light
 
 The Agon Light is a modern, fully open-source, 8-bit microcomputer and microcontroller in one small, low-cost board, designed by Bernado Kastrup aka The Byte Attic. As a computer, it is a standalone device that requires no host PC: it puts out its own video (VGA), audio (2 identical mono channels), accepts a PS/2 keyboard and has its own mass-storage in the form of a µSD card.
