@@ -67,18 +67,18 @@ VDU 23, 0 is reserved for commands sent to the VDP
 - `VDU 23, 0, &82`: Request text cursor position
 - `VDU 23, 0, &83, x; y;`: Get ASCII code of character at character position x, y
 - `VDU 23, 0, &84, x; y;`: Get colour of pixel at pixel position x, y
-- `VDU 23, 0, &85, channel, command, volume, freq; duration;`: Send a command to the [VDP Enhanced Audio API](VDP-‐-Enhanced-Audio-API.md)
+- `VDU 23, 0, &85, channel, command, <args>`: Send a command to the [VDP Enhanced Audio API](VDP-‐-Enhanced-Audio-API.md)
 - `VDU 23, 0, &86`: Fetch the screen dimensions 
 - `VDU 23, 0, &87`: RTC control (Requires MOS 1.03 or above)
 - `VDU 23, 0, &88, delay; rate; led`: Keyboard Control (Requires MOS 1.03 or above)
+- `VDU 23, 0, &89, command, [<args>]`: Mouse control
+- `VDU 23, 0, &A0, bufferId, command, <args>`: Send a command to the [VDP Buffered Commands API](VDP-‐-Buffered-Commands-API.md)
 - `VDU 23, 0, &C0, n`: Turn logical screen scaling on and off, where 1=on and 0=off (Requires MOS 1.03 or above)
-- `VDU 23, 0, &A0, bufferId, command, <args>`: Buffered command support
-- `VDU 23, 0, &C0, n`: Set logical coordinate mode
 - `VDU 23, 0, &C1, n`: Switch legacy modes on or off
-- `VDU 23, 0, &C3`: Flip the screen buffer (double-buffered modes only)
+- `VDU 23, 0, &C3`: Flip the screen buffer (double-buffered modes only) or wait for VSYNC (all modes)
 - `VDU 23, 0, &FF`: Switch to terminal mode for CP/M (This will disable keyboard entry in BBC BASIC/MOS)
 
-Commands between &82 and &88 will return their data back to the eZ80 via the serial protocol
+Commands between &82 and &89 will return their data back to the eZ80 via the serial protocol
 
 NB:
 
@@ -102,22 +102,24 @@ NB:
 
 - `VDU 23, 16, setting, mask`: Specify [cursor behaviour](#cursor-behaviour) by ANDing with mask then XORing with setting
 
-## VDU 23, 27: Sprites and Bitmaps
+## VDU 23, 27: Bitmaps, sprites, and mouse cursor
 
-VDU 23, 27 is reserved for the bitmap and sprite functionality
+VDU 23, 27 is reserved for the bitmap, sprite, and mouse cursor functionality
 
 ### Bitmaps
 
-- `VDU 23, 27, 0, n`: Select bitmap n
+- `VDU 23, 27, 0, n`: Select bitmap n (equating to buffer ID numbered 64000+`n`)
 - `VDU 23, 27, 1, w; h; b1, b2 ... bn`: Load colour bitmap data into current bitmap
 - `VDU 23, 27, 2, w; h; col1; col2; b1, b2 ... bn`: Load monochrome bitmap data into current bitmap
-- `VDU 23, 27, 3, x; y;`: Draw current bitmap on screen at pixel position x, y
+- `VDU 23, 27, 3, x; y;`: Draw current bitmap on screen at pixel position x, y (a valid bitmap must be selected first)
+- `VDU 23, 27, &20, bufferId;`: Select bitmap using a 16-bit buffer ID
+- `VDU 23, 27, &21, w; h; format`: Create bitmap from selected buffer
 
 ### Sprites
 
 - `VDU 23, 27, 4, n`: Select sprite n
 - `VDU 23, 27, 5`: Clear frames in current sprite
-- `VDU 23, 27, 6, n`: Add bitmap n as a frame to current sprite
+- `VDU 23, 27, 6, n`: Add bitmap n as a frame to current sprite (where bitmap's buffer ID is 64000+`n`)
 - `VDU 23, 27, 7, n`: Activate n sprites
 - `VDU 23, 27, 8`: Select next frame of current sprite
 - `VDU 23, 27, 9`: Select previous frame of current sprite
@@ -127,7 +129,13 @@ VDU 23, 27 is reserved for the bitmap and sprite functionality
 - `VDU 23, 27, 13, x; y;`: Move current sprite to pixel position x, y
 - `VDU 23, 27, 14, x; y;`: Move current sprite by x, y pixels
 - `VDU 23, 27, 15`: Update the sprites in the GPU
-- `VDU 23, 27, 16`: Reset the sprites and clear all data (Requires MOS 1.03 or above)
+- `VDU 23, 27, 16`: Reset bitmaps and sprites and clear all data
+- `VDU 23, 27, 17`: Reset sprites (only) and clear all data
+- `VDU 23, 27, &26, n;`: Add bitmap n as a frame to current sprite using a 16-bit buffer ID
+
+### Mouse cursor
+
+- `VDU 23, 27, &40, hotX, hotY`: Setup a mouse cursor with a hotspot at hotX, hotY from the currently selected bitmap
 
 ## Serial Protocol
 
@@ -150,6 +158,7 @@ Packets:
 - `0x06, width, height, cols, rows, colours`: Screen dimensions - width and height are words
 - `0x07, year, month, day, dayOfYear, dayOfWeek, hour, minute, second`: RTC data
 - `0x08, delay, rate, led`: Keyboard status - delay and rate are words
+- `0x09, x, y, buttons, wheelDelta, deltaX, deltaY`: Mouse status - x, y, deltaX and deltaY are words
 
 ## Keyboard
 
