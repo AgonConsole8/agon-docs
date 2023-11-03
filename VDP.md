@@ -110,7 +110,7 @@ VDU 23, 27 is reserved for the bitmap, sprite, and mouse cursor functionality
 
 - `VDU 23, 27, 0, n`: Select bitmap n (equating to buffer ID numbered 64000+`n`)
 - `VDU 23, 27, 1, w; h; b1, b2 ... bn`: Load colour bitmap data into current bitmap
-- `VDU 23, 27, 2, w; h; col1; col2; b1, b2 ... bn`: Load monochrome bitmap data into current bitmap
+- `VDU 23, 27, 2, w; h; col1; col2;`: Create a solid colour rectangular bitmap (col1 and col2 form a 32 bit number in RGBA colour range.)
 - `VDU 23, 27, 3, x; y;`: Draw current bitmap on screen at pixel position x, y (a valid bitmap must be selected first)
 - `VDU 23, 27, &20, bufferId;`: Select bitmap using a 16-bit buffer ID
 - `VDU 23, 27, &21, w; h; format`: Create bitmap from selected buffer
