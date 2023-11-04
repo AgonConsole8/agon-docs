@@ -478,6 +478,19 @@ Returns:
 
 - A: FRESULT
 
+### 0x1D: mos_setkbvector
+
+Allows user programs to access VDP keyboard packets without overriding the entire uart0 interrupt handler.
+The user program registered, will be called during the uart0 interrupt handler, being passed the address of the full VDP keyboard packet. Normal MOS key handling is disabled when a user program is registered.
+
+Parameters:
+
+- C: Address length in HL (0 = 24bit, 1 = 16bit). If 1 then set the top byte of HLU(callback address) to MB (for ADL=0 callers)
+- HL(U): Callback address of user program to register, or 0 to clear any previously registered vector
+
+Returns: Nothing upon registration. The user program can expect the full VDP packet address in DE(24-bit) upon entry.
+
+[example code](https://github.com/tomm/agon-mos/blob/main/bin/kbvector.asm) that registers a custom handler.
 ***
 
 ## FatFS commands
@@ -670,6 +683,13 @@ sysvar_keydelay:	EQU	22h	; 2: Keyboard repeat delay
 sysvar_keyrate:		EQU	24h	; 2: Keyboard repeat rate
 sysvar_keyled:		EQU	26h	; 1: Keyboard LED status
 sysvar_scrMode:		EQU	27h	; 1: Screen mode (from MOS 1.04)
+sysvar_rtc_enable:	EQU 28h ; 1: RTC enable status (from Console8 MOS 2.0.0)
+sysvar_mouseX:		EQU 29h ; 2: Mouse X position
+sysvar_mouseY:		EQU 2Bh ; 2: Mouse Y position
+sysvar_mouseButtons:	EQU 2Dh ; 1: Mouse left+right+middle buttons (bits 0-2, 0=up, 1=down)
+sysvar_mouseWheel:		EQU 2Eh ; 1: Mouse wheel delta
+sysvar_mouseXDelta:		EQU 2Fh ; 2: Mouse X delta
+sysvar_mouseYDelta:		EQU 31h ; 2: Mouse Y delta
 ```
 Example: Reading a virtual keycode in ADL mode (24-bit):
 ```
