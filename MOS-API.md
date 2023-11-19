@@ -491,6 +491,71 @@ Parameters:
 Returns: Nothing upon registration. The user program can expect the full VDP packet address in DE(24-bit) upon entry.
 
 [example code](https://github.com/tomm/agon-mos/blob/main/bin/kbvector.asm) that registers a custom handler.
+
+### 0x1E: mos_getkbmap
+
+Fetch a pointer to the virtual keyboard map (Requires MOS 1.04 RC2 or above)
+
+Parameters: None
+
+Returns:
+
+- IXU: Pointer to the keyboard bitmap (this is always 24 bit)
+
+### 0x1F: mos_i2c_open
+
+Open the I2C bus as Master (Requires MOS 1.04 RC3 or above)
+
+Parameters:
+
+- C: Frequency ID (1: 57600, 2: 115200, 3: 230400)
+
+Returns: None
+
+### 0x20: mos_i2c_close
+
+Close the I2C bus (Requires MOS 1.04 RC3 or above)
+
+Parameters: None
+
+Returns: None
+
+### 0x21: mos_i2c_write
+
+Write a block of bytes to the I2C bus (Requires MOS 1.04 RC3 or above)
+
+Parameters:
+
+- C: I2C Address
+- B: Number of bytes to write (maximum 32)
+- HL(U): Pointer to a buffer to read the bytes from
+
+Returns:
+- A: Status
+	- 0: OK
+	- 1: No response from I2C slave
+	- 2: Data NACK
+	- 4: Bus arbitration lost
+	- 8: Bus error
+
+### 0x22: mos_i2c_read
+
+Read a block of bytes from the I2C bus (Requires MOS 1.04 RC3 or above)
+
+Parameters:
+
+- C: I2C Address
+- B: Number of bytes to read (maximum 32)
+- HL(U): Pointer to a buffer to write the bytes to
+
+Returns:
+- A: Status
+	- 0: OK
+	- 1: No response from I2C slave
+	- 2: Data NACK
+	- 4: Bus arbitration lost
+	- 8: Bus error
+
 ***
 
 ## FatFS commands
