@@ -29,7 +29,7 @@ The volume is a value from 0 to 127, where 0 is silent and 127 is full volume.  
 
 The frequency is a 16-bit value specifying in Hz the frequency of the note to be played.
 
-The duration is a 16-bit value specifying in milliseconds the duration of the note to be played.  Specifying a value of -1 (65535) will cause the note to be played indefinitely until the channel is silenced by setting its volume to zero.
+The duration is a 16-bit value specifying in milliseconds the duration of the note to be played.  Specifying a value of -1 (65535) will cause the note to be played indefinitely until the channel is silenced by setting its volume to zero.  Specifying a value of zero will play the note for the duration of the attack and decay phases of any volume envelope set on the channel.  Additionally using a duration of zero on a channel that has been set to playback a sample, the sample will be played for its full duration.  (NB this is the sample duration at the time the play command was called.  Streaming in more data for the sample will not extend the duration of the note.)
 
 Returns 1 if the note was successfully queued for playback, or 0 if the channel was already in use.
 
@@ -49,7 +49,7 @@ Returns a bit mask indicating the status of the specified channel, or 255 if the
 | 3 | Has Volume Envelope | Set if the channel has a volume envelope |
 | 4 | Has Frequency Envelope | Set if the channel has a frequency envelope |
 
-Bits 5-7 are reserved for future use and, for enabled channels, will always be zero.
+Bits 5-7 are reserved for future use and, for enabled channels, will currently always be zero.
 
 For example, calling this command on a channel that is playing a note with no envelopes set will return a value of 3 (00000011).  A channel with a volume envelope set where playback is in the "release" phase of the envelope, and thus is free to play a new note, will return a value of 9 (00001001).  A completely silent channel with no envelopes set returns 0, whereas a silent channel that has a frequency envelope set will return 16 (00010000).
 
@@ -70,7 +70,7 @@ Does not currently return a status.
 
 ### Special case: Volume envelope
 
-If the channel is actively playing a note with a volume envelope set on the channel then, rather than silencing the channel immediately, the volume envelope will be allowed to complete (enter its "release" phase) before the channel is silenced.  A channel with volume envelope in its "release" phase is not considered to be actively playing a note, so during this phase setting the volume to zero will immediately silence the channel.
+If the channel is actively playing a note with a volume envelope set on the channel then when setting the volume of a channel to zero, rather than silencing the channel immediately, the volume envelope will be allowed to complete (enter its "release" phase) before the channel is silenced.  A channel with volume envelope in its "release" phase is not considered to be actively playing a note, so during this phase setting the volume to zero will immediately silence the channel.
 
 Calling this command on a channel that has an active volume envelope adjusts the base volume level being applied to that envelope.  For more information see the documentation for the volume envelope command.
 
@@ -89,10 +89,14 @@ Does not currently return a status.
 
 If the channel has a frequency envelope set then adjusting the frequency value whilst a note is playing will adjust the base frequency level being applied to that envelope.  For more information see the documentation for the frequency envelope command.
 
+### Special case: Sample playback
+
+Adjusting the frequency of a channel that is playing a sample will only result in the playback frequency being adjusted if the sample has been set to be tuneable.  By default samples are not tuneable, and so adjusting the frequency of a channel playing a sample will have no effect.  For more information see the documentation for the sample command.
+
 
 ## Command 4: Set waveform
 
-`VDU 23, 0, &85, channel, 4, waveformOrSample`
+`VDU 23, 0, &85, channel, 4, waveformOrSample, [bufferId;]`
 
 Sets the waveform type for a channel to use.  The `waveformOrSample` value is a single byte treated as a signed value.
 
@@ -110,23 +114,28 @@ Valid waveform values are as follows:
 | 3 | Sine wave |
 | 4 | Noise (simple white noise with no frequency support) |
 | 5 | VIC Noise (emulates a VIC6561; supports frequency) |
+| 8 | Sample (specifying a 16-bit buffer ID for sample data) |
 
-Channels with a sample waveform set do not support frequency adjustment.
+When specifying a waveform type of `8` for a Sample, the buffer ID for the sample must be sent as the next 16-bit value.  There must be a sample created for the given buffer ID for the command to work, otherwise this command will fail.  Similarly if a negative waveform value is given to indicate a sample then the sample must have been created for the given sample number for the command to work.
 
-A channel with a sample set will ignore the frequency value set on the channel or in the play note command.  Samples will also automatically repeat if the note played is longer than the sample itself, or it is played for an indefinite duration.
+By default, a sample will ignore the frequency value set on the channel or in the play note command unless the sample has explicitly been set to be tuneable.  Samples will also, by default, automatically loop if the note played is longer than the sample itself, or it is played for an indefinite duration.  The sample will continue to loop until the note is stopped.  This behaviour can be changed with commands documented below.
 
 Does not currently return a status.
 
 
 ## Command 5: Sample management
 
-`VDU 23, 0, &85, sample, 5, sampleCommand, [parameters]`
+`VDU 23, 0, &85, channelOrSample, 5, sampleCommand, [parameters]`
 
 These commands are used to manage samples on the VDP which can be assigned to a channel as a waveform for playback.
 
-As they are intended to manage samples, the `sample` value is a sample number rather than a channel number.  This sample number is a signed 8-bit value and must be a negative number to be considered valid.  As a result, a total of 128 samples can be supported, from -1 to -128.  The sample number is used to identify the sample when assigning it to a channel using the "set waveform" command.
+Sample data is stored in buffers on the VDP, and can be manipulated using the [buffered commands API](VDP---Buffered-Commands-API.md).
+
+When a negative number is used in place of the channel number then the command is referring directly to a sample, rather than a channel.  Samples referenced in this manner are, by default, stored in buffers in the range 64256-64383 (`&FB00`-`&FB7F`).  To map a negative sample number to a buffer range, you need to negate it, subtract 1, and then add it to 64256.  This means sample number -1 is stored in buffer 64256, -2 is stored in buffer 64257, and so on.  Any buffer however can be used for sample data, using commands listed below that explicitly reference a buffer ID.
 
 Sample commands will return 1 if the command is processed successfully, or 0 to indicate a failure.
+
+Sample commands 5, 3 and above were added in the Console8 VDP 2.2.0 release.
 
 ### Command 5, 0: Load sample
 
@@ -134,13 +143,15 @@ Sample commands will return 1 if the command is processed successfully, or 0 to 
 
 This command is used to transfer a sample over to the VDP for later playback.
 
-The VDP supports 8-bit PCM samples at 16kHz only.  The sample data is sent as a series of bytes of the given length.
+As sample data can be long, rather than using this command, you are advised instead to upload your sample data to a buffer on the VDP in multiple blocks using the [buffered commands API](VDP---Buffered-Commands-API.md) and then use command 5, 2 (documented below) to indicate that the data within a buffer is a sound sample.  That approach also allows for the use of different formats of sample data.
+
+When using this command, the sample data is assumed to be 8-bit signed PCM samples at 16kHz.  The sample data is sent as a series of bytes of the given length.
 
 The length provided to this command is a 24-bit value, sent in little-endian order.  It has been documented above as a 16-bit value followed by an 8-bit value for simplicity and/or compatibility with BBC BASIC.  Using a 24-bit length gives us the flexibility to support samples larger than 64kB.
 
-Specifying a sample number that has already been used will overwrite the existing sample with the new sample data.  If the existing sample had been assigned to a channel for playback then playback will be stopped and the channel will be set to use the default waveform (square wave).
+Specifying a sample number that has already been used will overwrite the existing sample with the new sample data, deleting all data contained within the corresponding buffer.  If the existing sample had been assigned to a channel for playback then playback will be stopped and the channel will be set to use the default waveform (square wave).
 
-A simple example of how to send a sample to the VDP is as follows:
+A simple example of how to send a sample to the VDP using this command is as follows:
 
 ```
  10 REM Load a sample into the VDP
@@ -161,6 +172,8 @@ A simple example of how to send a sample to the VDP is as follows:
 
 NB This example can be very slow as it sends the sample data byte-by-byte, taking just over 1s to send 2kb of data.  During this time your computer will be unresponsive, and it is not possible to output to screen any kind of progress as any such `PRINT` command will be interpretted as part of the sample data.  Unfortunately at present there is no way to send data in bulk to the VDP from BBC BASIC, or to read chunks of files into memory in one go.  For faster transfer of sample data you will need to write a program in assembly language and make use of file access APIs from MOS and the RST #18 vector to send larger chunks of data to the VDP.
 
+The (buffered commands API documentation)[VDP---Buffered-Commands-API.md] provides an alternative example of sending sample data to the VDP which allows for progress to be reported whilst the sample is being uploaded.
+
 As noted above, this command will return 1 on success or 0 for failure.  In the event of a failure the VDP will ignore and discard the sample data being sent to it.
 
 Failure may occur if an invalid sample number was given, or if the VDP could not allocate sufficient memory to store the sample.
@@ -171,7 +184,117 @@ Failure may occur if an invalid sample number was given, or if the VDP could not
 
 Removes the given sample number from the VDP.  If the sample had been assigned to a channel for playback then playback will be stopped and the channel will be set to use the default waveform (square wave).
 
+Deleting the underlying buffer using the buffered commands API will also remove the sample from the VDP.
+
 This command will return 1 on success or 0 for failure.
+
+### Command 5, 2: Create a sample from a buffer
+
+`VDU 23, 0, &85, channel, 5, 2, bufferId; format, [sampleRate;]`
+
+This command is used to indicate that the data in the given buffer is a sound sample.  The channel number will be ignored for the purposes of this command, but will be used in the return result.
+
+The buffer ID is a 16-bit value giving the buffer number to use for the sample.  The buffer must have been created using the [buffered commands API](VDP---Buffered-Commands-API.md) before this command is called.
+
+The format is a single byte giving the format of the sample data.  The following formats are supported:
+
+| Value | Description |
+| ----- | ----------- |
+| 0     | 8-bit signed |
+| 1     | 8-bit unsigned |
+
+The format value can also have modifier bits set to modify the behaviour of the sample.  The following modifier bits are supported:
+
+| Value | Description |
+| ----- | ----------- |
+| 8     | sample rate is sent in the next 16-bits |
+| 16    | sample is tuneable |
+
+The default sample rate for samples on the VDP is 16kHz (actually 16.384kHz to be precise).
+
+If the sample is indicated to be tuneable then the sample will be set by default to have a base frequency of 523Hz (C5, or the C above middle C).  This can be adjusted using the sample set frequency command 5, 3 documented below.  If the sample is not indicated to be tuneable then the sample will ignore the frequency value set on the channel or in the play note command.
+
+Once a sample has been created in this way, the sample can be selected for use on a channel using the following command:
+
+```
+VDU 23, 0, &85, channel, 4, 8, bufferId;
+```
+
+Please note that if this command is called using a bufferId that has already been created as a sample then the existing sample definition will be overwritten.  This can be used, for example, to reset the parameters of a sample.  If the existing sample had been assigned to a channel for playback then playback will be stopped and the channel will be set to use the default waveform (square wave).
+
+This command will return 1 on success or 0 for failure.  The channel number of the response will correspond to the channel number giben to this command.
+
+Support for changing sample rates, and tuneable samples, was added in the Console8 VDP 2.2.0 release.
+
+### Command 5, 3: Set sample base frequency
+
+`VDU 23, 0, &85, sample, 5, 3, frequency;`
+
+Sets the base frequency of the given sample, allowing playback of the sample to be tuned to different frequencies.  The 16-bit frequency value given specifies the frequency value in Hz that the sample data is deemed to represent.
+
+If the frequency of a sample has not been specified (or is set to zero) then the sample playback system will ignore the frequency value set on the channel or in the play note command.  Setting a base frequency allows the frequency of playback to be adjusted.
+
+This command will return 1 on success or 0 for failure.
+
+This command was added in the Console8 VDP 2.2.0 release.
+
+### Command 5, 4: Set sample frequency for a sample by buffer ID
+
+`VDU 23, 0, &85, channel, 5, 4, bufferId; frequency;`
+
+Sets the base frequency of the sample identified by the given bufferId.  This command effectively operates the same as command 5, 3 but allows you to specify the sample by buffer ID rather than sample number.
+
+As with command 5, 2 the channel number will only be used for the return value and will otherwise be ignored.
+
+This command will return 1 on success or 0 for failure.
+
+This command was added in the Console8 VDP 2.2.0 release.
+
+### Command 5, 5: Set sample repeat start point
+
+`VDU 23, 0, &85, sample, 5, 5, repeatStart; repeatStartHighByte`
+
+Sets the start point for the sample repeat.  The repeat start point is a 24-bit value giving the offset in bytes from the start of the sample data to the point at which the sample should start repeating.  (See note against command 5, 0 for why this is a 24-bit value.)
+
+By default, samples will repeat from the start of the sample data.  Setting a repeat start point allows you to specify a point within the sample data from which the sample should repeat.  Setting a repeat start point to zero will cause the sample to repeat from the start of the sample data.  Setting a repeat start point to a value that goes beyond the end of the sample data will cause the sample to never repeat.
+
+This command will return 1 on success or 0 for failure.
+
+This command was added in the Console8 VDP 2.2.0 release.
+
+### Command 5, 6: Set sample repeat start point by buffer ID
+
+`VDU 23, 0, &85, channel, 5, 6, bufferId; repeatStart; repeatStartHighByte`
+
+Operates the same as command 5, 5 but similar to command 5, 4 allows you to specify the sample by buffer ID rather than sample number.
+
+This command will return 1 on success or 0 for failure.
+
+This command was added in the Console8 VDP 2.2.0 release.
+
+### Command 5, 7: Set sample repeat length
+
+`VDU 23, 0, &85, sample, 5, 7, repeatLength; repeatLengthHighByte`
+
+Sets the length of the sample repeat.  The repeat length is a 24-bit value giving the length in bytes of the sample repeat.  (See note against command 5, 0 for why this is a 24-bit value.)
+
+The default repeat length value for a sample is `-1` which indicates the sample should repeat until the end of the sample data, so by default samples will repeat.  (A length of -1 can be sent with this command as `&FFFF; &FF` for the length data.)
+
+Setting an explicit repeat length allows you to specify a length within the sample data for the sample to repeat.  Setting a length to zero, or a value that goes beyond the end of the sample data, will cause the sample to never repeat.
+
+This command will return 1 on success or 0 for failure.
+
+This command was added in the Console8 VDP 2.2.0 release.
+
+### Command 5, 8: Set sample repeat length by buffer ID
+
+`VDU 23, 0, &85, channel, 5, 8, bufferId; repeatLength; repeatLengthHighByte`
+
+Operates the same as command 5, 7 but similar to command 5, 4 allows you to specify the sample by buffer ID rather than sample number.
+
+This command will return 1 on success or 0 for failure.
+
+This command was added in the Console8 VDP 2.2.0 release.
 
 
 ## Command 6: Volume envelope
@@ -354,3 +477,55 @@ As with the disable command, any sound that may have been playing is instantly s
 Following a reset, the channel will be in the same state as it was when it was first enabled.  This includes the frequency, volume, and envelope settings.  Resetting a channel is a fast way to stop the sound on a channel, and clear any envelopes that may have been set.
 
 This command does not currently return a value.
+
+
+## Command 11: Seek to position
+
+`VDU 23, 0, &85, channel, 11, position; positionHighByte`
+
+For channels that are playing a sample, this command will seek to the given position within the sample data.  NB this is a byte offset from the start of the sample data, and not a time offset.
+
+This command does not currently return a value.
+
+This command was added in the Console8 VDP 2.2.0 release.
+
+
+## Command 12: Set duration
+
+`VDU 23, 0, &85, channel, 12, duration; durationHighByte`
+
+Adjusts the duration (in ms) of any currently playing note on a channel.  If a channel is not already playing a note, then a new note will be played for the duration given.  The new note will be played at the last frequency and volume set for the channel.
+
+This command can be used to play notes for a duration longer than can be specified in the play note command, which can be useful for playing long sound samples.
+
+When used on a channel that is already playing a note, if the duration set is less than the time that the channel has currently been playing then the note will be stopped.
+
+If the duration is set to -1 (65535) then the note will be played indefinitely until the channel is silenced by setting its volume to zero, or by setting a duration to less than the time that the channel has currently been playing.
+
+This command does not currently return a value.
+
+This command was added in the Console8 VDP 2.2.0 release.
+
+
+## Command 13: Set sample rate
+
+`VDU 23, 0, &85, channel, 13, sampleRate;`
+
+This command allows for the sample rate of a channel, or of the underlying audio system, to be adjusted.
+
+The primary intended use of this command is to allow for the sample rate of the underlying audio system to be adjusted.  This can be used to improve the quality of audio playback, or to reduce the processing time required by the VDP to play audio.  This is done by specifying a channel number of -1.  The sample rate is a 16-bit value specifying the number of samples per second to play.
+
+By default when your Agon starts up the audio system's sample rate is set to 16kHz (16.384kHz to be precise).  Using a higher sample rate may result in slightly better quality audio, but will also use more processing time on the VDP.  Higher sample rates can be useful for tuned sample playback, or for playing back samples that have been recorded at a higher sample rate.
+
+When specifying a specific channel number, the effect of this command is to have that channel behave as if the underlying audio system is operating at the given sample rate.  This can be used to adjust the pitch of a channel relative to other channels.  This means that setting a sample rate higher than the underlying audio system will result in the channel being pitched lower than other channels, and vice versa.  Setting an individual channel to use a higher sample rate than the underlying audio system will not result in any greater clarity for that channel, and may result in a loss of quality for that channel.
+
+Changing the sample rate of the underlying audio system will affect all channels, and at the same time will reset the sample rate of all the channels to the same value.  This means that if you have set an individual channel to use a different sample rate than the underlying audio system then that channel will be reset to use the same sample rate as the underlying audio system.
+
+When changing the sample rate for the underlying audio system, the frequency of note playback is not affected by the sample rate, so changing the sample rate will not affect the pitch of notes being played.
+
+(NB there is a bug in the underlying audio system that means that changing the underlying sample rate will cause the pitch of notes currently being played to change.  If the next note played on a channel is at exactly the same frequency as the last note that will also play at an incorrect pitch.  Playing a note at a different frequency will clear this issue and all subsequent notes will be played at the correct pitch.  This issue does not affect sample playback.  This bug will be fixed in a future release.)
+
+This command does not currently return a value.
+
+This command was added in the Console8 VDP 2.2.0 release.
+
