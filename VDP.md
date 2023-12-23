@@ -20,7 +20,7 @@ The VDU command interprets each of the integer values following the keyword as a
 
 Example:
 
-`VDU 25, 0, 640; 512;`: Plot a dot in the center of the screen
+`VDU 25, 69, 640; 512;`: Plot a dot in the center of the screen
 
 ### From MOS (Version 1.03 or greater)
 
