@@ -222,7 +222,7 @@ VDU 23, 0, &85, channel, 4, 8, bufferId;
 
 Please note that if this command is called using a bufferId that has already been created as a sample then the existing sample definition will be overwritten.  This can be used, for example, to reset the parameters of a sample.  If the existing sample had been assigned to a channel for playback then playback will be stopped and the channel will be set to use the default waveform (square wave).
 
-This command will return 1 on success or 0 for failure.  The channel number of the response will correspond to the channel number giben to this command.
+This command will return 1 on success or 0 for failure.  The channel number of the response will correspond to the channel number given to this command.
 
 Support for changing sample rates, and tuneable samples, was added in the Console8 VDP 2.2.0 release.
 
