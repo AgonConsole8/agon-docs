@@ -29,6 +29,7 @@ The Quark firmware is the official operating system for the Agon Light. It consi
 - [Mouser](https://www.mouser.com/ProductDetail/Olimex-Ltd/AgonLight2?qs=9vOqFld9vZWAIti5ng59Vw%3D%3D)
 - [The Pi Hut](https://thepihut.com/products/agonlight2-z80-bbc-basic-retro-single-board-computer)
 - [Olimex Ltd](https://www.olimex.com/Products/Retro-Computers/AgonLight2/open-source-hardware)
+- [DigiKey](https://www.digikey.com/en/products/detail/olimex-ltd/AGONLIGHT2/19204345)
 - [PCBWay](https://www.pcbway.com/project/gifts_detail/Agon_light_3f7ffaa8.html)
 - [Agon Light Australia](https://agonlight.au)
 - [Agon Light Store (UK)](http://agon-light.store)
