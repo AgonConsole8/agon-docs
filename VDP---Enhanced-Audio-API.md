@@ -172,7 +172,7 @@ A simple example of how to send a sample to the VDP using this command is as fol
 
 NB This example can be very slow as it sends the sample data byte-by-byte, taking just over 1s to send 2kb of data.  During this time your computer will be unresponsive, and it is not possible to output to screen any kind of progress as any such `PRINT` command will be interpretted as part of the sample data.  Unfortunately at present there is no way to send data in bulk to the VDP from BBC BASIC, or to read chunks of files into memory in one go.  For faster transfer of sample data you will need to write a program in assembly language and make use of file access APIs from MOS and the RST #18 vector to send larger chunks of data to the VDP.
 
-The (buffered commands API documentation)[VDP---Buffered-Commands-API.md] provides an alternative example of sending sample data to the VDP which allows for progress to be reported whilst the sample is being uploaded.
+The [VDP Buffered Commands API](VDP---Buffered-Commands-API.md) provides an alternative example of sending sample data to the VDP which allows for progress to be reported whilst the sample is being uploaded.
 
 As noted above, this command will return 1 on success or 0 for failure.  In the event of a failure the VDP will ignore and discard the sample data being sent to it.
 
