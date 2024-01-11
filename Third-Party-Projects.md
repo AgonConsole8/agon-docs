@@ -1,10 +1,19 @@
 # Third Party Projects
 
+Please note that this list is _far_ from exhaustive. If you have a project that you would like to add to this list, please submit a pull request.
+
+
+## Popup MOS
+
+https://github.com/tomm/popup-mos
+
+A batteries-included SDCard template for Agon Light / Agon Light 2 / Console8
+
 ## Flash Upgrader
 
 https://github.com/envenomator/agon-flash
 
-A utility to flash a MOS image to the eZ80F92 Flash without a ZDS USB cable
+A utility to flash a MOS image to the eZ80F92 Flash without a ZDS USB cable, and to update the VDP firmware.
 
 ## Hex Loader
 

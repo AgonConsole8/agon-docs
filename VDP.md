@@ -4,9 +4,10 @@ The VDP is the Agon's Visual Display Processor. It is responsible for:
 
 * Video output via the VGA connector
 * Audio output via the built-in buzzer and audio jack
-* Keyboard input via the PS/2 connector
+* Keyboard input via a PS/2 connector
+* Mouse input via a PS/2 connector (on the Agon Console8, or with an adapter on the Agon Light)
 
-It runs on the ESP32 co-processor and uses the FabGL library to support those functions.
+It runs on the ESP32-Pico-D4 co-processor and uses a fork of the FabGL library (known as vdp-gl) to support those functions.
 
 At a higher level, its input is a byte stream from the eZ80F92 main CPU over an internal high-speed UART connection @ 1,152,000 baud (384,000 baud for versions of MOS/VDP prior to 1.03). This stream contains a mixture of text and control characters. These control characters are mapped to the BBC BASIC VDU control characters, a choice made as BBC BASIC for Agon is the pre-installed programming language of Agon.
 
@@ -32,53 +33,75 @@ Example:
 
 ## VDU Character Sequences
 
-The VDU command is a work-in-progress with a handful of mappings implemented.
+The aim is that the Agon's VDP should be as compatible as practical with the BBC Micro's VDU command, as well as the VDU commands supported by later versions of Acorn and R.T.Russell's BBC BASICs.  Where necessary, some extensions have been added to help facilitate the Agon's unique features and architecture.
 
-- `VDU 8`: Cursor left
-- `VDU 9`: Cursor right
-- `VDU 10`: Cursor down
-- `VDU 11`: Cursor up
-- `VDU 12`: CLS
+The following VDU sequences are supported:
+
+- `VDU 0`: Null (no operation)
+- `VDU 4`: Write text at text cursor
+- `VDU 5`: Write text at graphics cursor
+- `VDU 7`: Make a short beep (BEL)
+- `VDU 8`: Move cursor back one character
+- `VDU 9`: Move cursor forward one character
+- `VDU 10`: Move cursor down one line
+- `VDU 11`: Move cursor up one line
+- `VDU 12`: Clear text area (`CLS`)
 - `VDU 13`: Carriage return
 - `VDU 14`: Page mode ON (VDP 1.03 or greater)
 - `VDU 15`: Page mode OFF (VDP 1.03 or greater)
-- `VDU 16`: CLG
-- `VDU 17 colour`: COLOUR colour
-- `VDU 18, mode, colour`: GCOL mode, colour
-- `VDU 19, l, p, r, g, b`: COLOUR l, p / COLOUR l, r, g, b
-- `VDU 22, n`: Mode n
-- `VDU 23, n`: UDG / System Commands
+- `VDU 16`: Clear graphics area (`CLG`)
+- `VDU 17, colour`: Define text colour (`COLOUR`)
+- `VDU 18, mode, colour`: Define graphics colour (`GCOL mode, colour`)
+- `VDU 19, l, p, r, g, b`: Define logical colour (`COLOUR l, p` / `COLOUR l, r, g, b`)
+- `VDU 22, n`: Select screen mode (`MODE n`)
+- `VDU 23, n`: Re-program display character / System Commands
 - `VDU 24, left; bottom; right; top;`: Set graphics viewport (VDP 1.04 or greater)
 - `VDU 25, mode, x; y;`: PLOT mode, x, y
 - `VDU 26`: Reset graphics and text viewports (VDP 1.04 or greater)
+- `VDU 27, char`: Output character to screen (Agon Console8 VDP 2.3.0 or later)
 - `VDU 28, left, bottom, right, top`: Set text viewport (VDP 1.04 or greater)
 - `VDU 29, x; y;`: Graphics origin
 - `VDU 30`: Home cursor
 - `VDU 31, x, y`: TAB(x, y)
 - `VDU 127`: Backspace
 
-All other characters are sent to the screen as ASCII, unaltered.
+All other characters, i.e. those in the range of 32 to 126 and 128 to 255, are sent to the screen as ASCII, unaltered.
+
+Any VDU command that is not recognised (such as `VDU 1`) will be ignored.
+
 
 ## VDU 23, 0: VDP commands
 
 VDU 23, 0 is reserved for commands sent to the VDP
 
+- `VDU 23, 0, &80, n`: General poll, which echoes back `n` to MOS (see [Serial Protocol](#serial-protocol))
 - `VDU 23, 0, &81, n`: Set the keyboard locale (0=UK, 1=US, etc) 
 - `VDU 23, 0, &82`: Request text cursor position
 - `VDU 23, 0, &83, x; y;`: Get ASCII code of character at character position x, y
 - `VDU 23, 0, &84, x; y;`: Get colour of pixel at pixel position x, y
-- `VDU 23, 0, &85, channel, command, <args>`: Send a command to the [VDP Enhanced Audio API](VDP---Enhanced-Audio-API.md)
-- `VDU 23, 0, &86`: Fetch the screen dimensions 
-- `VDU 23, 0, &87`: RTC control (Requires MOS 1.03 or above)
-- `VDU 23, 0, &88, delay; rate; led`: Keyboard Control (Requires MOS 1.03 or above)
-- `VDU 23, 0, &89, command, [<args>]`: Mouse control
-- `VDU 23, 0, &A0, bufferId, command, <args>`: Send a command to the [VDP Buffered Commands API](VDP---Buffered-Commands-API.md)
-- `VDU 23, 0, &C0, n`: Turn logical screen scaling on and off, where 1=on and 0=off (Requires MOS 1.03 or above)
-- `VDU 23, 0, &C1, n`: Switch legacy modes on or off
-- `VDU 23, 0, &C3`: Flip the screen buffer (double-buffered modes only) or wait for VSYNC (all modes)
-- `VDU 23, 0, &FF`: Switch to terminal mode for CP/M (This will disable keyboard entry in BBC BASIC/MOS)
+- `VDU 23, 0, &85, channel, command, <args>`: Send a command to the [VDP Enhanced Audio API](VDP---Enhanced-Audio-API.md) **
+- `VDU 23, 0, &86`: Fetch the screen dimensions
+- `VDU 23, 0, &87`: RTC control *
+- `VDU 23, 0, &88, delay; rate; led`: Keyboard Control *
+- `VDU 23, 0, &89, command, [<args>]`: Mouse control **
+- `VDU 23, 0, &90, n, b1, b2, b3, b4, b5, b6, b7, b8`: Redefine character n (0-255) with 8 bytes of data §
+- `VDU 23, 0, &91`: Reset all characters to original definition §
+- `VDU 23, 0, &92, char, bitmapId;`: Map character char to display bitmapId §§
+- `VDU 23, 0, &94, n`: Read colour palette entry n (returns a pixel colour data packet) §§
+- `VDU 23, 0, &A0, bufferId, command, <args>`: Send a command to the [VDP Buffered Commands API](VDP---Buffered-Commands-API.md) **
+- `VDU 23, 0, &A1`: Update VDP (for exclusive use of the agon-flash tool) **
+- `VDU 23, 0, &C0, n`: Turn logical screen scaling on and off, where 1=on and 0=off *
+- `VDU 23, 0, &C1, n`: Switch legacy modes on or off **
+- `VDU 23, 0, &C3`: Flip the screen buffer (double-buffered modes only) or wait for VSYNC (all modes) **
+- `VDU 23, 0, &FF`: Switch to or resume terminal mode for CP/M (This will disable keyboard entry in BBC BASIC/MOS)
 
-Commands between &82 and &89 will return their data back to the eZ80 via the serial protocol
+ \* Requires VDP 1.03 or above<br>
+ \** Requires VDP 1.04 or above<br>
+ § Requires Console8 VDP 2.3.0 or above<br>
+ §§ Requires Console8 VDP 2.4.0 or above
+ 
+
+Commands between &82 and &89 will return their data back to the eZ80 via the [serial protocol](#serial-protocol).
 
 NB:
 
@@ -88,6 +111,22 @@ NB:
 
 - `VDU 23, 0, 7, 0`: Read the RTC
 - `VDU 23, 0, 7, 1, y, m, d, h, m, s`: Set the RTC
+
+## Mouse control
+
+Commands beginning with `VDU 23, 0, &89` are reserved for mouse control, and are implemented from VDP 1.04 onwards.
+
+- `VDU 23, 0, &89, 0`: Enable the mouse
+- `VDU 23, 0, &89, 1`: Disable the mouse
+- `VDU 23, 0, &89, 2`: Reset the mouse
+- `VDU 23, 0, &89, 3, cursorId;`: Set mouse cursor
+- `VDU 23, 0, &89, 4, x; y;`: Set mouse cursor position
+- `VDU 23, 0, &89, 5, x1; y1; x2; y2;`: Reserved (Set mouse area - not yet implemented)
+- `VDU 23, 0, &89, 6, sampleRate;`: Set mouse sample rate
+- `VDU 23, 0, &89, 7, resolution;`: Set mouse resolution
+- `VDU 23, 0, &89, 8, scaling`: Set mouse scaling
+- `VDU 23, 0, &89, 9, acceleration;`: Set mouse acceleration
+- `VDU 23, 0, &89, 10, wheelAcceleration; wheelAccHighByte`: Set mouse wheel acceleration (accepts a 24-bit value)
 
 ## VDU 23, 1: Cursor display
 
@@ -147,6 +186,9 @@ Data sent from the VDP to the eZ80's UART0 is sent as a packet in the following 
 
 Words are 16 bit, and sent in little-endian format
 
+In general, as a programmer using an Agon you should not need to worry about any of these packets, as they are handled by MOS.  On receipt of one of these packets MOS sets system variables accordingly.  It will set a bit in the VDPProtocol status byte, and then whichever other system variables are relevant to the packet received.
+
+
 Packets:
 
 - `0x00`: General Poll
@@ -154,11 +196,11 @@ Packets:
 - `0x02, x, y`: Cursor position
 - `0x03, char`: Character read from screen
 - `0x04, r, g, b, index`: Pixel colour read from screen
-- `0x05, channel, success`: Audio play note acknowledgement
-- `0x06, width, height, cols, rows, colours`: Screen dimensions - width and height are words
+- `0x05, channel, status`: Audio command status (see [VDP Enhanced Audio API](VDP---Enhanced-Audio-API.md))
+- `0x06, width; height; cols, rows, colours`: Screen dimensions - width and height are words
 - `0x07, year, month, day, dayOfYear, dayOfWeek, hour, minute, second`: RTC data
 - `0x08, delay, rate, led`: Keyboard status - delay and rate are words
-- `0x09, x, y, buttons, wheelDelta, deltaX, deltaY`: Mouse status - x, y, deltaX and deltaY are words
+- `0x09, x; y; buttons, wheelDelta, deltaX; deltaY;`: Mouse status - x, y, deltaX and deltaY are words
 
 ## Keyboard
 
