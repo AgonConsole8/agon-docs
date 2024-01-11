@@ -12,7 +12,9 @@ include:
   - MOS-API.md
   - MOS.md
   - Projects.md
+  - Theory-of-operation.md
   - Third-Party-Projects.md
   - Updating-Firmware.md
+  - VDP---Buffered-commands-API.md
   - VDP---Enhanced-Audio-API.md
   - VDP.md

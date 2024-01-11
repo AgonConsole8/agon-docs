@@ -13,7 +13,9 @@ A common source of errors when sending commands to the VDP from BASIC via VDU st
 
 All commands must specify a buffer ID as a 16-bit integer.  There are 65534 buffers available for general use, with one buffer ID (number 65535) reserved for special functions, and is generally interpretted as meaning "current buffer".  As with all other VDP commands, these 16-bit values are sent as two bytes in little-endian order, and are documented as per BBC BASIC syntax, such as `bufferId;`.
 
-A single buffer can contain multiple blocks.  This allows for a buffer to be gradually built up over time, and for multiple commands to be sent to the VDP in a single packet.  This can be useful for sending large amounts of data to the VDP, such as a large bitmap or a sound sample, or for command sequences for more easily referencing an individual command.  By breaking up large data into smaller packets it is possible to avoid blocking the screen for long periods of time, allowing for a visual indicator of progress to be made to the user.
+On a restart all buffers will be empty.  One should not assume however that buffers are empty when your program is run, as other programs may have already used the buffers.  Indeed, it is a valid use case to have a "loader" program that is designed to be run before another program to prepare a set of buffers for that second program to use.  It is therefore advisable to clear out the buffers before use.
+
+A single buffer can contain multiple blocks.  This approach allows for a buffer to be gradually built up over time, and for multiple commands to be sent to the VDP in a single packet.  This can be useful for sending large amounts of data to the VDP, such as a large bitmap or a sound sample, or using smaller blocks to contain for command sequences for more easily referencing an individual command (or indeed even fragments of command sequences).  By breaking up large data into smaller packets it is possible to avoid blocking the screen for long periods of time, allowing for a visual indicator of progress to be made to the user.
 
 Many of the commands accept an offset within a buffer.  An offset is typically a 16-bit value, however as buffers can be larger than 64kb an "advanced" offset mode is provided.  This advanced mode allows for offsets to be specified as 24-bit values, and also provides for a mechanism to refer to individual blocks within a buffer.  When this mode is used, the offset is sent as 3 bytes in little-endian order.  If the top bit of an advanced offset is set, this indicates that _following_ the offset value there will be a 16-bit block number, with the remaining 23-bit offset value to be applied as an offset within the indicated block.  Using block offsets can be useful for modifying commands within buffers, as using block offsets can make identifying where parameters are placed within commands much easier to work out.
 
@@ -23,11 +25,13 @@ At this time the VDP Buffered Commands API does not send any messages back to MO
 
 `VDU 23, 0 &A0, bufferId; 0, length; <buffer-data>`
 
-This command is used to store a sequence of bytes in a buffer on the VDP.  It is primarily intended to be used to store a sequence of commands to be executed later.  The buffer is not executed by this command.
+This command is used to store a data block (a sequence of bytes) in a buffer on the VDP.  The exact nature of this data may vary.  It could be a sequence of VDU commands which can be executed later, a bitmap, a sound sample, or just a sequence of bytes.  When used for a sequence of VDU commands, this effectively allows for functions or stored procedures to be created.
+
+This is the most common command to use to send data to the VDP.  Typically you will call command 2 first to ensure that the buffer is empty, and then make a series of calls to this command to send data to the buffer.
 
 The `bufferId` is a 16-bit integer that identifies the buffer to write to.  Writing to the same buffer ID multiple times will add new blocks to that buffer.  This allows a buffer to be built up over time, essentially allowing for a command to be sent across to the VDP in multiple separate packets.
 
-Whilst the length of an individual block added using this command is restricted to 65535 bytes (the largest value that can be sent in a 16-bit number) the total size of a buffer is not restricted to this size, as multiple blocks can be added to a buffer.  Given how long it takes to send data to the VDP it is advisable to send data across in smaller chunks, such as 1kb of data or less at a time.
+Whilst the length of an individual block added using this command is restricted to 65535 bytes (as the largest value that can be sent in a 16-bit number) the total size of a buffer is _not_ restricted to this size, as multiple blocks can be added to a buffer.  Given how long it takes to send data to the VDP it is advisable to send data across in smaller chunks, such as 1kb of data or less at a time.
 
 As writing to a single buffer ID is cumulative with this command, care should be taken to ensure that the buffer is cleared out before writing to it.
 
@@ -121,17 +125,17 @@ Please note that this clears out all of the blocks sent to a buffer via command 
 
 Calling this command with a `bufferId` value of -1 (65535) will clear out all buffers.
 
-## Command 3: Create a buffer
+## Command 3: Create a writeable buffer
 
 `VDU 23, 0 &A0, bufferId; 3, length;`
 
-This command will create a new writeable buffer with the given ID.  If a buffer with the given ID already exists then this command will do nothing.
+This command will create a new writeable buffer with the given ID.  If a buffer with the given ID already exists then this command will do nothing.  This command is primarily intended for use to create a buffer that can be used to capture output using the "set output stream" command (see below), or to store data that can be used for other commands.
+
+It is generally quite rare that you will want to use this command.  Typically you will instead want to use command 0 to write data to a buffer.  It is not necessary to use this command before using command 0, and indeed doing so will lead to errors as you will end up with _two_ blocks in the buffer, the first of which will be empty.  If you _do_ wish to use this command to create a buffer for data and then write to it, you would need to use operation 2 of command 5, the "set" operation in the "buffer adjust" command, to set a sequence of bytes in the buffer to the data you want to write.  This is not recommended, as it is much easier to just use command 0 to write a data block to a buffer.
 
 This new buffer will be a single empty single block upon creation, containing zeros.
 
 The `length` parameter is a 16-bit integer that specifies the maximum size of the buffer.  This is the maximum number of bytes that can be stored in the buffer.  If the buffer is full then no more data can be written to it, and subsequent writes will be ignored.
-
-This command is primarily intended for use to create a buffer that can be used to capture output using the "set output stream" command (see below), or to store data that can be used for other commands.
 
 After creating a buffer with this command it is possible to use command 0 to write further blocks to the buffer, however this is _probably_ not advisable.
 

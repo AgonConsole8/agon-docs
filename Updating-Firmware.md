@@ -1,5 +1,7 @@
 ## How to upgrade from Quark 1.02 to 1.03 using the Agon-Flash utility
 
+NB this document is very outdated and needs to be rewritten.  If you have found your way here, please be aware that the instructions below are no longer correct, or the best way to udpate your Agon machine.
+
 Instructions kindly collated by Tim Delmare
 
 ### Disclaimer
