@@ -325,6 +325,8 @@ Volume envelopes have the concept of a "release" phase.  When a channel playing 
 
 It should be noted that volume envelopes are compatible with sample playback.  If a channel is set to play a sample and has a volume envelope set then it will be applied to the sample playback.  As the "release" phase of a volume envelope is not considered to be part of the duration of a note though, this means that some attention needs to be paid to the duration of notes when playing samples.  You are advised to either use envelopes without a release phase (i.e. with a release duration of `0`), or to subtract the duration of the release phase from the duration of the note when playing a sample.  Giving the complete duration of the sample when playing a note would otherwise result in the sample starting to repeat when the "release" phase begins.
 
+With all volume envelope types, it should be noted that the maximum volume level that the sound system supports is 127, and so volumes will get clipped to that level.
+
 Returns 1 on success, 0 for failure.
 
 Prior to Console8 VDP 2.5.0 this command did not return a status.
@@ -375,6 +377,41 @@ The ADSR envelope set here has an attack phase of 400ms, a decay phase of 100ms,
 What you hear when this code runs is a note that starts off quiet and over 0.4s it gradually gets louder until it reaches the target volume of 60 - this is the attack phase.  The note quickly over the next 0.1s reduces its volume down to the sustain level of 47 (calculated using (60 * 100) / 127) - this is the decay phase.  The note then holds at this volume level for a further 1s, at which point a total of 1500ms has elapsed (the note duration we sent to the play note command) - this is the sustain phase.  Finally the note gradually reduces its volume over 2s until it is silent - this is the release phase.
 
 As noted elsewhere, during this release phase the channel is considered to be free and so can be used to play another note.  Playing another note will interrupt the release phase and the new note will immediately play.
+
+### Type 2: Multi-phase ADSR
+
+`VDU 23, 0, &85, channel, 6, 2, attackCount, [level, duration;]*, sustainCount, [level, duration;]*, releaseCount, [level, duration;]*`
+
+\* this sub-phase data is optional, dependening on the preceding count value, and will repeat as necessary to match the count.
+
+This command will set up a volume envelope that supports multiple sub-phases for each attack/decay, sustain, and release phases.  Conceptually this command is similar to the simpler type 1 ADSR envelope, but it allows each phase to be split into sub-phases for greater control.
+
+This is a variable length command, with the exact format and number of parameters determined by the command itself.
+
+Each sub-phase consists of two pieces of data; a target volume level, and the duration of that sub-phase in the format `level, duration;`.  The duration is a 16-bit value setting the length in ms for that sub-phase.  The target volume level is the envelope data is a number from 0-255 and specifies a relative level centred around 127.  The actual target level, to be reached by the end of that sub-phase, is calculated as follows:
+```
+actualTarget = (noteVolume * targetLevel) / 127
+```
+(This is the same formula that the type 1 ADSR envelope uses for calculating the volume level its the sustain phase.)
+
+Unlike a type 1 ADSR envelope, this envelope type considers "attack" and "decay" to be part of the same envelope phase.  You can simulate distinct "attack" and "decay" phases by providing separate sub-phases for each within the attack/decay phase.
+
+Specifying zero attack/decay sub-phases is equivalent to specifying a single attack sub-phase with target volume level 127 of 0ms duration.
+
+As the "sustain" phase of a volume envelope extends until the note duration has completed, it gets some special consideration.  The following rules will apply:
+
+* if no sustain phases are defined then the sustain level will match the end target level of the attack/decay phase
+* if sustain sub-phases only consist of zero duration entries then the envelope will automatically evenly spread the remaining note duration amongst these sub-phases
+* if any sub-phases contain a duration then the sustain phase will loop through these sub-phases
+    * mixing in zero duration sub-phases will cause abrupt volume level steps
+
+Envelopes with looping sustain phases will always complete a loop cycle before moving on to the release phase.  This means that a note effectively automatically extends its duration.  The audio system will, however, consider the note to be completed once the duration has been reached, even if the note is part-way through a "sustain" loop, allowing playback to be interrupted to start a new note.
+
+Once the sustain phase has completed the envelope will process the release sub-phases.  Conventionally the final release sub-phase will typically target a volume level of 0 for silence, although this is not required.
+
+TODO: add some examples
+
+Support for this envelope type was added in Agon Console8 VDP 2.5.0.
 
 
 ## Command 7: Frequency envelope
@@ -556,4 +593,17 @@ Returns 1 on success, 0 for failure.
 Prior to Console8 VDP 2.5.0 this command did not return a status.
 
 This command was added in the Console8 VDP 2.2.0 release.
+
+
+## Command 14: Set channel waveform parameters
+
+`VDU 23, 0, &85, channel, 14, parameter, value`
+
+The exact use of this command will vary depending upon the waveform type being used by the channel.
+
+At present only one waveform type, the square wave, supports a parameter, which sets the duty cycle for the square wave.
+
+Returns 1 on success, 0 for failure.
+
+This command was added in the Console8 VDP 2.5.0 release.
 
