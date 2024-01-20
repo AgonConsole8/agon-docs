@@ -476,7 +476,7 @@ Spreads the blocks from a buffer across blocks starting at the target buffer ID.
 
 This essentially works the same as command 21, and the same notes about copying and moving blocks apply.  Blocks are spread in the same manner as commands 17 and 20.
 
-## Command 23: Reverse the order of blocks in a buffer
+## Command 23: Reverse the order of blocks in a buffer
 
 `VDU 23, 0, &A0, bufferId; 23`
 

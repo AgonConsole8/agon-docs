@@ -601,7 +601,26 @@ This command was added in the Console8 VDP 2.2.0 release.
 
 The exact use of this command will vary depending upon the waveform type being used by the channel.
 
-At present only one waveform type, the square wave, supports a parameter, which sets the duty cycle for the square wave.
+| Parameter | Description |
+| --------- | ----------- |
+| 0         | Duty cycle (0-255 for 0-100% - only applicable for channels with a square wave set) |
+| 2         | Volume (0-127 for 0-100%) |
+| 3         | Frequency (lower 8-bits only) |
+| &83       | Frequency (full 16-bit value) |
+
+The upper bits of the parameter byte are used to indicate the way that the value will be interpreted.  The following bits are defined:
+
+| Bit | (Hex) | Meaning |
+| --- | ----- | ------- |
+| 7   | &80   | on = 16-bit value, off = 8-bit value |
+
+When a 16-bit value is used, the value is sent as two bytes in little-endian order, i.e. with the low byte first.  When a 8-bit value is used, the value is sent as a single byte.  If you specify a 16-bit value and only send a single byte then the next byte sent to the VDP (which you probably intended to be used for the next VDU command) will be used as the high byte of the value.
+
+If you provide a 16-bit value for a parameter that only supports an 8-bit value then the value will be truncated to 8-bits, i.e. the high 8-bits will be ignored.
+
+Future versions of this command may support setting other parameters, and the use of flags in the upper bits of the parameter byte to indicate different ways of interpreting the value provided.
+
+(Planned future versions of this command may support adjusting the parameter using a relative value, rather than an absolute one, or may support adjusting the parameter using a multiplier.  These features are not yet supported.)
 
 Returns 1 on success, 0 for failure.
 
