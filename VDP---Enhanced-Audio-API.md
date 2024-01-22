@@ -58,15 +58,23 @@ For example, calling this command on a channel that is playing a note with no en
 
 `VDU 23, 0, &85, channel, 2, volume`
 
-Sets the volume of the specified channel.  The volume is a value from 0 to 127, where 0 is silent and 127 is full volume.  Values above 127 will be treated as 127.
+Sets the volume of the specified channel.  The volume is a value from 0 to 127, where 0 is silent and 127 is full volume.  Values over 127 will be treated as 127 (with one exception described later).
+
+Specifying a channel of -1 (or 255) will set the global sound system volume level. (Requires Console8 VDP 2.5.0 or later.)
 
 Using this command provides more direct control over a channel than the play note command.  It can be used to adjust the volume of a channel that is already playing a note.
 
 Setting a non-zero volume level on a channel that is silent and not playing a note will cause the channel to play a note at the specified volume for an indefinite duration.  The note will be played at the frequency that was last set on the channel.
 
-Setting the volume to zero will silence the channel.  This can curtail the playback of a note that is currently playing, or silence a channel that is playing an indefinite duration note.
+Setting the volume to zero on a channel that is playing a note will silence the channel.  Whether this also aborts the note playback will depend on the VDP version you are using, and how you have set up the channel.
 
-Does not currently return a status.
+Up to the Console8 VDP 2.4.0 release, setting the volume to zero will always abort note playback on a channel.
+
+From Console8 VDP 2.5.0 onwards, for channels that are playing a sample that has not reached the end of playback, setting the volume to zero will allow that sample to continue playing.  Attempting to play a new note on that channel will restart the sample.  Changing the sample will abort playback.  To guarantee stopping sample playback, set the duration to zero.  Behaviour for channels using other waveform types is unchanged.
+
+Returns back the volume level set or -1 (255) to indicate a failure.  Attempting to set the volume to -1 (or 255) on Console8 VDP 2.5.0 or later will _not_ attempt to change the volume but instead will just return back the current volume level.
+
+Prior to Console8 VDP 2.5.0 this command did not return a status.
 
 ### Special case: Volume envelope
 
@@ -83,7 +91,9 @@ Sets the frequency of the specified channel.  The frequency is a 16-bit value sp
 
 Using this command provides more direct control over a channel than the play note command.  It can be used to adjust the frequency of a channel that is already playing a note.
 
-Does not currently return a status.
+Returns 1 on success, 0 for failure.
+
+Prior to Console8 VDP 2.5.0 this command did not return a status.
 
 ### Special case: Frequency envelope
 
@@ -120,7 +130,9 @@ When specifying a waveform type of `8` for a Sample, the buffer ID for the sampl
 
 By default, a sample will ignore the frequency value set on the channel or in the play note command unless the sample has explicitly been set to be tuneable.  Samples will also, by default, automatically loop if the note played is longer than the sample itself, or it is played for an indefinite duration.  The sample will continue to loop until the note is stopped.  This behaviour can be changed with commands documented below.
 
-Does not currently return a status.
+Returns 1 on success, 0 for failure.
+
+Prior to Console8 VDP 2.5.0 this command did not return a status.
 
 
 ## Command 5: Sample management
@@ -313,7 +325,11 @@ Volume envelopes have the concept of a "release" phase.  When a channel playing 
 
 It should be noted that volume envelopes are compatible with sample playback.  If a channel is set to play a sample and has a volume envelope set then it will be applied to the sample playback.  As the "release" phase of a volume envelope is not considered to be part of the duration of a note though, this means that some attention needs to be paid to the duration of notes when playing samples.  You are advised to either use envelopes without a release phase (i.e. with a release duration of `0`), or to subtract the duration of the release phase from the duration of the note when playing a sample.  Giving the complete duration of the sample when playing a note would otherwise result in the sample starting to repeat when the "release" phase begins.
 
-Volume envelope commands do not currently return a status.
+With all volume envelope types, it should be noted that the maximum volume level that the sound system supports is 127, and so volumes will get clipped to that level.
+
+Returns 1 on success, 0 for failure.
+
+Prior to Console8 VDP 2.5.0 this command did not return a status.
 
 The following envelope types are supported:
 
@@ -362,6 +378,41 @@ What you hear when this code runs is a note that starts off quiet and over 0.4s 
 
 As noted elsewhere, during this release phase the channel is considered to be free and so can be used to play another note.  Playing another note will interrupt the release phase and the new note will immediately play.
 
+### Type 2: Multi-phase ADSR
+
+`VDU 23, 0, &85, channel, 6, 2, attackCount, [level, duration;]*, sustainCount, [level, duration;]*, releaseCount, [level, duration;]*`
+
+\* this sub-phase data is optional, dependening on the preceding count value, and will repeat as necessary to match the count.
+
+This command will set up a volume envelope that supports multiple sub-phases for each attack/decay, sustain, and release phases.  Conceptually this command is similar to the simpler type 1 ADSR envelope, but it allows each phase to be split into sub-phases for greater control.
+
+This is a variable length command, with the exact format and number of parameters determined by the command itself.
+
+Each sub-phase consists of two pieces of data; a target volume level, and the duration of that sub-phase in the format `level, duration;`.  The duration is a 16-bit value setting the length in ms for that sub-phase.  The target volume level is the envelope data is a number from 0-255 and specifies a relative level centred around 127.  The actual target level, to be reached by the end of that sub-phase, is calculated as follows:
+```
+actualTarget = (noteVolume * targetLevel) / 127
+```
+(This is the same formula that the type 1 ADSR envelope uses for calculating the volume level its the sustain phase.)
+
+Unlike a type 1 ADSR envelope, this envelope type considers "attack" and "decay" to be part of the same envelope phase.  You can simulate distinct "attack" and "decay" phases by providing separate sub-phases for each within the attack/decay phase.
+
+Specifying zero attack/decay sub-phases is equivalent to specifying a single attack sub-phase with target volume level 127 of 0ms duration.
+
+As the "sustain" phase of a volume envelope extends until the note duration has completed, it gets some special consideration.  The following rules will apply:
+
+* if no sustain phases are defined then the sustain level will match the end target level of the attack/decay phase
+* if sustain sub-phases only consist of zero duration entries then the envelope will automatically evenly spread the remaining note duration amongst these sub-phases
+* if any sub-phases contain a duration then the sustain phase will loop through these sub-phases
+    * mixing in zero duration sub-phases will cause abrupt volume level steps
+
+Envelopes with looping sustain phases will always complete a loop cycle before moving on to the release phase.  This means that a note effectively automatically extends its duration.  The audio system will, however, consider the note to be completed once the duration has been reached, even if the note is part-way through a "sustain" loop, allowing playback to be interrupted to start a new note.
+
+Once the sustain phase has completed the envelope will process the release sub-phases.  Conventionally the final release sub-phase will typically target a volume level of 0 for silence, although this is not required.
+
+TODO: add some examples
+
+Support for this envelope type was added in Agon Console8 VDP 2.5.0.
+
 
 ## Command 7: Frequency envelope
 
@@ -375,7 +426,9 @@ The frequency given either by the play note command or the set frequency command
 
 When a frequency envelope has been applied to a channel it will be applied to all notes played on that channel until the envelope is changed or removed, just like it would on a synthesiser.
 
-Frequency envelope commands do not currently return a status.
+Returns 1 on success, 0 for failure.
+
+Prior to Console8 VDP 2.5.0 this command did not return a status.
 
 The following envelope types are supported:
 
@@ -446,7 +499,9 @@ Attempting to enable an already enabled channel will have no effect.
 
 It should be noted that enabling a channel has a cost, and so it is recommended that you only enable channels that you are actually using.  The performance of the VDP with a large number of channels enabled has not been tested.
 
-This command does not currently return a value.
+Returns 1 on success, 0 for failure.
+
+Prior to Console8 VDP 2.5.0 this command did not return a status.
 
 
 ## Command 9: Disable Channel
@@ -461,7 +516,9 @@ Attempting to disable an already disabled channel will have no effect.
 
 Re-enabling a disabled channel will give you a fresh channel, with none of the previous settings for that channel being retained.
 
-This command does not currently return a value.
+Returns 1 on success, 0 for failure.
+
+Prior to Console8 VDP 2.5.0 this command did not return a status.
 
 
 ## Command 10: Reset Channel
@@ -476,7 +533,9 @@ As with the disable command, any sound that may have been playing is instantly s
 
 Following a reset, the channel will be in the same state as it was when it was first enabled.  This includes the frequency, volume, and envelope settings.  Resetting a channel is a fast way to stop the sound on a channel, and clear any envelopes that may have been set.
 
-This command does not currently return a value.
+Returns 1 on success, 0 for failure.
+
+Prior to Console8 VDP 2.5.0 this command did not return a status.
 
 
 ## Command 11: Seek to position
@@ -485,7 +544,9 @@ This command does not currently return a value.
 
 For channels that are playing a sample, this command will seek to the given position within the sample data.  NB this is a byte offset from the start of the sample data, and not a time offset.
 
-This command does not currently return a value.
+Returns 1 on success, 0 for failure.
+
+Prior to Console8 VDP 2.5.0 this command did not return a status.
 
 This command was added in the Console8 VDP 2.2.0 release.
 
@@ -502,7 +563,9 @@ When used on a channel that is already playing a note, if the duration set is le
 
 If the duration is set to -1 (65535) then the note will be played indefinitely until the channel is silenced by setting its volume to zero, or by setting a duration to less than the time that the channel has currently been playing.
 
-This command does not currently return a value.
+Returns 1 on success, 0 for failure.
+
+Prior to Console8 VDP 2.5.0 this command did not return a status.
 
 This command was added in the Console8 VDP 2.2.0 release.
 
@@ -513,7 +576,7 @@ This command was added in the Console8 VDP 2.2.0 release.
 
 This command allows for the sample rate of a channel, or of the underlying audio system, to be adjusted.
 
-The primary intended use of this command is to allow for the sample rate of the underlying audio system to be adjusted.  This can be used to improve the quality of audio playback, or to reduce the processing time required by the VDP to play audio.  This is done by specifying a channel number of -1.  The sample rate is a 16-bit value specifying the number of samples per second to play.
+The primary intended use of this command is to allow for the sample rate of the underlying audio system to be adjusted.  This can be used to improve the quality of audio playback, or to reduce the processing time required by the VDP to play audio.  This is done by specifying a channel number of -1 (255).  The sample rate is a 16-bit value specifying the number of samples per second to play.
 
 By default when your Agon starts up the audio system's sample rate is set to 16kHz (16.384kHz to be precise).  Using a higher sample rate may result in slightly better quality audio, but will also use more processing time on the VDP.  Higher sample rates can be useful for tuned sample playback, or for playing back samples that have been recorded at a higher sample rate.
 
@@ -525,7 +588,41 @@ When changing the sample rate for the underlying audio system, the frequency of 
 
 (NB there is a bug in the underlying audio system that means that changing the underlying sample rate will cause the pitch of notes currently being played to change.  If the next note played on a channel is at exactly the same frequency as the last note that will also play at an incorrect pitch.  Playing a note at a different frequency will clear this issue and all subsequent notes will be played at the correct pitch.  This issue does not affect sample playback.  This bug will be fixed in a future release.)
 
-This command does not currently return a value.
+Returns 1 on success, 0 for failure.
+
+Prior to Console8 VDP 2.5.0 this command did not return a status.
 
 This command was added in the Console8 VDP 2.2.0 release.
+
+
+## Command 14: Set channel waveform parameters
+
+`VDU 23, 0, &85, channel, 14, parameter, value`
+
+The exact use of this command will vary depending upon the waveform type being used by the channel.
+
+| Parameter | Description |
+| --------- | ----------- |
+| 0         | Duty cycle (0-255 for 0-100% - only applicable for channels with a square wave set) |
+| 2         | Volume (0-127 for 0-100%) |
+| 3         | Frequency (lower 8-bits only) |
+| &83       | Frequency (full 16-bit value) |
+
+The upper bits of the parameter byte are used to indicate the way that the value will be interpreted.  The following bits are defined:
+
+| Bit | (Hex) | Meaning |
+| --- | ----- | ------- |
+| 7   | &80   | on = 16-bit value, off = 8-bit value |
+
+When a 16-bit value is used, the value is sent as two bytes in little-endian order, i.e. with the low byte first.  When a 8-bit value is used, the value is sent as a single byte.  If you specify a 16-bit value and only send a single byte then the next byte sent to the VDP (which you probably intended to be used for the next VDU command) will be used as the high byte of the value.
+
+If you provide a 16-bit value for a parameter that only supports an 8-bit value then the value will be truncated to 8-bits, i.e. the high 8-bits will be ignored.
+
+Future versions of this command may support setting other parameters, and the use of flags in the upper bits of the parameter byte to indicate different ways of interpreting the value provided.
+
+(Planned future versions of this command may support adjusting the parameter using a relative value, rather than an absolute one, or may support adjusting the parameter using a multiplier.  These features are not yet supported.)
+
+Returns 1 on success, 0 for failure.
+
+This command was added in the Console8 VDP 2.5.0 release.
 
