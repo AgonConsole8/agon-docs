@@ -384,7 +384,7 @@ Works just like "Call a buffer" (command 1), except that it also accepts an adva
 
 Works just like the "Conditional call a buffer" command (command 6), except that it also accepts an advanced offset.
 
-## Command 13: Copy blocks from multiple buffers into a single buffer
+<h2 id="command-13">Command 13: Copy blocks from multiple buffers into a single buffer</h2>
 
 `VDU 23, 0, &A0, targetBufferId; 13, sourceBufferId1; sourceBufferId2; ... 65535;`
 
@@ -531,6 +531,22 @@ For an RGBA8888 bitmap we need to set our options to indicate 32-bit values as w
 ```
 VDU 23, 0, &A0, bufferId; 24, 6, width * 4
 ```
+
+## Command 25: Copy blocks by reference
+
+`VDU 23, 0, &A0, targetBufferId; 25, sourceBufferId1; sourceBufferId2; ...; 65535;`
+
+This command is essentially a version of [command 13](#command-13) that copies blocks by reference rather than by value.  The parameters for this command are the same as for command 13, and the same rules apply.
+
+If the target buffer is included in the list of source buffers then it will be skipped to prevent a reference loop.
+
+Copying by reference means that the blocks in the target buffer will point to the same memory as the blocks in the source buffers.  Operations to modify data blocks in the source buffers will therefore also modify those blocks in the target buffer.  Clearing the source buffers will not clear the target buffer - it will still point to the original data blocks.  Data blocks are only freed from memory when no buffers are left with any references to them.
+
+Buffers that get consolidated become new blocks, so will lose their links to the original blocks, thus after a "consolidate" operation modifications to the original blocks will no longer be reflected in the consolidated buffer.
+
+This command is useful to construct a single buffer from multiple sources without the copy overhead.  For example, this can be useful for constructing a bitmap from multiple constituent parts before consolidating it into a single block.  In such an example, using command 13 instead would first make a copy of the contents of the source buffers, and then consolidate them into a single block.  Using this command does not make that first copy, and so would be faster.
+
+This command is also useful for creating multiple buffers that all point to the same data.
 
 
 ## Examples
