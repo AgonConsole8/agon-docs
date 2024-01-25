@@ -23,7 +23,7 @@ Example:
 
 `VDU 25, 69, 640; 512;`: Plot a dot in the center of the screen
 
-### From MOS (Version 1.03 or greater)
+### From MOS command line (Version 1.03 or greater)
 
 The VDU command accepts values between 0 and 255 and are separated by spaces.
 
@@ -38,8 +38,12 @@ The aim is that the Agon's VDP should be as compatible as practical with the BBC
 The following VDU sequences are supported:
 
 - `VDU 0`: Null (no operation)
+- `VDU 1`: Send next character to "printer" (if "printer" is enabled) §§
+- `VDU 2`: Enable "printer" §§
+- `VDU 3`: Disable "printer" §§
 - `VDU 4`: Write text at text cursor
 - `VDU 5`: Write text at graphics cursor
+- `VDU 6`: Enable screen (opposite of `VDU 21`) §§
 - `VDU 7`: Make a short beep (BEL)
 - `VDU 8`: Move cursor back one character
 - `VDU 9`: Move cursor forward one character
@@ -47,27 +51,34 @@ The following VDU sequences are supported:
 - `VDU 11`: Move cursor up one line
 - `VDU 12`: Clear text area (`CLS`)
 - `VDU 13`: Carriage return
-- `VDU 14`: Page mode ON (VDP 1.03 or greater)
-- `VDU 15`: Page mode OFF (VDP 1.03 or greater)
+- `VDU 14`: Page mode On *
+- `VDU 15`: Page mode Off *
 - `VDU 16`: Clear graphics area (`CLG`)
 - `VDU 17, colour`: Define text colour (`COLOUR`)
 - `VDU 18, mode, colour`: Define graphics colour (`GCOL mode, colour`)
 - `VDU 19, l, p, r, g, b`: Define logical colour (`COLOUR l, p` / `COLOUR l, r, g, b`)
+- `VDU 20`: Reset palette and text/graphics colours and drawing modes §§
+- `VDU 21`: Disable screen (turns of VDU command processing, except for `VDU 1` and `VDU 6`) §§
 - `VDU 22, n`: Select screen mode (`MODE n`)
 - `VDU 23, n`: Re-program display character / System Commands
-- `VDU 24, left; bottom; right; top;`: Set graphics viewport (VDP 1.04 or greater)
+- `VDU 24, left; bottom; right; top;`: Set graphics viewport **
 - `VDU 25, mode, x; y;`: PLOT mode, x, y
-- `VDU 26`: Reset graphics and text viewports (VDP 1.04 or greater)
-- `VDU 27, char`: Output character to screen (Agon Console8 VDP 2.3.0 or later)
-- `VDU 28, left, bottom, right, top`: Set text viewport (VDP 1.04 or greater)
-- `VDU 29, x; y;`: Graphics origin
+- `VDU 26`: Reset graphics and text viewports **
+- `VDU 27, char`: Output character to screen §
+- `VDU 28, left, bottom, right, top`: Set text viewport **
+- `VDU 29, x; y;`: Set graphics origin
 - `VDU 30`: Home cursor
-- `VDU 31, x, y`: TAB(x, y)
+- `VDU 31, x, y`: Move text cursor to x, y text position (`TAB(x, y)`)
 - `VDU 127`: Backspace
 
 All other characters, i.e. those in the range of 32 to 126 and 128 to 255, are sent to the screen as ASCII, unaltered.
 
-Any VDU command that is not recognised (such as `VDU 1`) will be ignored.
+Any VDU command that is the VDP does not recognise (such as `VDU 2` when running on Quark 1.04) will be ignored.
+
+ \* Requires VDP 1.03 or above<br>
+ \** Requires VDP 1.04 or above<br>
+ § Requires Console8 VDP 2.3.0 or above<br>
+ §§ Requires Console8 VDP 2.5.0 or above<br>
 
 
 ## VDU 23, 0: VDP commands
