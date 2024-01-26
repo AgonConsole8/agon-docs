@@ -15,6 +15,11 @@ include:
   - Theory-of-operation.md
   - Third-Party-Projects.md
   - Updating-Firmware.md
-  - VDP---Buffered-commands-API.md
+  - VDP---Bitmaps-API.md
+  - VDP---Buffered-Commands-API.md
   - VDP---Enhanced-Audio-API.md
+  - VDP---PLOT-Commands.md
+  - VDP---Screen-Modes.md
+  - VDP---System-Commands.md
+  - VDP---VDU-Commands.md
   - VDP.md

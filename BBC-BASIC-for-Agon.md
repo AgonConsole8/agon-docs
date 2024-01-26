@@ -142,13 +142,7 @@ This returns the physical colour index of the colour at pixel position (x, y)
 
 Syntax: `PLOT mode,x,y`
 
-Plot supports the following operations:
-
-- 4: Move
-- 5: Line
-- 80: Filled Triangle
-- 144: Circle with radius specified either by x or y
-- 148: Circle passing through point x,y
+For information on the various PLOT modes, please see the [VDP PLOT command documentation](VDP---PLOT-Commands.md)
 
 ### GET$
 

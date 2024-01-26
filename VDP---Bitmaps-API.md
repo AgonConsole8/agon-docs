@@ -76,6 +76,8 @@ Before this command can be used, a bitmap must be selected using `VDU 23, 27, 0,
 
 The x and y parameters give the pixel position on the screen at which the top left corner of the bitmap will be drawn.  This is in contrast to `PLOT` commands which will (by default) use OS Coordinates, where the origin is at the bottom left of the screen and the screen is always considered to have the dimensions 1280x1024.
 
+Please note that this command does not obey the current graphics viewport.  The bitmap will be drawn at the given pixel position, and will _not_ be clipped by the viewport.  To draw bitmaps with clipping, you are advised to use the appropriate bitmap [PLOT commands](VDP---PLOT-Commands.md) instead.
+
 ### `VDU 23, 27, &20, bufferId;`: Select bitmap using a 16-bit buffer ID *
 
 This command is essentially identical to `VDU 23, 27, 0, n`, however it uses a 16-bit buffer ID instead of an 8-bit bitmap ID.

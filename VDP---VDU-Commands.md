@@ -266,7 +266,7 @@ Console8 VDP 2.5.0 adds support for cursor direction for scrolling only via the 
 
 ### `VDU 23, 27, <command>, [<arguments>]`: Bitmap and sprite commands
 
-See the [Bitmap and Sprite Commands](VDP---Bitmap-and-Sprite-Commands.md) documentation for more information.
+See the [Bitmap and Sprite Commands](VDP---Bitmaps-API.md) documentation for more information.
 
 ### `VDU 23, 28`: Hexload
 
@@ -276,13 +276,13 @@ This command is used by the hexload utility, and should not be used by user appl
 
 This command sets the graphics viewport.  The graphics viewport defines the area of the screen that graphics will be drawn to.  It is also the area that will be cleared by the `VDU 16` command.
 
-## `VDU 25, mode, x; y;`: PLOT command
+## `VDU 25, mode, x; y;`: [PLOT command](VDP---PLOT-Commands.md)
 
 This command is used for graphics plotting, and is equivalent to the BASIC `PLOT` command.
 
 The aim for this command is to support all of Acorn's original `PLOT` modes, however currently only a limited number of plotting modes are supported.  Support for plot modes has expanded over time, and will continue to expand in the future.
 
-For more information see the [Graphics Plotting](VDP---Graphics-Plotting.md) documentation.
+For more information see the [PLOT Commands](VDP---PLOT-Commands.md) documentation.
 
 ## `VDU 26`: Reset graphics and text viewports **
 
