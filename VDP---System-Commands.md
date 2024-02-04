@@ -288,8 +288,8 @@ From Console8 VDP version 2.2.0, the following additional escape sequences are s
 
 | Sequence | Description |
 | -------- | ----------- |
-| `ESC + "_#Q!"` | Quit/end terminal mode |
-| `ESC + "_#S!"` | Suspend terminal mode |
+| `ESC + "_#Q!$"` | Quit/end terminal mode |
+| `ESC + "_#S!$"` | Suspend terminal mode |
 
 Quitting terminal mode returns the VDP back to normal operation, and will resume the VDP protocol.  The screen mode will be reset to the mode that was active before terminal mode was enabled.
 
