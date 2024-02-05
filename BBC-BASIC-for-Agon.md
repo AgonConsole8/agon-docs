@@ -123,14 +123,28 @@ Syntax: `COLOUR l,r,g,b`
 
 Syntax: `GCOL mode,c`
 
-Set the graphics colour to c
+Set the graphics colour `c`, and the "mode" of graphics paint operations.
 
-This has been extended for VDP 1.04:
+Colour values are interpreted as per the COLOUR command, i.e. values below 128 will set the foreground colour, and values above 128 set the background colour.
 
-* The graphics background colour is set as per COLOUR.
-* Mode is applied to graphics operations
-  * 0: Use the current foreground colour
-  * 4: Invert the pixel
+Versions of the VDP earlier than 1.04 only supported mode 0, with all painting operations just setting on-screen pixels.
+
+VDP 1.04 introduced _partial_ support for mode 4, which inverts the pixel.  Mode 4 would only apply to straight line drawing operations.  The mode would affect all applicable plot operations.
+
+As of Console8 VDP 2.6.0, all 8 of the basic modes are supported for all currently supported plot operations.  Separate plot modes are now tracked for foreground and background colours, and the mode is applied to the graphics operation.
+
+The full array of available modes is as follows:
+
+| Mode | Effect |
+| ---- | ------ |
+| 0 | Set on-screen pixel to target colour value |
+| 1 | OR value with the on-screen pixel |
+| 2 | AND value with the on-screen pixel |
+| 3 | EOR value with the on-screen pixel |
+| 4 | Invert the on-screen pixel |
+| 5 | No operation |
+| 6 | AND the inverse of the specified colour with the on-screen pixel |
+| 7 | OR the inverse of the specified colour with the on-screen pixel
 
 ### POINT
 

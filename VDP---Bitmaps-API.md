@@ -24,6 +24,7 @@ In general, commands to manage bitmaps using 16-bit IDs are numbered 32 higher t
 Storing bitmaps in buffers allows for their data to be manipulated using the buffered commands API.  This can, for instance, allow for the colours of bitmaps to be changed, or for a bitmap to be mirrored, or split into multiple bitmaps.
 
 \* Commands marked with an asterisk are only available in VDP 2.2.0 or later.
+\** Commands marked with a double asterisk are only available in VDP 2.6.0 or later.
 
 The commands to manage bitmaps are as follows:
 
@@ -44,7 +45,7 @@ The bitmap data is given as a series of bytes as part of the command in RGBA8888
 
 The width and height of the bitmap must be given in pixels, and must match the number of bytes given in the data.  If the width and height do not match the data then the command will fail.
 
-It should be noted that whilst the image format supported by this command is for full 24-bit colour images with 256 levels of transparency (alpha) per pixel, the Agon hardware is only capable of displaying 2-bits per colour channel.  Data loaded via this command remains in RGBA8888 format on the VDP, but is converted on the fly when the bitmap is drawn to the screen.
+It should be noted that whilst the image format supported by this command is for full 24-bit colour images with 256 levels of transparency (alpha) per pixel, the Agon hardware is only capable of displaying 2-bits per colour channel.  The graphics system also does not really support transparency, so any non-zero alpha value is interpreted as "fully visible".  Data loaded via this command remains in RGBA8888 format on the VDP, but is converted on the fly when the bitmap is drawn to the screen.
 
 (As RGBA8888 is a very wasteful format, given the hardware limitations, other options are now available.  Loading bitmaps with this command can take a long time, and it is not possible to intersperse other commands, such as showing progress on-screen, whilst the data is being sent.  There are however alternative ways of managing the data which avoids these issues.  Please see the section on "Using buffers for bitmaps" in the [Buffered Commands API](VDP---Buffered-Commands-API.md) document for more information.)
 
@@ -60,7 +61,13 @@ To be clear, this command should be performed _after_ two "move" style PLOT comm
 
 If a bitmap with the given ID already exists then it will be overwritten, and similarly if a buffer was already defined with the ID 64000+`n` then that will be overwritten too.
 
-Bitmap data captured using this command will be stored in "native" format, which is RGB222, with no alpha channel, one byte per pixel.
+Up to and including the Console8 VDP 2.5.0 release, the bitmap data captured using this command will be stored in "native" format.  The nature of the "native" format varies depending on the screen mode.  For all screen modes the bitmap will use 1 byte per pixel, but the data within that byte varies.  In 64 colour modes, the data is essentially in RGB222 with no alpha channel.  For all other screen modes, the byte represents a palette index.  An unfortunate effect of this is that a bitmap captured in one screen mode may not be compatible with other screen modes.
+
+Also up to and including the Console8 VDP 2.5.0 release, bitmaps captured with this command would use "exclusive" coordinates, and so would be 1 pixel shorter and narrower than the area defined by the graphics cursor positions.  (This is _not_ consistent with the behaviour of this command on Acorn systems.)
+
+From Console8 VDP 2.6.0, the bitmap data captured using this command will be stored in RGBA2222 format, regardless of the screen mode.  This is to ensure that the data is consistent and predictable, and to allow for the use of the bitmap in any screen mode.
+
+Bitmaps captured on Console8 VDP 2.6.0 or later also now use "inclusive" coordinates, and so will be 1 pixel taller and wider than bitmaps captured on earlier versions of the VDP.  This is to ensure that the bitmap captures the entire area defined by the graphics cursor positions.  This is consistent with the behaviour of this command on Acorn systems.
 
 ### `VDU 23, 27, 2, w; h; col1; col2;`: Create a solid colour rectangular bitmap 
 
@@ -94,13 +101,15 @@ Valid values for the format parameter are:
 | ----- | ------- |
 | 0 | RGBA8888 (4-bytes per pixel) |
 | 1 | RGBA2222 (1-bytes per pixel) |
-| 2 | Mono (1-bit per pixel) |
+| 2 | Mono/Mask (1-bit per pixel) |
 
-Mono bitmaps can be of any width, but their data must be sent using a whole number of bytes per row.  Mono bitmaps are also required to have a colour, and will use the currently selected graphics foreground colour.  If you wish to use a different colour then you must change the graphics foreground colour before creating the bitmap.
+It should be noted that the "alpha" channel in both the RGBA8888 and RGBA2222 formats is not properly used by the Agon VDP.  Any non-zero value in the alpha channel is interpreted as "fully visible".  The Agon VDP does not currently support transparency.  The alpha channel is still stored in the bitmap data, and is used when the bitmap is drawn to the screen, but it is not used to blend the bitmap with the background.  (If we improve support for transparency in the future, to maintain compatibility we will do so by adding new bitmap formats, rather than changing the behaviour of the existing formats.)
+
+Mono/Mask bitmaps can be of any width, but their data must be sent using a whole number of bytes per row.  Mon/mask bitmaps are also required to have a colour, and will use the currently selected graphics foreground colour.  If you wish to use a different colour then you must change the graphics foreground colour before creating the bitmap.  Mono/mask bitmaps only draw their "on" pixels, and the "off" pixels are transparent.
 
 As with `VDU 23, 27, 1, w; h; b1, b2...bn`, the width and height of the bitmap must be given in pixels, and must match the number of bytes given in the data.  If the width and height do not match the data then the command will fail.
 
-Prior to the Console8 VDP 2.2.0 release, mono bitmaps were not supported.
+Prior to the Console8 VDP 2.2.0 release, mono/mask bitmaps were not supported.
 
 ### `VDU 23, 27, &21, bitmapId; 0;`
 
@@ -137,6 +146,7 @@ Here are the sprite commands:
 - `VDU 23, 27, 15`: Update the sprites in the GPU
 - `VDU 23, 27, 16`: Reset bitmaps and sprites and clear all data
 - `VDU 23, 27, 17`: Reset sprites (only) and clear all data
+- `VDU 23, 27, 18, n`: Set the current sprite GCOL paint mode to n **
 - `VDU 23, 27, &26, n;`: Add bitmap n as a frame to current sprite using a 16-bit buffer ID
 
 ### Notes on sprites
