@@ -215,6 +215,7 @@ When a character has been mapped to use a bitmap the bitmap will be used in plac
 
 That last point is important.  It means that if you use a bitmap that is larger than a character, then the next character will overlap the bitmap.  Similarly bitmaps that are taller than a character will overwrite the line of text above the current cursor.  This can be used to create some interesting effects, but can also be a source of visual bugs if you are not careful.  If you are using oversized bitmaps, then using the `VDU 9` to move forward an additional character may be useful.
 
+Bitmaps mapped to characters in this way are plotted using the current foreground GCOL paint mode.
 
 ## `VDU 23, 0, &94, n`: Read colour palette entry n (returns a pixel colour data packet) §§
 

@@ -61,7 +61,7 @@ To be clear, this command should be performed _after_ two "move" style PLOT comm
 
 If a bitmap with the given ID already exists then it will be overwritten, and similarly if a buffer was already defined with the ID 64000+`n` then that will be overwritten too.
 
-Up to and including the Console8 VDP 2.5.0 release, the bitmap data captured using this command will be stored in "native" format.  The nature of the "native" format varies depending on the screen mode.  For all screen modes the bitmap will use 1 byte per pixel, but the data within that byte varies.  In 64 colour modes, the data is essentially in RGB222 with no alpha channel.  For all other screen modes, the byte represents a palette index.  An unfortunate effect of this is that a bitmap captured in one screen mode may not be compatible with other screen modes.
+Up to and including the Console8 VDP 2.5.0 release, the bitmap data captured using this command will be stored in "native" format.  The nature of the "native" format varies depending on the screen mode.  For all screen modes the bitmap will use 1 byte per pixel, but the data within that byte varies.  In 64 colour modes, the data is essentially in RGB222 with no alpha channel.  It is possible to convert bitmaps captured in 64 colour modes to RGBA2222 format by using the OR operation of the "adjust" command from the [Buffered Commands API](VDP---Buffered-Commands-API.md), ORing all the bytes in the bitmap's buffer with `&C0` to set the pixel alpha bits to be "opaque", and then re-creating the bitmap from the corresponding buffer to be RGBA2222 (format 1).  For all other screen modes, the byte represents a palette index.  An unfortunate effect of this is that a bitmap captured in one screen mode may not be compatible with other screen modes.
 
 Also up to and including the Console8 VDP 2.5.0 release, bitmaps captured with this command would use "exclusive" coordinates, and so would be 1 pixel shorter and narrower than the area defined by the graphics cursor positions.  (This is _not_ consistent with the behaviour of this command on Acorn systems.)
 
@@ -102,10 +102,13 @@ Valid values for the format parameter are:
 | 0 | RGBA8888 (4-bytes per pixel) |
 | 1 | RGBA2222 (1-bytes per pixel) |
 | 2 | Mono/Mask (1-bit per pixel) |
+| 3 | Reserved for internal use by VDP ("native" format) |
 
 It should be noted that the "alpha" channel in both the RGBA8888 and RGBA2222 formats is not properly used by the Agon VDP.  Any non-zero value in the alpha channel is interpreted as "fully visible".  The Agon VDP does not currently support transparency.  The alpha channel is still stored in the bitmap data, and is used when the bitmap is drawn to the screen, but it is not used to blend the bitmap with the background.  (If we improve support for transparency in the future, to maintain compatibility we will do so by adding new bitmap formats, rather than changing the behaviour of the existing formats.)
 
 Mono/Mask bitmaps can be of any width, but their data must be sent using a whole number of bytes per row.  Mon/mask bitmaps are also required to have a colour, and will use the currently selected graphics foreground colour.  If you wish to use a different colour then you must change the graphics foreground colour before creating the bitmap.  Mono/mask bitmaps only draw their "on" pixels, and the "off" pixels are transparent.
+
+The use of the "native" format is reserved for internal use by the VDP.  They have some significant limitations, and are not intended for general use.
 
 As with `VDU 23, 27, 1, w; h; b1, b2...bn`, the width and height of the bitmap must be given in pixels, and must match the number of bytes given in the data.  If the width and height do not match the data then the command will fail.
 
@@ -125,6 +128,8 @@ The Sprites system on the Agon VDP is an extension to the bitmap system.  They a
 Technically the VDP can support up to 256 sprites.  They must be defined contiguously, and so the first sprite is sprite 0.  (In contrast, bitmaps can have any ID from 0 to 65534.)  Once a selection of sprites have been defined, you can activate them using the `VDU 23, 27, 7, n` command, where `n` is the number of sprites to activate.  This will activate the first `n` sprites, starting with sprite 0.  All sprites from 0 to n-1 must be defined.
 
 A single sprite can have multiple "frames", referring to different bitmaps.  (These bitmaps do not need to be the same size.)  This allows a sprite to include an animation sequence, which can be stepped through one frame at a time, or picked in any order.
+
+Any format of bitmap can be used as a sprite frame.  It should be noted however that "native" format bitmaps are not recommended for use as sprite frames, as they cannot get erased from the screen.  (As noted above, the "native" bitmap format is not really intended for general use.)  This is part of why from Agon Console8 VDP 2.6.0 bitmaps captured from the screen are now stored in RGBA2222 format.
 
 An "active" sprite can be hidden, so it will stop being drawn, and then later shown again.
 
@@ -151,7 +156,7 @@ Here are the sprite commands:
 
 ### Notes on sprites
 
-This advice is valid up to and including the Agon Console8 VDP 2.5.0 release.  In the future this may change.
+This advice is valid up to and including the Agon Console8 VDP 2.6.0 release.  In the future this may change.
 
 The nature of how sprites are currently supported in the Agon VDP means that performance is not as good as it could be, and so they should be used sparingly.  If you have too many sprites on-screen then you may notice that some sprites may flicker, especially if they are positioned closer to the top of the screen.  Sprites are currently always drawn in order, so those with lower IDs will flicker less than those with higher IDs.
 
@@ -167,7 +172,11 @@ Owing to how sprites work, it is hard to offer definitive advice on how many spr
 
 Sprites also behave differently on double-buffered screen modes.  On those modes sprites are never "hidden" and are instead drawn to screen before a buffer swap.  This means they tend not to flicker, but care needs to be taken to ensure that the screen is properly redrawn.
 
-For optimal graphical performance, it is currently best to avoid using sprites, and instead use the bitmap system directly.  Using a small number of sprites can be a reasonable compromise.
+Up to and including the Console8 VDP 2.5.0 release, sprites using bitmaps captured from screen would not work properly, and would not be erased from the screen.  This is because the bitmaps were stored in "native" format, and the VDP did not have the ability to erase them.  This has been fixed in the Console8 VDP 2.6.0 release, and bitmaps captured from the screen are now stored in RGBA2222 format, and so can be erased from the screen.
+
+Console8 VDP 2.6.0 also introduces the ability to set the GCOL paint mode for sprites.  This can allow for more sophisticated drawing operations to be performed with sprites, and some interesting effects.
+
+For completely optimal graphical performance, it is usually best to avoid using sprites, and instead use the bitmap system directly.  Using a small number of sprites can be a reasonable compromise.
 
 
 ## Mouse cursor
