@@ -9,7 +9,8 @@ Please note that not all versions of the VDP support the complete command set.  
  \* Requires VDP 1.03 or above<br>
  \** Requires VDP 1.04 or above<br>
  § Requires Console8 VDP 2.3.0 or above<br>
- §§ Requires Console8 VDP 2.4.0 or above
+ §§ Requires Console8 VDP 2.4.0 or above<br>
+ §§§ Requires Console8 VDP 2.6.0 or above<br>
 
 Commands between &80 and &89 will return their data back to the eZ80 via the [serial protocol](#serial-protocol).
 
@@ -231,6 +232,22 @@ The Agon VDP system supports a 64 colour palette, so values in the range of 0-63
 | 131 | The current graphics background colour |
 
 Any other colour value will not be recognise, and no response sent.
+
+## `VDU 23, 0, &98, n`: Turn control keys on and off §§§
+
+Turns control keys on and off, where 1=on (the default) and 0=off.
+
+When control keys are turned on, pressing control and various letters on the keyboard will cause the keyboard to trigger VDU commands on the VDP, where the VDU command corresponds to the number of that letter in the alphabet.  For example, pressing `CTRL`+`N` will perform the VDU command `VDU 14` on the VDP and turn on "paged mode", as N is the fourteenth letter.
+
+Up to and including Console8 VDP 2.4.0, only `CTRL`+`N` and `CTRL`+`O` were supported, and would send `VDU 14` and `VDU 15` respectively, enabling and disabling "paged mode".  Console8 VDP 2.5.0 added support for several more letters, specifically `B`, `C`, `F`, `G`, `L`, `N` and `O`.  `CTRL`+`P` is also supported but rather than performing a VDU 16 it will toggle the printer on and off, compatible with behaviour on BBC BASIC for Windows.  (Owing to how the VDP and the eZ80 interact, it is unlikely that any more control keys will be added in the future.)
+
+When control keys are turned off, the keyboard will not trigger VDU commands on the VDP.
+
+Irrespective of whether the VDP has done anything with a control key, or whether they are enabled or not, key information will always be sent through to MOS.
+
+Until Console8 VDP 2.6.0, this control key behaviour on the VDP was always enabled, and could not be turned off.
+
+From Console8 VDP 2.6.0 onwards, the control keys can be turned off, which may help ensure that unexpected behaviour on the VDP does not occur when using applications running on MOS that may also wish to use these control key combinations.
 
 ## `VDU 23, 0, &A0, bufferId, command, <args>`: Buffered command API **
 
