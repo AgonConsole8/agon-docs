@@ -532,7 +532,7 @@ For an RGBA8888 bitmap we need to set our options to indicate 32-bit values as w
 VDU 23, 0, &A0, bufferId; 24, 6, width * 4
 ```
 
-## Command 25: Copy blocks by reference
+## Command 25: Copy blocks from multiple buffers by reference
 
 `VDU 23, 0, &A0, targetBufferId; 25, sourceBufferId1; sourceBufferId2; ...; 65535;`
 
@@ -544,9 +544,19 @@ Copying by reference means that the blocks in the target buffer will point to th
 
 Buffers that get consolidated become new blocks, so will lose their links to the original blocks, thus after a "consolidate" operation modifications to the original blocks will no longer be reflected in the consolidated buffer.
 
-This command is useful to construct a single buffer from multiple sources without the copy overhead.  For example, this can be useful for constructing a bitmap from multiple constituent parts before consolidating it into a single block.  In such an example, using command 13 instead would first make a copy of the contents of the source buffers, and then consolidate them into a single block.  Using this command does not make that first copy, and so would be faster.
+This command is useful to construct a single buffer from multiple sources without the copy overhead, which can be costly.  For example, this can be useful for constructing a bitmap from multiple constituent parts before consolidating it into a single block.  In such an example, using command 13 instead would first make a copy of the contents of the source buffers, and then consolidate them into a single block.  Using this command does not make that first copy, and so would be faster.
 
 This command is also useful for creating multiple buffers that all point to the same data.
+
+## Command 26: Copy blocks from multiple buffers and consolidate
+
+`VDU 23, 0, &A0, targetBufferId; 26, sourceBufferId1; sourceBufferId2; ...; 65535;`
+
+This command is similar to performing a "copy" operation followed by a "consolidate" operation, and thus has similar behaviour to [command 13](#command-13) and/or command 25.  The parameters for this command are the same as for command 25.  As with command 25, you cannot include the target buffer in the list of source buffers.  If you do, then it will be skipped.
+
+This command will replace the target buffer with a new buffer that contains a single block that is the result of consolidating the blocks from the source buffers.  If the target buffer already contains a single block of the same size as the source buffers then it will re-use the memory, and so will be faster than performing a separate "copy by reference" and "consolidate" operation.
+
+It is useful for contructing a single buffer from multiple sources, such as for constructing a bitmap from multiple constituent parts.
 
 
 ## Examples

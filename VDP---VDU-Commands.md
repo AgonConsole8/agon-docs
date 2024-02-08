@@ -135,27 +135,52 @@ This command is identical to the BASIC `COLOUR` keyword.
 
 ## `VDU 18, mode, colour`: Set graphics colour (`GCOL mode, colour`)
 
-This command will set both the current graphics colour, and the current graphics plotting mode.
+This command will set both the current graphics colour, and the current graphics painting mode.
 
 As with `VDU 17` the colour number will set the foreground colour if it is in the range 0-127, or the background colour if it is in the range 128-255, and will be interpreted in the same manner.
 
-Support for different plotting modes on Agon is currently very limited.  The only fully supported mode is mode 0, which is the default mode.  This mode will plot the given colour at the given graphics coordinate, and will overwrite any existing graphics at that coordinate.  There is very limited support for mode 4, which will invert the colour of any existing graphics at the given coordinate, but this is not fully supported and may not work as expected.
+Up to and including Console8 VDP 2.5.0 support for the `mode` parameter was highly limited.  The only fully supported mode was mode 0, which is the default mode.  This mode sets on-screen pixels with the target colour.  From VDP 1.04 onwards there was very limited support for mode 4, which would invert on-screen pixels, but was only supported for straight line plotting operations.
 
-Support for other plotting modes, matching those provided by Acorn's original VDU system, may be added in the future.
+As of Console8 VDP 2.6.0, all 8 of the basic modes are supported for all currently supported plot operations.  Separate plot modes are tracked for foreground and background colours.
+
+The full array of available modes is as follows:
+
+| Mode | Effect |
+| ---- | ------ |
+| 0 | Set on-screen pixel to target colour value |
+| 1 | OR value with the on-screen pixel |
+| 2 | AND value with the on-screen pixel |
+| 3 | EOR value with the on-screen pixel |
+| 4 | Invert the on-screen pixel |
+| 5 | No operation |
+| 6 | AND the inverse of the specified colour with the on-screen pixel |
+| 7 | OR the inverse of the specified colour with the on-screen pixel |
+
+For more information on the various plot commands, please see the [VDP PLOT command documentation](VDP---PLOT-Commands.md)
+
+(Acorn's graphics system supported some further GCOL mode options, which could specify the use of a fill pattern, which is not currently supported by the Agon VDP.  Support for these modes may be added in a future version of the VDP firmware.)
 
 This command is identical to the BASIC `GCOL` keyword.
 
-## `VDU 19, l, p, r, g, b`: Define logical colour (`COLOUR l, p` / `COLOUR l, r, g, b`)
+## `VDU 19, l, p, r, g, b`: Define logical colour
 
-This command sets the colour palette, by mapping a logical colour to a physical colour.  This is useful for defining custom colours, or for redefining the default colours.
+This command sets the colour palette, by mapping a logical colour (i.e. the colour as selected via `VDU 17, colour` or `VDU 18, mode, colour`) to a physical colour.  This is useful for defining custom colours, or for redefining the default colours.
 
-If the physical colour number is given as 255 then the colour will be defined using the red, green, and blue values given.  If the physical colour number is given as any other value then the colour will be defined using the colour palette entry given by that number, up to colour number 63.
+If the physical colour number is given as 255 then the colour will be defined using the red, green, and blue values given.
+
+If the physical colour value is less than 64, the value is interpreted as a 6-bit colour number where the number in binary form is in the format `RRGGBB`.
+
+Any other physical colour value (i.e. 64 to 254) is not valid and the command will be ignored.
 
 If the physical colour is not 255 then the red, green, and blue values must still be provided, but will be ignored.
 
 The values for red, green and blue must be given in the range 0-255.  You should note that the physical Agon hardware only supports 64 colours, so the actual colour displayed may not be exactly the same as the colour requested.  The nearest colour will be chosen.
 
-This command is equivalent to the BASIC `COLOUR` keyword.
+Up to and including Console8 VDP 2.5.0 this command would have no effect when in a 64 colour screen mode, and the palette in those modes was fixed.
+
+From Console8 VDP 2.6.0 onwards, the command will now work in all screen modes, and will allow for the definition of custom colours.  Please note that when in a 64 colour screen mode there is no "palette" for the screen display per-se, so the command will not have any effect to the existing screen display.  It will only affect the colours used for subsequent graphics or text operations.
+
+This command is equivalent to the two ways the BASIC `COLOUR` keyword can be used to redefine the colour palette: `COLOUR l, p` or `COLOUR l, r, g, b`.
 
 ## `VDU 20`: Reset palette and text/graphics colours and drawing modes §§
 
