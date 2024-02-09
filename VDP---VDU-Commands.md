@@ -222,7 +222,7 @@ Commands starting with `VDU 23, 0` are system commands.  These commands are used
 
 ### `VDU 23, 1, n`: Cursor control 
 
-This command will enable or disable the text cursor.  Setting a vbalue of 0 disables the cursor, and setting a value of 1 enables the cursor.
+This command will enable or disable the text cursor.  Setting a value of 0 disables the cursor, and setting a value of 1 enables the cursor.
 
 ### `VDU 23, 7, extent, direction, movement`: Scroll
 
