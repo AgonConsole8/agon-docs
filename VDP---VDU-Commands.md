@@ -212,6 +212,8 @@ VDU 23, char_no, r1, r2, r3, r4, r5, r6, r7, r8
 ```
 Where `char_no` is the character number to re-program, and `r1` to `r8` are the 8 bytes of data that define the character in rows from top to bottom.  Each byte defines one row of the character, with the least significant bit of each byte defining the left-most pixel of the row, and the most significant bit defining the right-most pixel of the row.
 
+Note: There is a related VDU 23 System Command which can [program the entire character range 0-255](VDP---System-Commands.md#vdu-23-0-90-n-b1-b2-b3-b4-b5-b6-b7-b8-redefine-character-n-0-255-with-8-bytes-of-data-), and a reset command is also available to [reset the font](VDP---System-Commands.md#vdu-23-0-91-reset-all-characters-to-original-definition-) back to default.
+
 The second purpose of this command is to send system commands to the VDP.
 
 The following commands are supported:
