@@ -52,13 +52,15 @@ VDU 23, 27, &20, bufferId;              : REM Select bitmap (using a buffer ID)
 VDU 23, 27, &21, width; height; format  : REM Create bitmap from buffer
 ```
 
+More extensive information on the bitmap and sprites API calls can be found in the [bitmaps and sprites documentation](VDP---Bitmaps-API.md).
+
 Until the "create bitmap" call has been made the buffer cannot be used as a bitmap.  That is because the system needs to understand the dimensions of the bitmap, as well as the format of the data.  Usually this only needs to be done once.  The format is given as an 8-bit value, with the following values supported:
 
 | Value | Type     | Description |
 | ----- | -------- | ----------- |
 | 0     | RGBA8888 | RGBA, 8-bits per channel, with bytes ordered sequentially for red, green, blue and alpha |
 | 1     | RGBA2222 | RGBA, 2-bits per channel, with bits ordered from highest bits as alpha, blue, green and red |
-| 2     | Mono     | Monochrome, 1-bit per pixel |
+| 2     | Mono/Mask | Monochrome, 1-bit per pixel |
 
 The existing bitmap API uses an 8-bit number to select bitmaps, and these are automatically stored in buffers numbered 64000-64255 (`&FA00`-`&FAFF`).  Working out the buffer number for a bitmap is simply a matter of adding 64000.  All bitmaps created with that API will be RGBA8888 format.
 
@@ -79,6 +81,8 @@ Using commands targetting a buffer that create new blocks, such as "consolidate"
 Much like with bitmaps, it is advisable to send samples over to the VDP in multiple blocks for the same reasons.
 
 In contrast to bitmaps, the sound system can play back samples that are spread over multiple blocks, so there is no need to consolidate buffers.  As a result of this, the sample playback system is also more tolerant of modifications being made to the buffer after a sample has been created from it, even if the sample is currently playing.  It should be noted that splitting a buffer may result in unexpected behaviour if the sample is currently playing, such as skipping to other parts of the sample.
+
+Full information on the sound system can be found in the [audio API documentation](VDP---Enhanced-Audio-API.md).
 
 Once you have a buffer that contains block(s) that are ready to be used for a sound sample, the following command must be used to indicate that a sample should be created from that buffer:
 

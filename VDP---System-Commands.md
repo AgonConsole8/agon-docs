@@ -11,12 +11,42 @@ Please note that not all versions of the VDP support the complete command set.  
  § Requires Console8 VDP 2.3.0 or above<br>
  §§ Requires Console8 VDP 2.4.0 or above<br>
  §§§ Requires Console8 VDP 2.6.0 or above<br>
+ §§§§ Requires Console8 VDP 2.7.0 or above<br>
 
 Commands between &80 and &89 will return their data back to the eZ80 via the [serial protocol](#serial-protocol).
 
 NB:
 
 - Prior to MOS 1.03 the subset commands that it supported were indexed from &00, not &80. For example, `VDU 23, 0, &02` to request the cursor position.
+
+
+## `VDU 23, 0, &0A, n`: Set cursor start line and appearance §§§§
+
+This command defines the start line (or row) of the cursor and its appearance.  Bits 0-4 define the start line of the cursor, and bits 5-6 define the cursor appearance.  The meaning of the appearance bits are as follows:
+
+| Bit 6 | Bit 5 | Meaning |
+| ----- | ----- | ------- |
+| 0 | 0 | Steady |
+| 0 | 1 | Off |
+| 1 | 0 | Fast blink |
+| 1 | 1 | Slow blink |
+
+By default, the start line is zero, and the cursor appearance is a slow blink.
+
+This command works in conjunction with `VDU 23, 0, &0B, n`, `VDU 23, 0, &8A, n`, and `VDU 23, 0, &8B, n` to define how the cursor will be drawn on screen.
+
+The cursor start line must be less than the current font height (which is currently 8 pixels, and cannot currently be adjusted).
+
+Support for this command was introduced in the Console8 VDP 2.7.0.  It's behaviour is compatible with the equivalent commands on the Acorn BBC Micro and RISC OS.
+
+
+## `VDU 23, 0, &0B, n`: Set cursor end line §§§§
+
+This defines the end line of the cursor.  The displayed cursor will be drawn from the start line to the end line.  The end line must be greater than the start line, and less than the current font height.
+
+Together with the start line, this command defines the vertical size of the cursor.
+
+If the start and end lines are equal then the cursor will be drawn as a horizontal line.  If the end line value is less than the start line value then the cursor will not be drawn.  If a value is given that is greater than the current font height then the cursor will be drawn to the end of the font height.
 
 
 ## `VDU 23, 0, &80, n`: General poll
@@ -198,6 +228,22 @@ Sets the wheel acceleration factor to a 24-bit value.  Setting the value to `0` 
 Mouse data packets are sent in response to all of the above commands, and if the mouse has been enabled whenever the mouse is moved.  This ensures that mouse data is constantly updated in MOS system variables.
 
 
+## `VDU 23, 0, &8A, n`: Set the cursor start column §§§§
+
+This command defines the start column of the cursor.  The displayed cursor will be drawn from the start column to the end column.  The start column must be less than the current font width (which is currently 8 pixels, and cannot currently be adjusted).
+
+Acorn systems did not support directly adjusting the number of columns used by the cursor, and so this command is not supported on those systems and is an Agon-specific extension.
+
+## `VDU 23, 0, &8B, n`: Set the cursor end column §§§§
+
+This command defines the end column of the cursor.  The displayed cursor will be drawn from the start column to the end column.  The end column must be greater than the start column, and less than the current font width.
+
+Together with the start column, this command defines the width of the cursor.
+
+If the start and end column values are equal then the cursor will be drawn as a vertical line.  If the end column value is less than the start column value then the cursor will not be drawn.  If a value is given that is greater than the current font width then the cursor will be drawn to the end of the font width.
+
+Acorn systems did not support directly adjusting the number of columns used by the cursor, and so this command is not supported on those systems and is an Agon-specific extension.
+
 ## `VDU 23, 0, &90, n, b1, b2, b3, b4, b5, b6, b7, b8`: Redefine character n (0-255) with 8 bytes of data §
 
 This command works identically to `VDU 23, n, b1, b2, b3, b4, b5, b6, b7, b8`, but allows characters 0-31 to also be redefined.
@@ -232,6 +278,8 @@ The Agon VDP system supports a 64 colour palette, so values in the range of 0-63
 | 131 | The current graphics background colour |
 
 Any other colour value will not be recognise, and no response sent.
+
+It should be noted that before Console8 VDP 2.7.0 when reading palette entries for the current text and graphics colours, the data packet returned would reflect back the colour number `n` sent to this command, rather than responding with the actual palette colour number for that colour.  As of Console8 VDP 2.7.0 the actual palette colour number is returned.
 
 ## `VDU 23, 0, &98, n`: Turn control keys on and off §§§
 
@@ -283,6 +331,15 @@ This command will swap the screen buffer, if the current screen mode is double-b
 Waiting for VSYNC can be useful for ensuring smooth graphical animation, as it will prevent tearing of the screen.
 
 (In BASIC performing a `*FX 19` command will perform a similar wait for VSYNC, but on the eZ80 side of the system, but will not swap the screen buffer.)
+
+
+## `VDU 23, 0, &F2, n`: Set dot-dash pattern length §§§§
+
+This command sets the length of the dot-dash pattern used for drawing lines with dotted line plot codes.  The default length is 8, and the length can be set to any value between 1 and 64.  Setting a length of 0 will reset to the default length, and reset the pattern to the default pattern.
+
+The line pattern can be set using `VDU 23, 6, n1, n2, n3, n4, n5, n6, n7, n8`, where `n1` is the first byte of the pattern, `n2` is the second byte, and so on.  Bits are used most-significant-bit first.
+
+Support for this command was added in Console8 VDP 2.7.0.
 
 
 ## `VDU 23, 0, &FE, n`: Console mode **

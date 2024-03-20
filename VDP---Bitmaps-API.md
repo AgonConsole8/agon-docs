@@ -2,7 +2,7 @@
 
 VDU 23, 27 is reserved for the bitmap, sprite, and mouse cursor functionality.
 
-As of VDP 1.04, the bitmap system is integrated with the (Buffered Commands API)[VDP---Buffered-Commands-API.md].  Bitmap data is stored in buffers, and can be manipulated using the Buffered Commands API on the VDP.
+As of VDP 1.04, the bitmap system is integrated with the [Buffered Commands API](VDP---Buffered-Commands-API.md).  Bitmap data is stored in buffers, and can be manipulated using the Buffered Commands API on the VDP.
 
 
 ## Bitmaps
@@ -13,7 +13,7 @@ Acorn only actually had two VDU commands for what it called "sprites", which in 
 
 The approach taken on Agon (initially at least) was to redefine the "define bitmap from screen" command to instead allow the uploading of a binary bitmap image.  In doing so, the parameters of the command changed, and the bitmap identifier was lost from the command parameters.  Instead, on the Agon, you need to always perform a "select bitmap" command before any other bitmap commands to set the bitmap being used.  Additionally on the Agon, prior to Console8 VDP 2.2.0, plotting bitmaps could only be performed with a custom command, and not with the standard `PLOT` commands.
 
-As of Console8 VDP 2.2.0, it is now possible to use Acorn GXR style "sprite" code on an Agon.  The `PLOT` code for drawing bitmaps is now supported, and bitmap command 1 can now be used to capture screen data into a bitmap identically to the GXR.
+As of Console8 VDP 2.2.0, it is now possible to use Acorn GXR style "sprite" code on an Agon.  The `PLOT` code for drawing bitmaps is now supported, and bitmap command 1 can now be used to capture screen data into a bitmap identically to the GXR.  The documentation on the [`PLOT` command](VDP---PLOT-Command.md) (`VDU 25`) explains how to use it to draw bitmaps.
 
 In addition to GXRs two commands, the Agon VDP has several other commands for managing bitmaps, and additional commands to manage "sprites".
 
@@ -33,6 +33,8 @@ The commands to manage bitmaps are as follows:
 This selects the bitmap with the given 8-bit ID as being the currently "active" bitmap for subsequent bitmap commands.
 
 As noted above, bitmaps with 8-bit IDs are stored in buffers with an ID of 64000+`n`.
+
+You need to select a bitmap before it can be plotted onto the screen or use any other bitmap commands.
 
 
 ### `VDU 23, 27, 1, w; h; b1, b2 ... bn`: Load colour bitmap data into current bitmap
@@ -77,13 +79,13 @@ The bitmap is created in the buffer with the ID 64000+`n`, where `n` is the 8-bi
 
 ### `VDU 23, 27, 3, x; y;`: Draw current bitmap on screen at pixel position x, y
 
-Prior to Agon Console8 VDP 2.2.0, this was the only way to draw a bitmap on-screen.
+Prior to Agon Console8 VDP 2.2.0, this was the only way to draw a bitmap on-screen.  On more up to date VDP versions is strongly recommended that you use the appropriate [PLOT command](VDP---PLOT-Commands.md) instead.
 
 Before this command can be used, a bitmap must be selected using `VDU 23, 27, 0, n`, where `n` is the 8-bit ID of the bitmap to be drawn, or using `VDU 23, 27, &20, bufferId;` using a 16-bit buffer ID.
 
 The x and y parameters give the pixel position on the screen at which the top left corner of the bitmap will be drawn.  This is in contrast to `PLOT` commands which will (by default) use OS Coordinates, where the origin is at the bottom left of the screen and the screen is always considered to have the dimensions 1280x1024.
 
-Please note that this command does not obey the current graphics viewport.  The bitmap will be drawn at the given pixel position, and will _not_ be clipped by the viewport.  To draw bitmaps with clipping, you are advised to use the appropriate bitmap [PLOT commands](VDP---PLOT-Commands.md) instead.
+Please note that this command does not obey the current graphics viewport or the currently selected coordinate system.  The bitmap will be drawn at the given pixel position, and will _not_ be clipped by the viewport.  To draw bitmaps with clipping, you are advised to use the appropriate bitmap [PLOT commands](VDP---PLOT-Commands.md) instead.
 
 ### `VDU 23, 27, &20, bufferId;`: Select bitmap using a 16-bit buffer ID *
 

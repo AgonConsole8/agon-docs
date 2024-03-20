@@ -18,12 +18,12 @@ The complete set of PLOT codes supported by the Agon VDP follows.  For completen
 | --------- | --------- | ------ |
 | &00-&07 | 0-7 | Solid line, includes both ends |
 | &08-&0F | 8-15 | Solid line, final point omitted |
-| &10-&17 | 16-23 | Not supported (Dot-dash line, includes both ends, pattern restarted) |
-| &18-&1F | 24-31 | Not supported (Dot-dash line, first point omitted, pattern restarted) |
+| &10-&17 | 16-23 | Dot-dash line, includes both ends, pattern restarted §§§§ |
+| &18-&1F | 24-31 | Dot-dash line, final point omitted, pattern restarted §§§§ |
 | &20-&27 | 32-39 | Solid line, first point omitted |
 | &28-&2F | 40-47 | Solid line, both points omitted |
-| &30-&37 | 48-55 | Not supported (Dot-dash line, first point omitted, pattern continued) |
-| &38-&3F | 56-63 | Not supported (Dot-dash line, both points omitted, pattern continued) |
+| &30-&37 | 48-55 | Dot-dash line, first point omitted, pattern continued §§§§ |
+| &38-&3F | 56-63 | Dot-dash line, both points omitted, pattern continued §§§§ |
 | &40-&47 | 64-71 | Point plot |
 | &48-&4F | 72-79 | Line fill left and right to non-background §§ |
 | &50-&57 | 80-87 | Triangle fill |
@@ -36,14 +36,14 @@ The complete set of PLOT codes supported by the Agon VDP follows.  For completen
 | &88-&8F | 136-143 | Not supported (Flood until foreground) |
 | &90-&97 | 144-151 | Circle outline |
 | &98-&9F | 152-159 | Circle fill |
-| &A0-&A7 | 160-167 | Not supported (Circular arc) |
-| &A8-&AF | 168-175 | Not supported (Circular segment) |
-| &B0-&B7 | 176-183 | Not supported (Circular sector) |
+| &A0-&A7 | 160-167 | Circular arc §§§§ |
+| &A8-&AF | 168-175 | Circular segment §§§§ |
+| &B0-&B7 | 176-183 | Circular sector §§§§ |
 | &B8-&BF | 184-191 | Rectangle copy/move |
 | &C0-&C7 | 192-199 | Not supported (Ellipse outline) |
 | &C8-&CF | 200-207 | Not supported (Ellipse fill) |
 | &D0-&D7 | 208-215 | Not defined |
-| &D8-&DF | 216-223 | Not defined |
+| &D8-&DF | 216-223 | Fill path (Experimental - Not defined on Acorn systems) §§§§ |
 | &E0-&E7 | 224-231 | Not defined |
 | &E8-&EF | 232-239 | Bitmap plot § |
 | &F0-&F7 | 240-247 | Not defined |
@@ -69,11 +69,12 @@ The various "Line fill" plot commands have an additional effect, which is to adj
 § Support added in Agon Console8 VDP 2.1.0
 §§ Support added in Agon Console8 VDP 2.2.0
 §§§ Support added in Agon Console8 VDP 2.6.0
+§§§§ Support added in Agon Console8 VDP 2.7.0
 
 
 ## Interaction with GCOL paint modes
 
-The GCOL command is used to set the paint mode for the PLOT command.  The paint mode is used to control how the PLOT command interacts with the existing pixels on the screen.
+The GCOL command (`VDU 18, mode, colour`) is used to set the paint mode for the PLOT command.  The paint mode is used to control how the PLOT command interacts with the existing pixels on the screen.
 
 Up until Console8 VDP 2.6.0 the only fully supported GCOL paint mode was mode 0, which sets the pixel to the target colour value.  This is the default mode, and is used if no GCOL command has been issued.  There was limited support for mode 4, which inverts the pixel, but this was only supported for straight line drawing operations.
 
@@ -93,6 +94,18 @@ As of Console8 VDP 2.6.0, the following modes are now available for all currentl
 PLOT commands using an "inverse" plot code are essentially identical to setting a GCOL paint mode of 4, and will temporarily override the current GCOL paint mode if a different GCOL paint mode is set. 
 
 
+## Line drawing (PLOT codes &00-&3F)
+
+For all of the line drawing plot codes, the position given with the PLOT command is the end point of the line.  The start point of the line is the last position on the graphics cursor stack.
+
+Support for plotting dotted lines was added in Agon Console8 VDP 2.7.0.  The default pattern is 1 pixel on, 1 pixel off, but this can be changed using the `VDU 23, 6, n1-n8` command which takes 8 bytes of data.  The length of pattern can be set using `VDU 23, 0, 242, n` where n is the number of pixels in the pattern.  Setting a length of zero will reset to the default pattern with a length of 8.  When drawing a line, the pattern is repeated as many times as necessary to draw the line and will be used from the top-most bit of the pattern data, repeating as necessary to draw the whole line.
+
+
+## Line fill codes (PLOT codes &48-&4F, &58-5F, &68-6F, &78-&7F)
+
+These various PLOT codes will fill horizontal lines on the screen.  When executing "drawing" plot codes, the graphics system will scan the line to find appropriate start and end positions, depending on the PLOT code used and the screen contents.  The final calculated end position will be pushed to the graphics cursor stack.
+
+
 ## Filled triangles (PLOT codes &50-&57)
 
 Filled triangles are drawn using the last two positions on the graphics cursor stack and the position given with the PLOT command.
@@ -100,6 +113,32 @@ Filled triangles are drawn using the last two positions on the graphics cursor s
 The behaviour of the triangle fill command has changed slightly in Agon Console8 VDP 2.6.0, and you may observe some slight differences in the exact pixels drawn when using this command.  Unfortunately the old behaviour was not compatible with the new GCOL paint modes, and so the behaviour had to be changed.  The behaviour is consistent with general "best practice" for triangle fill algorithms, and so should be more predictable and reliable.  As an example, with the revised triangle plotting it is possible to draw a fan of triangles using an EOR paint mode and you will not see the edges of the triangles "cancel each other out" as you would have done with the old behaviour.
 
 This new behaviour is not entirely consistent with the BBC Micro or GXR ROM, but it is more consistent with modern graphics systems and should be more predictable and reliable.  In practice, the differences are minimal and should not affect most programs.
+
+
+## Filled rectangles (PLOT codes &60-&67)
+
+Filled rectangles are drawn using the last position on the graphics cursor stack and the position given with the PLOT command to define two corners of a rectangle.
+
+
+## Filled parallelograms (PLOT codes &70-&77)
+
+Parallelograms require three points to be defined.  They will therefore use the last two points pushed to the graphics cursor stack, coupled with the position given with the PLOT command.
+
+The three given points represent any three corners of the parallelogram.  The first and last (third) points are used to define opposing corners of the parallelogram.  The graphics system will calculate the fourth corner of the parallelogram as a point opposite to the second corner, and then fill the shape.
+
+
+## Circle drawing (PLOT codes &90-&9F)
+
+Circle drawing requires two points to be defined.  They will therefore use the last point pushed to the graphics cursor stack, coupled with the position given with the PLOT command.  The first point is the centre of the circle, and the second point is a point on the circumference of the circle.
+
+
+## Arcs, segments, and sectors (PLOT codes &A0-&B7) §§§§
+
+Arcs, segments, and sectors require three points to be defined.  They will therefore use the last two points pushed to the graphics cursor stack, coupled with the position given with the PLOT command.
+
+Arcs, segments, and sectors are all drawn anticlockwise from a start point to an end.
+
+The first point defines the start of the arc, segment, or sector, which is a point on the circumference of the circle.  The second point defines the centre of the circle that the arc, segment, or sector is part of.  The distance from the first point to the second point defines the radius of the circle.  The final point (provided with the PLOT command) defines the end of the arc, segment, or sector.  This point does not have to be on the circumference of the circle, and the graphics system will calculate the point on the circumference that the arc, segment, or sector ends at.  Instead the final point is effectively used to define the angle of the arc.
 
 
 ## Rectangle copy/move (PLOT codes &B8-&BF)
@@ -118,6 +157,25 @@ A "move" operation will copy the rectangle to the new location, and then clear t
 | &BD | Absolute rectangle move |
 | &BE | Absolute rectangle copy |
 | &BF | Absolute rectangle copy |
+
+
+## Fill path - Experimental (PLOT codes &D8-&DF) §§§§
+
+The ability to draw a filled path was added in the Agon Console8 VDP 2.7.0 release.  This command was not part of Acorn's original PLOT command set, either on the BBC Micro, in their Graphics Extension ROM, or in the later Acorn Archimedes operating systems.  For now, it should therefore be considered to be experimental.  Whilst at the time of writing this documentation it is thought that this command is not likely to change, it _is_ possible that the command may be removed or altered in future releases.
+
+This command will fill a path defined by an arbitrary number of points.  The path must be at least three points long.
+
+As the path is is of an arbitrary length the nature of this commands operation differs from other PLOT commands.
+
+All new paths will be started with the last two points pushed to the graphics cursor stack, plus the position given with the PLOT command.  The path thus starts with three points and therefore, if no subsequent commands are received to extend the path, a triangle will be drawn.
+
+If the next VDU command received immediately after a fill path plotting command is also a matching "Fill path" PLOT command then the path will be extended with the new position given with the PLOT command.  If the next VDU command is not a matching "Fill path" PLOT command then the path will be considered to be complete, i.e. the path will be closed by connecting the last point to the first one and the graphics system will then fill the area defined by the path.
+
+Please note that any "move" PLOT command will be interpreted as closing the current path.  Whilst absolute and relative positioning PLOT commands can be combined when building up a path, changing between different codes (such as from "foreground" to "background" PLOTs) will be interpreted as closing the current path and starting a new path.
+
+If any other VDU commands are received after a "Fill path" PLOT command, then the path will be considered to be complete and the graphics system will fill the area defined by the path.  Similarly if there is a significant delay between the VDP receiving "fill path" PLOT commands, even if the next command uses a matching PLOT code, then the path will be considered to be complete and the graphics system will fill the area defined by the path.
+
+As a result of this mode of operation, it is not possible to interactively enter multiple "fill path" PLOT commands one after another at the BASIC command prompt using separate commands over multiple lines, as the system will interpret the character output for command entry as closing the current path.  Instead filled paths must be defined in a single command sequence, uninterrupted by other VDU commands, usually as part of a program.
 
 
 ## Bitmap plots (PLOT codes &E8-&EF)
