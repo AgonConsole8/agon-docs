@@ -66,10 +66,10 @@ Codes 0-3 use the position data provided as part of the command as a relative po
 
 The various "Line fill" plot commands have an additional effect, which is to adjust the graphics cursor position to the right-hand edge of the filled line, if one was drawn.
 
-§ Support added in Agon Console8 VDP 2.1.0
-§§ Support added in Agon Console8 VDP 2.2.0
-§§§ Support added in Agon Console8 VDP 2.6.0
-§§§§ Support added in Agon Console8 VDP 2.7.0
+§ Support added in Agon Console8 VDP 2.1.0<br>
+§§ Support added in Agon Console8 VDP 2.2.0<br>
+§§§ Support added in Agon Console8 VDP 2.6.0<br>
+§§§§ Support added in Agon Console8 VDP 2.7.0<br>
 
 
 ## Interaction with GCOL paint modes
