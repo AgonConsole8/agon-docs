@@ -10,6 +10,7 @@ Please note that not all versions of the VDP support the complete command set.  
  \** Requires VDP 1.04 or above<br>
  § Requires Console8 VDP 2.3.0 or above<br>
  §§ Requires Console8 VDP 2.5.0 or above<br>
+ §§§ Requires Console8 VDP 2.7.0 or above<br>
 
 In general, bytes/characters in the range of 0-31 are treated as control or command codes by the VDP.  Depending on the command, the VDP will then interpret bytes that follow as parameters to the command, continuing until sufficient bytes have been read to satisfy the command.  If there are insufficient bytes to satisfy the command, then the VDP will wait until more bytes are available, and timeout after 200ms.  If too many bytes are sent for a command, then the VDP will interpret those new bytes as another command.
 
@@ -222,13 +223,32 @@ Commands starting with `VDU 23, 0` are system commands.  These commands are used
 
 ### `VDU 23, 1, n`: Cursor control 
 
-This command will enable or disable the text cursor.  Setting a value of 0 disables the cursor, and setting a value of 1 enables the cursor.
+This command controls the appearance of the text cursor.
+
+| Value | Meaning |
+| ----- | ------- |
+| 0 | Hide the cursor |
+| 1 | Show the cursor |
+| 2 | Make the cursor steady §§§ |
+| 3 | Make the cursor flash §§§ |
+
+Please note that in VDU 5 mode the cursor will not be visible, and the cursor control commands will have no effect.
+
+### `VDU 23, 6, n1, n2, n3, n4, n5, n6, n7, n8`: Set dotted line pattern §§§
+
+This command sets the dotted line pattern for the various dotted line (`VDU 25`) PLOT commands.  The pattern is defined by 8 bytes, where each bit in each byte defines a pixel in the pattern.  Bits are used from the pattern most significant bit first, from bytes `n1`-`n8`, so the top-most bits (most significant bits) of the first byte (`n1`) define the start of the pattern.
+
+The repeat length of the pattern is set using `VDU 23, 0, 242, n`, where `n` is the number of pixels to repeat the pattern for.  The default repeat length is 8, meaning that only the `n1` byte will be used for the pattern.  Setting the repeat length to zero will reset to the default pattern, with the default repeat length.
+
+The current dotted line pattern will be reset on changing screen mode.
+
+Support for this command was added in Agon Console8 VDP 2.7.0.
 
 ### `VDU 23, 7, extent, direction, movement`: Scroll
 
 This command scrolls in a given direction.
 
-The `extent` parameter controls what part of the screen will be scrolled.  A value of `0` means the current text viewport, a `1` means the whole screen, a `2` means the current graphics viewport, and `3` is interpreted as the current "active" viewport (as per VDU 4 or VDU 5).
+The `extent` parameter controls what part of the screen will be scrolled.  A value of `0` means the current text viewport, a `1` means the whole screen, a `2` means the current graphics viewport, and `3` is interpreted as the current "active" viewport (as chosen using `VDU 4` or `VDU 5`).
 
 The `direction`` parameter can be one of the following values:
 
@@ -243,15 +263,13 @@ The `direction`` parameter can be one of the following values:
 | 6 | Scroll in positive Y direction * |
 | 7 | Scroll in negative Y direction * |
 
-\* Support for these values was added in Agon Console8 VDP 2.5.0.
-
-The positive/negative X/Y direction is defined via `VDU 23, 16`.
+\* Support for these values was added in Agon Console8 VDP 2.5.0 for cursor behaviour values set by `VDU 23, 16, x, y`, but only for bits 1 and 2.  As of Console8 VDP 2.7.0, bit 3 of the cursor behaviour is also supported allowing the x and y directions to be swapped, thus letting X be vertical and Y be horizontal.
 
 The `movement` parameter controls the movement amount.  A value of `0` means that the screen will be scrolled by one character width/height in the given direction.  Any other value is interpreted as the number of pixels to scroll in the given direction.
 
 Support for a `movement` value of zero was added in Agon Console8 VDP 2.5.0.  Before this version a `movement` value of zero would be interpreted as no movement.
 
-The Agon implementation of this command differs from Acorn systems in the interpretation of the `movement` and `extent` parameter.  On Acorn systems, the only valid `extent` values are 0 or 1.  Acorn's `movement` parameter can only be 0 or 1 too, but vertical movement would always be one character height, and horizontal movement one character width for a movement value of 0, and one byte for a movement value of 1, which made the results of this command vary depending on the current screen mode.  The Agon implementation of this command allows for more flexibility, and allows for scrolling by a given number of pixels in any direction, at the cost of some compatibility.
+The Agon implementation of this command differs from Acorn systems in the interpretation of the `movement` and `extent` parameter.  On Acorn systems, the only valid `extent` values are 0 or 1.  Acorn's `movement` parameter can also only be 0 or 1, but vertical movement would always be one character height, and horizontal movement one character width for a movement value of 0, and one byte for a movement value of 1, which made the results of this command vary depending on the current screen mode.  The Agon implementation of this command allows for more flexibility, and allows for scrolling by a given number of pixels in any direction, at the cost of some compatibility.
 
 
 ### `VDU 23, 16, setting, mask`: Define cursor movement behaviour
@@ -261,20 +279,22 @@ This command controls the behaviour of the text cursor.  It is used to adjust th
 new_setting = (current_setting AND mask) EOR setting
 ```
 
-The following bits are implemented in VDU 23, 16
+This method of setting the cursor behaviour allows you to set individual bits, or to clear individual bits, without needing to know the current setting.
+
+The interpretation of the settings byte flags is as follows:
 
 | Bit | Value | Meaning |
 | --- | ----- | ------- |
 | 7 | 0 | Normal value |
 | 7 | 1 | Undefined |
-| 6 | 0 | Graphics cursor does an implicit cr/lf when it moves off right of graphics viewport (default) |
-| 6 | 1 | Graphics cursor (VDU 5 mode) carries on off edge of graphics viewport |
-| 5 | 0 | Cursor moves right after a character is printed (default) |
-| 5 | 1 | Cursor does not move right after a character is printed |
-| 4 | 0 | Text cursor will scroll when it moves off the bottom of the screen (default) |
+| 6 | 0 | Graphics cursor (VDU 5 mode) does an implicit cr/lf when it moves off right of graphics viewport |
+| 6 | 1 | Graphics cursor carries on off edge of graphics viewport |
+| 5 | 0 | Cursor moves right after a character is printed |
+| 5 | 1 | Cursor does not move right after a character is printed § |
+| 4 | 0 | Text cursor (VDU 4 mode) will scroll when it moves off the bottom of the screen |
 | 4 | 1 | Text cursor will wrap to top of screen when it moves off the bottom of the screen |
 | 3, 2, 1 |  | Defines the cursor direction, as follows * |
-| 3, 2, 1 | 0 0 0 | X direction is right, Y direction is down (default) * |
+| 3, 2, 1 | 0 0 0 | X direction is right, Y direction is down * |
 | 3, 2, 1 | 0 0 1 | X direction is left, Y direction is down * |
 | 3, 2, 1 | 0 1 0 | X direction is right, Y direction is up * |
 | 3, 2, 1 | 0 1 1 | X direction is left, Y direction is up * |
@@ -282,12 +302,19 @@ The following bits are implemented in VDU 23, 16
 | 3, 2, 1 | 1 0 1 | X direction is down, Y direction is left * |
 | 3, 2, 1 | 1 1 0 | X direction is up, Y direction is right * |
 | 3, 2, 1 | 1 1 1 | X direction is up, Y direction is left * |
-| 0 | 0 | Disable scroll protection (default) |
-| 0 | 1 | Enable scroll protection - text cursor will not scroll when it moves off the bottom/right of the viewport |
+| 0 | 0 | Disable scroll protection |
+| 0 | 1 | Enable scroll protection § |
 
-\* As of Console8 VDP 2.5.0 and Quark VDP 1.04 cursor direction is not currently supported for cursor movement.
+The default value for each setting is zero, i.e. all bits are cleared.
 
-Console8 VDP 2.5.0 adds support for cursor direction for scrolling only via the `VDU 23, 7` command, and only for values where bit 3 is zero.  They are included here for completeness, and will be supported in the future.
+\* Full support for these settings was added in Agon Console8 VDP 2.7.0.  Partial support for bits 1 and 2 was added in Console8 VDP 2.5.0 but only for direction-based scrolling (`VDU 23, 7`).
+
+§ Whilst the Quark documentation claims that bit 5 is supported in the Quark 1.04 release, it was not actually supported in the VDP firmware.  The cursor would always move right after a character was printed.  The cursor direction bits were also not supported.  Support for scroll protection was also limited to an incorrect (buggy) implementation, which would simply prevent scrolling.  Full support for all of these features was added in Agon Console8 VDP 2.7.0.
+
+Scroll protection, when enabled, means that when in `VDU 4` mode printing a character that results in the cursor moving off the right-hand edge of the screen will cause a "pending newline" to be generated, rather than immediately performing a newline.  When this occurs, the cursor position will be one position greater than the right-most accessible column.  This newline will be executed just before the next character is printed if the cursor has not otherwise been moved back within the screen.  This means that sending a backspace character (`VDU 127`) or cursor left command (`VDU 8`) would cancel the pending newline, whilst a cursor right command will execute it.
+
+Enabling scroll protection therefore allows you to print a character to the bottom right-most character position on the screen without causing the screen to scroll.
+
 
 ### `VDU 23, 27, <command>, [<arguments>]`: Bitmap and sprite commands
 
@@ -300,6 +327,12 @@ This command is used by the hexload utility, and should not be used by user appl
 ## `VDU 24, left; bottom; right; top;`: Set graphics viewport **
 
 This command sets the graphics viewport.  The graphics viewport defines the area of the screen that graphics will be drawn to.  It is also the area that will be cleared by the `VDU 16` command.
+
+It should be noted that the coordinates given for this command must lie within the screen area.  If the coordinates are outside of the screen area then the command will be ignored.  When using OS Coordinates (the default coordinate system) this means that the coordinates must be in the range 0-1279 for the x-axis positions, and 0-1023 for the y-axis positions.
+
+Coordinates given are "inclusive", meaning that drawing locations up to and including those given will be drawn to.  To set a graphics viewport that is a single pixel tall, therefore, the `bottom` and `top` coordinates should be the same.
+
+(Please note that owing to a bug in the VDP firmware, viewports of a single pixel wide or tall were not supported until Console8 VDP 2.7.0.  Prior to that version a command to set a single pixel high viewport would be ignored.)
 
 ## `VDU 25, mode, x; y;`: [PLOT command](VDP---PLOT-Commands.md)
 
