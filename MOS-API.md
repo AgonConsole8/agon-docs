@@ -11,11 +11,11 @@ There are four RST instructions for accessing MOS functionality from Z80.
 - `RST 10h`: Output a single character to the VDP
 - `RST 18h`: Output a stream of characters to the VDP (MOS 1.03 or above)
 
-In addition, you will probably want to include the file `mos_api.inc` in your project. This can be found in the folder [src](https://github.com/breakintoprogram/agon-mos/tree/main/src) of project [agon-mos](https://github.com/breakintoprogram/agon-mos).
+In addition, you will probably want to include the file `mos_api.inc` in your project.  The Console8 version can be found in the folder [src](https://github.com/AgonConsole8/agon-mos/tree/main/src) of project [agon-mos](https://github.com/AgonConsole8/agon-mos).  The original Quark versions of this file can be found in the folder [src](https://github.com/breakintoprogram/agon-mos/tree/main/src) of project [agon-mos](https://github.com/breakintoprogram/agon-mos).
 
 NB:
 
-- Include the file mos_api.inc in your project
+- Include the file `mos_api.inc` in your project
 - The `RST.LIS` ensures the MOS RST instructions are called regardless of the eZ80s current addressing mode
 
 ### RST 08h: Execute a MOS command

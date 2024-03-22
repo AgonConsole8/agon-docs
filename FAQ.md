@@ -166,7 +166,9 @@ The main differences are:
 And there are some minor revisions to discrete components on the board. Other than that, it is functionally identical to the original Agon Light design.
 
 ## I'm having issues with some video modes
-Make sure you have PSRAM enabled in the [Arduino IDE settings](https://github.com/breakintoprogram/agon-vdp#arduino-ide-settings) when you compile and transfer the VDP code.
+Historically, this has been a problem when the VDP firmware was built using the Arduino IDE.  You are strongly advised to use PlatformIO to build the VDP firmware, and to update to the latest versions; in doing so you should no longer have any issues with screen modes.  PlatformIO takes care of all the dependencies and settings and thus is much easier to use than the Arduino IDE.  The Console8 VDP firmware no longer supports being built using the Arduino IDE and instead is built using PlatformIO to avoid these kind of issues.
+
+If you wish to still use the Arduino IDE and are building the Quark variant of the VDP firmware, you will need to make sure you have PSRAM enabled in the [Arduino IDE settings](https://github.com/breakintoprogram/agon-vdp#arduino-ide-settings) when you compile and transfer the VDP code.
 
 ## I'd like to start programming BBC Basic - where might I start?
 Have a look at [this](https://oldpatientsea.github.io/agon-bbc-basic-manual/0.1/bbc1.html) excellent guide.

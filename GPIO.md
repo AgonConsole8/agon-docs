@@ -6,4 +6,4 @@ GPIO, or General Purpose Input and Output, is typically an electrical interface 
 
 Viewed from the back, component side up, with the connector to the right of the board.
 
-![](https://github.com/breakintoprogram/agon-docs/blob/main/images/agon_gpio_pinouts.png)
+![](./images/agon_gpio_pinouts.png)
