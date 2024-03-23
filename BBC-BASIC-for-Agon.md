@@ -100,7 +100,7 @@ If a file extension is omitted, ".BBC" is assumed.
 
 ### MODE
 
-The modes differ from those on the BBC series of microcomputers. The full list can be found [here](https://github.com/breakintoprogram/agon-docs/wiki/VDP#screen-modes) in the VDP documentation.
+The modes differ from those on the BBC series of microcomputers. The full list can be found [here](VDP---Screen-Modes.md) in the VDP documentation.
 
 ### COLOUR
 
@@ -230,7 +230,7 @@ Example: Print the least significant byte of the internal clock counter
 30 PRINT USR(&FFF4)
 ```
 
-For a full list of system variables, please refer to [mos_api.inc](https://github.com/breakintoprogram/agon-mos/blob/main/src/mos_api.inc).
+Documentation for the full list of system variables can be found in the [MOS API documentation](MOS-API.md).
 
 ### Running star commands with variables
 
