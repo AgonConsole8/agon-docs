@@ -294,7 +294,7 @@ The interpretation of the settings byte flags is as follows:
 | 5 | 0 | Cursor moves right after a character is printed |
 | 5 | 1 | Cursor does not move right after a character is printed § |
 | 4 | 0 | Text cursor (VDU 4 mode) will scroll when it moves off the bottom of the screen |
-| 4 | 1 | Text cursor will wrap to top of screen when it moves off the bottom of the screen |
+| 4 | 1 | Text cursor will wrap to top of screen when it moves off the bottom of the screen § |
 | 3, 2, 1 |  | Defines the cursor direction, as follows * |
 | 3, 2, 1 | 0 0 0 | X direction is right, Y direction is down * |
 | 3, 2, 1 | 0 0 1 | X direction is left, Y direction is down * |
@@ -311,7 +311,7 @@ The default value for each setting is zero, i.e. all bits are cleared.
 
 \* Full support for these settings was added in Agon Console8 VDP 2.7.0.  Partial support for bits 1 and 2 was added in Console8 VDP 2.5.0 but only for direction-based scrolling (`VDU 23, 7`).
 
-§ Whilst the Quark documentation claims that bit 5 is supported in the Quark 1.04 release, it was not actually supported in the VDP firmware.  The cursor would always move right after a character was printed.  The cursor direction bits were also not supported.  Support for scroll protection was also limited to an incorrect (buggy) implementation, which would simply prevent scrolling.  Full support for all of these features was added in Agon Console8 VDP 2.7.0.
+§ Whilst the Quark documentation claims that bits 4 and 5 is supported in the Quark 1.04 release, they were not actually supported in the VDP firmware.  The cursor would always move right after a character was printed, and the text cursor could never wrap to the top of the screen.  The cursor direction bits were also not supported.  Support for scroll protection was also limited to an incorrect (buggy) implementation, which would simply prevent vertical scrolling.  Full support for all of these features was added in Agon Console8 VDP 2.7.0.
 
 Scroll protection, when enabled, means that when in `VDU 4` mode printing a character that results in the cursor moving off the right-hand edge of the screen will cause a "pending newline" to be generated, rather than immediately performing a newline.  When this occurs, the cursor position will be one position greater than the right-most accessible column.  This newline will be executed just before the next character is printed if the cursor has not otherwise been moved back within the screen.  This means that sending a backspace character (`VDU 127`) or cursor left command (`VDU 8`) would cancel the pending newline, whilst a cursor right command will execute it.
 
