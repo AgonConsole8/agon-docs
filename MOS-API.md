@@ -75,8 +75,14 @@ OSWRCH:		RST.LIS	10h			; This calls a RST in the eZ80 address space
 Parameters:
 
 - HL: Address of the data stream (16-bit for Z80 mode, 24-bit for ADL mode)
-- BC: Length of stream (or 0 if the stream is limited)
+- BC: Length of stream (or 0 if the stream is delimited)
 - A: Stream delimiter (if BC=0)
+
+Returns:
+- A: Last character displayed (length mode) OR Delimeter (delimeter mode)
+- BC: 0
+- HL(U): Address of last character displayed + 1 (length mode) OR location of delimeter (delimeter mode)
+- E: Value of A upon entry
 
 Example:
 
