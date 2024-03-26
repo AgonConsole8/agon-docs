@@ -593,7 +593,7 @@ The following example will load a sound sample from a file called `sound.bin` an
 170 UNTIL remaining% = 0
 180 CLOSE #infile%
 190 REM Set buffer 42 to be an 8-bit unsigned sample
-200 VDU 23, 0, &85, 1, 5, 4, 2, 42; 1  : REM Channel is ignored in this command
+200 VDU 23, 0, &85, 1, 5, 2, 42; 1     : REM Channel is ignored in this command
 210 VDU 23, 0, &85, 1, 4, 8, 42;       : REM Set sample for channel 1 to buffer 42
 220 VDU 23, 0, &85, 1, 0, 100, 750; length% DIV 16;  : REM Play sample on channel 1
 ```
