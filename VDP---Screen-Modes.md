@@ -20,7 +20,7 @@ There are two VDU commands that will affect the screen modes that are available,
 
 ### `VDU 22, mode`
 
-This command selects a screen mode, where the screen mode is a single byte value qne muw5 be a mode from the list below.
+This command selects a screen mode, where the screen mode is a single byte value and must be a mode from the list below.
 
 Screen modes numbered above 128 are double-buffered, meaning that the screen is drawn to an off-screen buffer, and then the buffer is copied to the screen.  This prevents flickering when drawing to the screen.
 
