@@ -207,6 +207,18 @@ Displays help information for a command.  If no command is provided, a list of a
 
 NB prior to Console8 MOS 2.2.0 the `HELP` command required a command name to be provided, or the `all` keyword to display all commands.
 
+### `HOTKEY`
+
+Syntax: `*HOTKEY [<n> [<command string>]]`
+
+Sets or clears programmable function keys.
+
+Using this command you can set the function keys `F1-F12` on your to perform a specific command.  There are three ways in which this command works:
+1. If no parameters are provided, then the current hotkeys will be displayed.
+2. If a function key number `n` is provided alone without a command string, then the current command assigned to that function key will be cleared.
+3. If a function key number `n` and a command string are provided, then the command string will be assigned to that function key.
+    - If the command string includes `%s` then the current input line will be substituted in place of `%s`.
+
 ### `JMP`
 
 Syntax: `*JMP <address>`

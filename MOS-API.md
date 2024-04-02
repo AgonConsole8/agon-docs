@@ -15,12 +15,17 @@ There are four RST instructions for accessing MOS functionality from Z80.
 - `RST 10h`: Output a single character to the VDP
 - `RST 18h`: Output a stream of characters to the VDP (MOS 1.03 or above)
 
-In addition, you will probably want to include the file `mos_api.inc` in your project.  The Console8 version can be found in the folder [src](https://github.com/AgonConsole8/agon-mos/tree/main/src) of project [agon-mos](https://github.com/AgonConsole8/agon-mos).  The original Quark versions of this file can be found in the folder [src](https://github.com/breakintoprogram/agon-mos/tree/main/src) of project [agon-mos](https://github.com/breakintoprogram/agon-mos).
+In addition, if you are using the Zilog ZDS II assembler you may wish to include the file `mos_api.inc` in your project.  The Console8 version can be found in the folder [src](https://github.com/AgonConsole8/agon-mos/tree/main/src) of project [agon-mos](https://github.com/AgonConsole8/agon-mos).  The original Quark versions of this file can be found in the folder [src](https://github.com/breakintoprogram/agon-mos/tree/main/src) of project [agon-mos](https://github.com/breakintoprogram/agon-mos).
 
 NB:
 
-- Include the file `mos_api.inc` in your project
-- The `RST.LIS` ensures the MOS RST instructions are called regardless of the eZ80s current addressing mode
+- Using the `RST.LIS` opcode in an eZ80 assembler will ensure the MOS RST instructions are called regardless of the eZ80s current addressing mode.
+- In the `mos_api.inc` file you will find:
+  - EQUs for all the MOS commands, data structures and system variables.
+  - An incomplete list of VDP control variables.  For a full list, see the [VDP documentation](VDP.md)
+  - A complete list FatFS APIs, however these are not yet all implemented in MOS.  Those that are implemented are documented below.
+
+Further information on the `RST` handlers provided by MOS are as follows:
 
 ### `RST 08h`: Execute a MOS command
 
@@ -30,7 +35,7 @@ Parameters:
 
 NB:
 
-- There is a macro in mos_api.inc with EQUs for all the MOS commands
+- There is a macro in `mos_api.inc` with EQUs for all the MOS commands
 - Other MOS-command dependant parameters may be required
 
 Macro:
@@ -105,13 +110,11 @@ Example:
 text:		DB	"Hello World", 0
 ```
 
-## MOS commands
+## The MOS API
 
-MOS commands can be executed from a classic 64K Z80 segment or whilst the eZ80 is running in 24-bit ADL mode. For classic mode, 16 bit registers are passed as pointers to the MOS commands; these are automatically promoted to 24 bit by adding the MB register to bits 16-23 of the register. When running in ADL mode, a 24-bit register will be passed, but MB must be set to 0.
+MOS API calls can be executed from a classic 64K Z80 segment or whilst the eZ80 is running in 24-bit ADL mode. For classic mode, 16 bit registers are passed as pointers to the MOS commands; these are automatically promoted to 24 bit by adding the MB register to bits 16-23 of the register. When running in ADL mode, a 24-bit register will be passed, but MB must be set to 0.
 
-See mos_api.asm for implementation
-
-The following MOS commands are supported
+The following MOS commands are supported:
 
 ### `0x00`: mos_getkey
 
@@ -131,6 +134,8 @@ Parameters:
 - `DE(U)`: Address at which to load
 - `BC(U)`: Maximum allowed size (bytes)
 
+Preserves: `HL(U)`, `DE(U)`, `BC(U)`
+
 Returns:
 - `A`: File error, or 0 if OK
 - `F`: Carry reset if no room for file, otherwise set
@@ -145,6 +150,8 @@ Parameters:
 - `DE(U)`: Address to save from
 - `BC(U)`: Number of bytes to save
 
+Preserves: `HL(U)`, `DE(U)`, `BC(U)`
+
 Returns:
 
 - `A`: File error, or 0 if OK
@@ -158,17 +165,23 @@ Parameters:
 
 - `HL(U)`: Address of path (zero terminated)
 
+Preserves: `HL(U)`
+
 Returns:
 
 - `A`: File error, or 0 if OK
 
 ### `0x04`: mos_dir
 
-List SD card folder contents
+List SD card folder contents to screen.
+
+This is a simple directory listing command that will list the contents of the current directory to the screen.  More advanced directory listing functionality for applications to use is available via the [FatFS commands API](#fatfs-commands).
 
 Parameters: 
 
 - `HL(U)`: Address of path (zero terminated)
+
+Preserves: `HL(U)`
 
 Returns:
 
@@ -182,6 +195,8 @@ Parameters:
 
 - `HL(U)`: Address of path (zero terminated)
 
+Preserves: `HL(U)`
+
 Returns:
 
 - `A`: File error, or 0 if OK
@@ -193,7 +208,9 @@ Rename a file on the SD card
 Parameters: 
 
 - `HL(U)`: Address of filename1 (zero terminated)
-- D(E)U: Address of filename2 (zero terminated)
+- `DE(U)`: Address of filename2 (zero terminated)
+
+Preserves: `HL(U)`, `DE(U)`
 
 Returns:
 
@@ -206,6 +223,8 @@ Make a folder on the SD card
 Parameters: 
 
 - `HL(U)`: Address of path (zero terminated)
+
+Preserves: `HL(U)`
 
 Returns:
 
@@ -231,6 +250,11 @@ Parameters:
 - `BC(U)`: Buffer length
 - `E`: Flags to control editor behaviour
 
+Preserves: `HL(U)`, `BC(U)`, `DE(U)`
+
+Returns:
+- `A`: Key that was used to exit the input loop (CR=13, ESC=27)
+
 Editor behaviour flags are as follows:
 | Bit | Description |
 | --- | ----------- |
@@ -242,9 +266,6 @@ Editor behaviour flags are as follows:
 
 \* Support for editor control flags was added in Console8 MOS 2.2.0.  Prior to this the only documented values for `E` were 0 and 1 to indicate whether the buffer should be cleared.
 
-Returns:
-- `A`: Key that was used to exit the input loop (CR=13, ESC=27)
-
 ### `0x0A`: mos_fopen
 
 Get a file handle
@@ -253,6 +274,8 @@ Parameters:
 
 - `HL(U)`: Address of filename (zero terminated)
 - `C`: Mode
+
+Preserves: `HL(U)`, `BC(U)`, `DE(U)`, `IX(U)`, `IY(U)`
 
 Returns:
 - `A`: Filehandle, or 0 if couldn't open
@@ -269,6 +292,8 @@ Parameters:
 
 - `C`: Filehandle, or 0 to close all open files
 
+Preserves: `HL(U)`, `BC(U)`, `DE(U)`, `IX(U)`, `IY(U)`
+
 Returns:
 
 - `A`: Number of files still open
@@ -280,6 +305,8 @@ Get a character from an open file
 Parameters: 
 
 - `C`: Filehandle
+
+Preserves: `HL(U)`, `BC(U)`, `DE(U)`, `IX(U)`, `IY(U)`
 
 Returns:
 - `A`: Character read
@@ -294,6 +321,8 @@ Parameters:
 - `C`: Filehandle
 - `B`: Character to write
 
+Preserves: `HL(U)`, `BC(U)`, `DE(U)`, `IX(U)`, `IY(U)`
+
 Returns: None
 
 ### `0x0E`: mos_feof
@@ -303,6 +332,8 @@ Check for end of file
 Parameters: 
 
 - `C`: Filehandle
+
+Preserves: `HL(U)`, `BC(U)`, `DE(U)`, `IX(U)`, `IY(U)`
 
 Returns:
 - `A`: 1 if at end of file, otherwise 0
@@ -317,6 +348,8 @@ Parameters:
 - `HL(U)`: Address of buffer to copy message into
 - `BC(U)`: Size of buffer
 
+Preserves: `DE(U)`, `HL(U)`, `BC(U)`
+
 Returns: None
 
 ### `0x10`: mos_oscli
@@ -325,13 +358,15 @@ Execute a MOS command
 
 Parameters: 
 
-- `HLU`: Pointer the the MOS command string
-- `DEU`: Pointer to additional command structure
-- `BCU`: Number of additional commands
+- `HL(U)`: Pointer the the MOS command string
+
+Preserves: `HL(U)`
 
 Returns:
 
 - `A`: MOS error code
+
+NB previously documentation for this command was incorrect, as it documented additional parameters in `DE(U)` and `BC(U)`.  These registers are not currently used.
 
 ### `0x11`: mos_copy
 
@@ -340,7 +375,9 @@ Copy a file on the SD card
 Parameters: 
 
 - `HL(U)`: Address of filename1 (zero terminated)
--` D(E)U`: Address of filename2 (zero terminated)
+- `DE(U)`: Address of filename2 (zero terminated)
+
+Preserves: `HL(U)`, `BC(U)`, `DE(U)`, `IX(U)`, `IY(U)`
 
 Returns:
 
@@ -354,7 +391,9 @@ Get a time string from the RTC (Requires MOS 1.03 or above)
 
 Parameters:
 
-- `HLU`: Pointer to a buffer to copy the string to (at least 32 bytes)
+- `HL(U)`: Pointer to a buffer to copy the string to (at least 32 bytes)
+
+Preserves: `HL(U)`
 
 Returns:
 
@@ -366,7 +405,7 @@ Set the RTC (Requires MOS 1.03 or above)
 
 Parameters:
 
-- `HLU`: Pointer to a 6-byte buffer with the time data in
+- `HL(U)`: Pointer to a 6-byte buffer with the time data in
 
 ```
 +0: Year (offset from 1980, so 1989 is 9)
@@ -376,6 +415,8 @@ Parameters:
 +4: Minute (0 to 59)
 +5: Second (0 to 59)
 ```
+
+Preserves: `HL(U)`
 
 Returns: None
 
@@ -388,13 +429,17 @@ Parameters:
 - `E`: Interrupt vector number to set
 - `HLU`: Address of new interrupt vector (24-bit pointer)
 
+Preserves: `HLU`, `DEU`
+
 Returns:
 
-- `HLU`: Address of the previous interrupt vector (24-bit pointer)
+- `HL(U)`: Address of the previous interrupt vector (24-bit pointer)
 
 ### `0x15`: mos_uopen
 
 Open UART1 (Requires MOS 1.03 or above)
+
+To handle the received interrupts, you will need to assign a handler to UART1's interrupt vector (0x1A).
 
 Parameters:
 
@@ -414,7 +459,7 @@ Parameters:
     - Bit 4: Set to enable transmit complete interrupt
 ```
 
-To handle the received interrupts, you will need to assign a handler to UART1's interrupt vector (0x1A).
+Preserves: `HL(U)`
 
 Returns:
 
@@ -453,9 +498,11 @@ Parameters:
 
 - `C`: Filehandle
 
+Preserves: `BC(U)`
+
 Returns:
 
-- HLU: 24-bit pointer to a FIL structure (in MOS RAM)
+- `HLU`: 24-bit pointer to a FIL structure (in MOS RAM)
 
 ### `0x1A`: mos_fread
 
@@ -466,6 +513,8 @@ Parameters:
 - `C`: Filehandle
 - `HLU`: Pointer to a buffer to read the data into
 - `DEU`: Number of bytes to read
+
+Preserves: `HL(U)`, `BC(U)`
 
 Returns:
 
@@ -481,6 +530,8 @@ Parameters:
 - `HLU`: Pointer to a buffer that contains the data to write 
 - `DEU`: Number of bytes to write out
 
+Preserves: `HL(U)`, `BC(U)`
+
 Returns:
 
 - `DEU`: Number of bytes written
@@ -494,6 +545,8 @@ Parameters:
 - `C`: Filehandle
 - `HLU`: Least significant 3 bytes of the offset from the start of the file
 - `E`: Most significant byte of the offset (set to 0 for files < 16MB)
+
+Preserves: `HL(U)`, `BC(U)`, `DE(U)`
 
 Returns:
 
@@ -531,6 +584,8 @@ Parameters:
 
 - `C`: Frequency ID (1: 57600, 2: 115200, 3: 230400)
 
+Preserves: `HL(U)`, `BC(U)`, `DE(U)`, `IX(U)`, `IY(U)`
+
 Returns: None
 
 ### `0x20`: mos_i2c_close
@@ -538,6 +593,8 @@ Returns: None
 Close the I2C bus (Requires MOS 1.04 RC3 or above)
 
 Parameters: None
+
+Preserves: `HL(U)`, `BC(U)`, `DE(U)`, `IX(U)`, `IY(U)`
 
 Returns: None
 
@@ -550,6 +607,8 @@ Parameters:
 - `C`: I2C Address
 - `B`: Number of bytes to write (maximum 32)
 - `HL(U)`: Pointer to a buffer to read the bytes from
+
+Preserves: `HL(U)`, `DE(U)`, `IX(U)`, `IY(U)`
 
 Returns:
 - `A`: Status
@@ -568,6 +627,8 @@ Parameters:
 - `C`: I2C Address
 - `B`: Number of bytes to read (maximum 32)
 - `HL(U)`: Pointer to a buffer to write the bytes to
+
+Preserves: `HL(U)`, `DE(U)`, `IX(U)`, `IY(U)`
 
 Returns:
 - `A`: Status
@@ -595,7 +656,7 @@ Parameters:
 - `DE(U)`: Pointer to a C (zero-terminated) filename string
 - `C`: File open mode
 
-Preserves: `HL(U)`, `DE(U)`, C
+Preserves: `HL(U)`, `DE(U)`, `C`
 
 Returns:
 
