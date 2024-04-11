@@ -100,7 +100,7 @@ This command will return the colour of the pixel at the given pixel position to 
 
 ## `VDU 23, 0, &85, channel, command, <args>`: Audio commands
 
-Sends a command to the [VDP Enhanced Audio API](VDP---Enhanced-Audio-API.md) **
+Sends a command to the [VDP Enhanced Audio API](vdp/Enhanced-Audio-API.md) **
 
 Prior to VDP 1.04 this command could only perform what is now audio command zero, which plays a note on a channel.
 
@@ -180,7 +180,7 @@ There are several built-in mouse cursors that are available for use.  These have
 | 17 | Resize4 | 17x11 resize orientation 4 |
 | 18 | TextInput | 7x15 text input |
 
-Additional cursors can be defined using the `VDU 23, 27, &40, hotX, hotY` command.  For details of that command see the [Bitmaps API](VDP---Bitmaps-API.md) documentation.  Using that API it is possible to define a custom mouse cursor using a bitmap, which can then be selected using this command passing in the 16-bit bitmapId in place of a cursorId.
+Additional cursors can be defined using the `VDU 23, 27, &40, hotX, hotY` command.  For details of that command see the [Bitmaps API](vdp/Bitmaps-API.md) documentation.  Using that API it is possible to define a custom mouse cursor using a bitmap, which can then be selected using this command passing in the 16-bit bitmapId in place of a cursorId.
 
 ### `VDU 23, 0, &89, 4, x; y;`: Set mouse cursor position
 
@@ -299,7 +299,7 @@ From Console8 VDP 2.6.0 onwards, the control keys can be turned off, which may h
 
 ## `VDU 23, 0, &A0, bufferId, command, <args>`: Buffered command API **
 
-Send a command to the [VDP Buffered Commands API](VDP---Buffered-Commands-API.md)
+Send a command to the [VDP Buffered Commands API](vdp/Buffered-Commands-API.md)
 
 ## `VDU 23, 0, &A1`: Update VDP (for exclusive use of the agon-flash tool) **
 
@@ -311,7 +311,7 @@ Turns logical screen scaling on and off, where 1=on and 0=off.
 
 When logical scaling is turned off, the graphics system will no longer use the 1280x1024 logical coordinate system and instead use pixel coordinates.  The screen origin point at 0,0 will change to be the top left of the screen, and the Y axis will go down the screen instead of up.  
 
-For more information, see the [Screen modes documentation](VDP---Screen-Modes.md).
+For more information, see the [Screen modes documentation](vdp/Screen-Modes.md).
 
 ## `VDU 23, 0, &C1, n`: Switch legacy modes on or off **
 
@@ -319,7 +319,7 @@ Turns legacy screen modes on and off, where 1=on and 0=off.
 
 By default, the original screen modes 0-4 are not available and are instead replaced by new modes that are more compatible with modern monitors.  For compatibility with older software, written for Agon systems running earlier versions of the VDP firmware, this command can be used to switch back to those original, legacy, screen modes.
 
-For more information, see the [Screen modes documentation](VDP---Screen-Modes.md).
+For more information, see the [Screen modes documentation](vdp/Screen-Modes.md).
 
 
 ## `VDU 23, 0, &C3`: Swap the screen buffer and/or wait for VSYNC **
@@ -393,7 +393,7 @@ Packets:
 - `0x02, x, y`: Cursor position
 - `0x03, char`: Character read from screen
 - `0x04, r, g, b, index`: Pixel colour read from screen
-- `0x05, channel, status`: Audio command status (see [VDP Enhanced Audio API](VDP---Enhanced-Audio-API.md))
+- `0x05, channel, status`: Audio command status (see [VDP Enhanced Audio API](vdp/Enhanced-Audio-API.md))
 - `0x06, width; height; cols, rows, colours`: Screen dimensions - width and height are words
 - `0x07, year, month, day, dayOfYear, dayOfWeek, hour, minute, second`: RTC data *
 - `0x08, delay, rate, led`: Keyboard status - delay and rate are words

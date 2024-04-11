@@ -141,7 +141,7 @@ Prior to Console8 VDP 2.5.0 this command did not return a status.
 
 These commands are used to manage samples on the VDP which can be assigned to a channel as a waveform for playback.
 
-Sample data is stored in buffers on the VDP, and can be manipulated using the [buffered commands API](VDP---Buffered-Commands-API.md).
+Sample data is stored in buffers on the VDP, and can be manipulated using the [buffered commands API](vdp/Buffered-Commands-API.md).
 
 When a negative number is used in place of the channel number then the command is referring directly to a sample, rather than a channel.  Samples referenced in this manner are, by default, stored in buffers in the range 64256-64383 (`&FB00`-`&FB7F`).  To map a negative sample number to a buffer range, you need to negate it, subtract 1, and then add it to 64256.  This means sample number -1 is stored in buffer 64256, -2 is stored in buffer 64257, and so on.  Any buffer however can be used for sample data, using commands listed below that explicitly reference a buffer ID.
 
@@ -155,7 +155,7 @@ Sample commands 5, 3 and above were added in the Console8 VDP 2.2.0 release.
 
 This command is used to transfer a sample over to the VDP for later playback.
 
-As sample data can be long, rather than using this command, you are advised instead to upload your sample data to a buffer on the VDP in multiple blocks using the [buffered commands API](VDP---Buffered-Commands-API.md) and then use command 5, 2 (documented below) to indicate that the data within a buffer is a sound sample.  That approach also allows for the use of different formats of sample data.
+As sample data can be long, rather than using this command, you are advised instead to upload your sample data to a buffer on the VDP in multiple blocks using the [buffered commands API](vdp/Buffered-Commands-API.md) and then use command 5, 2 (documented below) to indicate that the data within a buffer is a sound sample.  That approach also allows for the use of different formats of sample data.
 
 When using this command, the sample data is assumed to be 8-bit signed PCM samples at 16kHz.  The sample data is sent as a series of bytes of the given length.
 
@@ -184,7 +184,7 @@ A simple example of how to send a sample to the VDP using this command is as fol
 
 NB This example can be very slow as it sends the sample data byte-by-byte, taking just over 1s to send 2kb of data.  During this time your computer will be unresponsive, and it is not possible to output to screen any kind of progress as any such `PRINT` command will be interpretted as part of the sample data.  Unfortunately at present there is no way to send data in bulk to the VDP from BBC BASIC, or to read chunks of files into memory in one go.  For faster transfer of sample data you will need to write a program in assembly language and make use of file access APIs from MOS and the RST #18 vector to send larger chunks of data to the VDP.
 
-The [VDP Buffered Commands API](VDP---Buffered-Commands-API.md) provides an alternative example of sending sample data to the VDP which allows for progress to be reported whilst the sample is being uploaded.
+The [VDP Buffered Commands API](vdp/Buffered-Commands-API.md) provides an alternative example of sending sample data to the VDP which allows for progress to be reported whilst the sample is being uploaded.
 
 As noted above, this command will return 1 on success or 0 for failure.  In the event of a failure the VDP will ignore and discard the sample data being sent to it.
 
@@ -206,7 +206,7 @@ This command will return 1 on success or 0 for failure.
 
 This command is used to indicate that the data in the given buffer is a sound sample.  The channel number will be ignored for the purposes of this command, but will be used in the return result.
 
-The buffer ID is a 16-bit value giving the buffer number to use for the sample.  The buffer must have been created using the [buffered commands API](VDP---Buffered-Commands-API.md) before this command is called.
+The buffer ID is a 16-bit value giving the buffer number to use for the sample.  The buffer must have been created using the [buffered commands API](vdp/Buffered-Commands-API.md) before this command is called.
 
 The format is a single byte giving the format of the sample data.  The following formats are supported:
 

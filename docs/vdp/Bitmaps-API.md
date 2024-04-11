@@ -2,7 +2,7 @@
 
 VDU 23, 27 is reserved for the bitmap, sprite, and mouse cursor functionality.
 
-As of VDP 1.04, the bitmap system is integrated with the [Buffered Commands API](VDP---Buffered-Commands-API.md).  Bitmap data is stored in buffers, and can be manipulated using the Buffered Commands API on the VDP.
+As of VDP 1.04, the bitmap system is integrated with the [Buffered Commands API](vdp/Buffered-Commands-API.md).  Bitmap data is stored in buffers, and can be manipulated using the Buffered Commands API on the VDP.
 
 
 ## Bitmaps
@@ -13,7 +13,7 @@ Acorn only actually had two VDU commands for what it called "sprites", which in 
 
 The approach taken on Agon (initially at least) was to redefine the "define bitmap from screen" command to instead allow the uploading of a binary bitmap image.  In doing so, the parameters of the command changed, and the bitmap identifier was lost from the command parameters.  Instead, on the Agon, you need to always perform a "select bitmap" command before any other bitmap commands to set the bitmap being used.  Additionally on the Agon, prior to Console8 VDP 2.2.0, plotting bitmaps could only be performed with a custom command, and not with the standard `PLOT` commands.
 
-As of Console8 VDP 2.2.0, it is now possible to use Acorn GXR style "sprite" code on an Agon.  The `PLOT` code for drawing bitmaps is now supported, and bitmap command 1 can now be used to capture screen data into a bitmap identically to the GXR.  The documentation on the [`PLOT` command](VDP---PLOT-Command.md) (`VDU 25`) explains how to use it to draw bitmaps.
+As of Console8 VDP 2.2.0, it is now possible to use Acorn GXR style "sprite" code on an Agon.  The `PLOT` code for drawing bitmaps is now supported, and bitmap command 1 can now be used to capture screen data into a bitmap identically to the GXR.  The documentation on the [`PLOT` command](vdp/PLOT-Command.md) (`VDU 25`) explains how to use it to draw bitmaps.
 
 In addition to GXRs two commands, the Agon VDP has several other commands for managing bitmaps, and additional commands to manage "sprites".
 
@@ -49,7 +49,7 @@ The width and height of the bitmap must be given in pixels, and must match the n
 
 It should be noted that whilst the image format supported by this command is for full 24-bit colour images with 256 levels of transparency (alpha) per pixel, the Agon hardware is only capable of displaying 2-bits per colour channel.  The graphics system also does not really support transparency, so any non-zero alpha value is interpreted as "fully visible".  Data loaded via this command remains in RGBA8888 format on the VDP, but is converted on the fly when the bitmap is drawn to the screen.
 
-(As RGBA8888 is a very wasteful format, given the hardware limitations, other options are now available.  Loading bitmaps with this command can take a long time, and it is not possible to intersperse other commands, such as showing progress on-screen, whilst the data is being sent.  There are however alternative ways of managing the data which avoids these issues.  Please see the section on "Using buffers for bitmaps" in the [Buffered Commands API](VDP---Buffered-Commands-API.md) document for more information.)
+(As RGBA8888 is a very wasteful format, given the hardware limitations, other options are now available.  Loading bitmaps with this command can take a long time, and it is not possible to intersperse other commands, such as showing progress on-screen, whilst the data is being sent.  There are however alternative ways of managing the data which avoids these issues.  Please see the section on "Using buffers for bitmaps" in the [Buffered Commands API](vdp/Buffered-Commands-API.md) document for more information.)
 
 ### `VDU 23, 27, 1, n, 0, 0;`: Capture screen data into bitmap n *
 
@@ -63,7 +63,7 @@ To be clear, this command should be performed _after_ two "move" style PLOT comm
 
 If a bitmap with the given ID already exists then it will be overwritten, and similarly if a buffer was already defined with the ID 64000+`n` then that will be overwritten too.
 
-Up to and including the Console8 VDP 2.5.0 release, the bitmap data captured using this command will be stored in "native" format.  The nature of the "native" format varies depending on the screen mode.  For all screen modes the bitmap will use 1 byte per pixel, but the data within that byte varies.  In 64 colour modes, the data is essentially in RGB222 with no alpha channel.  It is possible to convert bitmaps captured in 64 colour modes to RGBA2222 format by using the OR operation of the "adjust" command from the [Buffered Commands API](VDP---Buffered-Commands-API.md), ORing all the bytes in the bitmap's buffer with `&C0` to set the pixel alpha bits to be "opaque", and then re-creating the bitmap from the corresponding buffer to be RGBA2222 (format 1).  For all other screen modes, the byte represents a palette index.  An unfortunate effect of this is that a bitmap captured in one screen mode may not be compatible with other screen modes.
+Up to and including the Console8 VDP 2.5.0 release, the bitmap data captured using this command will be stored in "native" format.  The nature of the "native" format varies depending on the screen mode.  For all screen modes the bitmap will use 1 byte per pixel, but the data within that byte varies.  In 64 colour modes, the data is essentially in RGB222 with no alpha channel.  It is possible to convert bitmaps captured in 64 colour modes to RGBA2222 format by using the OR operation of the "adjust" command from the [Buffered Commands API](vdp/Buffered-Commands-API.md), ORing all the bytes in the bitmap's buffer with `&C0` to set the pixel alpha bits to be "opaque", and then re-creating the bitmap from the corresponding buffer to be RGBA2222 (format 1).  For all other screen modes, the byte represents a palette index.  An unfortunate effect of this is that a bitmap captured in one screen mode may not be compatible with other screen modes.
 
 Also up to and including the Console8 VDP 2.5.0 release, bitmaps captured with this command would use "exclusive" coordinates, and so would be 1 pixel shorter and narrower than the area defined by the graphics cursor positions.  (This is _not_ consistent with the behaviour of this command on Acorn systems.)
 
@@ -79,13 +79,13 @@ The bitmap is created in the buffer with the ID 64000+`n`, where `n` is the 8-bi
 
 ### `VDU 23, 27, 3, x; y;`: Draw current bitmap on screen at pixel position x, y
 
-Prior to Agon Console8 VDP 2.2.0, this was the only way to draw a bitmap on-screen.  On more up to date VDP versions is strongly recommended that you use the appropriate [PLOT command](VDP---PLOT-Commands.md) instead.
+Prior to Agon Console8 VDP 2.2.0, this was the only way to draw a bitmap on-screen.  On more up to date VDP versions is strongly recommended that you use the appropriate [PLOT command](vdp/PLOT-Commands.md) instead.
 
 Before this command can be used, a bitmap must be selected using `VDU 23, 27, 0, n`, where `n` is the 8-bit ID of the bitmap to be drawn, or using `VDU 23, 27, &20, bufferId;` using a 16-bit buffer ID.
 
 The x and y parameters give the pixel position on the screen at which the top left corner of the bitmap will be drawn.  This is in contrast to `PLOT` commands which will (by default) use OS Coordinates, where the origin is at the bottom left of the screen and the screen is always considered to have the dimensions 1280x1024.
 
-Please note that this command does not obey the current graphics viewport or the currently selected coordinate system.  The bitmap will be drawn at the given pixel position, and will _not_ be clipped by the viewport.  To draw bitmaps with clipping, you are advised to use the appropriate bitmap [PLOT commands](VDP---PLOT-Commands.md) instead.
+Please note that this command does not obey the current graphics viewport or the currently selected coordinate system.  The bitmap will be drawn at the given pixel position, and will _not_ be clipped by the viewport.  To draw bitmaps with clipping, you are advised to use the appropriate bitmap [PLOT commands](vdp/PLOT-Commands.md) instead.
 
 ### `VDU 23, 27, &20, bufferId;`: Select bitmap using a 16-bit buffer ID *
 

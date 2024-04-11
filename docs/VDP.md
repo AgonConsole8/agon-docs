@@ -65,7 +65,7 @@ More information about these can be found in the [MOS API documentation](MOS-API
 
 The aim is that the Agon's VDP should be as compatible as practical with the BBC Micro's VDU command, as well as the VDU commands supported by later versions of Acorn and R.T.Russell's BBC BASICs.  Where necessary, some extensions have been added to help facilitate the Agon's unique features and architecture.
 
-For a more detailed description of VDU commands supported by the Agon's VDP, see [VDU Commands](VDP---VDU-Commands.md).
+For a more detailed description of VDU commands supported by the Agon's VDP, see [VDU Commands](vdp/VDU-Commands.md).
 
 The following is a high-level list of the VDU sequences that are supported:
 
@@ -91,10 +91,10 @@ The following is a high-level list of the VDU sequences that are supported:
 - `VDU 19, l, p, r, g, b`: Define logical colour (`COLOUR l, p` / `COLOUR l, r, g, b`)
 - `VDU 20`: Reset palette and text/graphics colours and drawing modes §§
 - `VDU 21`: Disable screen (turns of VDU command processing, except for `VDU 1` and `VDU 6`) §§
-- `VDU 22, n`: [Select screen mode](VDP---Screen-Modes.md) (`MODE n`)
+- `VDU 22, n`: [Select screen mode](vdp/Screen-Modes.md) (`MODE n`)
 - `VDU 23, n`: Re-program display character / System Commands
 - `VDU 24, left; bottom; right; top;`: Set graphics viewport **
-- `VDU 25, mode, x; y;`: [PLOT command](VDP---PLOT-Commands.md)
+- `VDU 25, mode, x; y;`: [PLOT command](vdp/PLOT-Commands.md)
 - `VDU 26`: Reset graphics and text viewports **
 - `VDU 27, char`: Output character to screen §
 - `VDU 28, left, bottom, right, top`: Set text viewport **
@@ -117,8 +117,8 @@ Any VDU command that is the VDP does not recognise (such as `VDU 2` when running
 
 `VDU 23` essentially has a split purpose.  The first is to redefine the display characters, and the second is to send commands to the VDP to access some more sophisticated behaviour.
 
-For more information on these commands and a full list, please consult the `VDU 23` section of the [VDU Commands](VDP---VDU-Commands.md) document.  This includes the [Bitmap and Sprite API](VDP---Bitmaps-API.md).
+For more information on these commands and a full list, please consult the `VDU 23` section of the [VDU Commands](vdp/VDU-Commands.md) document.  This includes the [Bitmap and Sprite API](vdp/Bitmaps-API.md).
 
-Amongst this you will also find [system commands](VDP---System-Commands.md), which start with `VDU 23, 0` and are unique to the Agon platform.  Within the system commands set you will find the [Audio API](VDP---Enhanced-Audio-API.md), and [Buffered Commands API](VDP---Buffered-Commands-API).
+Amongst this you will also find [system commands](vdp/System-Commands.md), which start with `VDU 23, 0` and are unique to the Agon platform.  Within the system commands set you will find the [Audio API](vdp/Enhanced-Audio-API.md), and [Buffered Commands API](vdp/Buffered-Commands-API).
 
 
