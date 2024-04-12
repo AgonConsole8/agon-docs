@@ -52,7 +52,7 @@ VDU 23, 27, &20, bufferId;              : REM Select bitmap (using a buffer ID)
 VDU 23, 27, &21, width; height; format  : REM Create bitmap from buffer
 ```
 
-More extensive information on the bitmap and sprites API calls can be found in the [bitmaps and sprites documentation](VDP---Bitmaps-API.md).
+More extensive information on the bitmap and sprites API calls can be found in the [bitmaps and sprites documentation](vdp/Bitmaps-API.md).
 
 Until the "create bitmap" call has been made the buffer cannot be used as a bitmap.  That is because the system needs to understand the dimensions of the bitmap, as well as the format of the data.  Usually this only needs to be done once.  The format is given as an 8-bit value, with the following values supported:
 
@@ -82,7 +82,7 @@ Much like with bitmaps, it is advisable to send samples over to the VDP in multi
 
 In contrast to bitmaps, the sound system can play back samples that are spread over multiple blocks, so there is no need to consolidate buffers.  As a result of this, the sample playback system is also more tolerant of modifications being made to the buffer after a sample has been created from it, even if the sample is currently playing.  It should be noted that splitting a buffer may result in unexpected behaviour if the sample is currently playing, such as skipping to other parts of the sample.
 
-Full information on the sound system can be found in the [audio API documentation](VDP---Enhanced-Audio-API.md).
+Full information on the sound system can be found in the [audio API documentation](vdp/Enhanced-Audio-API.md).
 
 Once you have a buffer that contains block(s) that are ready to be used for a sound sample, the following command must be used to indicate that a sample should be created from that buffer:
 

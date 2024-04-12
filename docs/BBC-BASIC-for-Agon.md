@@ -100,7 +100,7 @@ If a file extension is omitted, ".BBC" is assumed.
 
 ### MODE
 
-The modes differ from those on the BBC series of microcomputers. The full list can be found [here](VDP---Screen-Modes.md) in the VDP documentation.
+The modes differ from those on the BBC series of microcomputers. The full list can be found [here](vdp/Screen-Modes.md) in the VDP documentation.
 
 ### COLOUR
 
@@ -156,7 +156,7 @@ This returns the physical colour index of the colour at pixel position (x, y)
 
 Syntax: `PLOT mode,x,y`
 
-For information on the various PLOT modes, please see the [VDP PLOT command documentation](VDP---PLOT-Commands.md)
+For information on the various PLOT modes, please see the [VDP PLOT command documentation](vdp/PLOT-Commands.md)
 
 ### GET$
 

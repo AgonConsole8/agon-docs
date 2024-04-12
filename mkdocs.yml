@@ -1,0 +1,92 @@
+# To view the documentation locally on your machine, use the following steps
+#
+# Clone the GitHub cppfront repo locally, then on the command line:
+#
+#   cd /github/cppfront
+#   python -m venv venv
+#   source venv/bin/activate
+#   pip install mkdocs-material
+#   mkdocs new .
+#   mkdocs serve
+#
+# The last command should eventually print something like
+#   Serving on http://127.0.0.1:8000/
+# and you can open that URL in a local brower. If you are locally editing
+# the documentation, leave the server process running and the browser
+# pages will auto-reload as you save edits.
+#
+site_name: "Community Agon platform documentation"
+repo_url: https://github.com/AgonConsole8/agon-docs
+repo_name: contribute
+edit_uri: edit/main/docs/
+theme:
+  favicon: assets/favicon.png
+  logo: assets/logo.png
+  name: material
+  features:
+    - navigation.sections
+    - navigation.expand
+    - navigation.instant
+    - navigation.instant.preview
+    - navigation.top
+    - search.suggest
+    - search.highlight
+    - content.tabs.link
+    - content.code.annotate
+    - content.code.annotation
+    - content.code.copy
+    - content.footnote.tooltips
+    - content.action.edit
+  language: en
+  palette:
+    - scheme: default
+      toggle:
+        icon: material/toggle-switch-off-outline
+        name: Switch to dark mode
+      primary: deep purple
+      accent: purple
+    - scheme: slate
+      toggle:
+        icon: material/toggle-switch
+        name: switch to light mode
+        primary: deep purple
+        accent: lime
+
+extra_css:
+  - stylesheets/extra.css
+
+nav:
+  - 'Welcome & getting started':
+    - 'Start here': index.md
+    - 'FAQ': FAQ.md
+    - 'Theory of operation': Theory-of-operation.md
+  - 'Reference':
+    - 'MOS': MOS.md
+    - 'VDP': VDP.md
+    - 'BBC Basic': BBC-BASIC-for-Agon.md
+    - 'GPIO': GPIO.md
+  - 'Guides':
+    - 'Updating Firmware': Updating-Firmware-from103.md
+    - 'Updating Firmware (prio v1.03)': Updating-Firmware.md
+  - 'Additional ressources':
+    - 'External documentation': External-Documentation.md
+    - 'Third party projects': Third-Party-Projects.md
+
+
+markdown_extensions:
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - admonition
+  - pymdownx.arithmatex:
+      generic: true
+  - footnotes
+  - pymdownx.details
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.mark
+  - attr_list
