@@ -15,6 +15,7 @@
 # the documentation, leave the server process running and the browser
 # pages will auto-reload as you save edits.
 #
+
 site_name: "Community Agon Platform documentation"
 repo_url: https://github.com/AgonConsole8/agon-docs
 repo_name: contribute
