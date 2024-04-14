@@ -157,7 +157,7 @@ The full array of available modes is as follows:
 | 6 | AND the inverse of the specified colour with the on-screen pixel |
 | 7 | OR the inverse of the specified colour with the on-screen pixel |
 
-For more information on the various plot commands, please see the [VDP PLOT command documentation](vdp/PLOT-Commands.md)
+For more information on the various plot commands, please see the [VDP PLOT command documentation](PLOT-Commands.md)
 
 (Acorn's graphics system supported some further GCOL mode options, which could specify the use of a fill pattern, which is not currently supported by the Agon VDP.  Support for these modes may be added in a future version of the VDP firmware.)
 
@@ -199,7 +199,7 @@ Please note that the behaviour of the Agon system differs from Acorn systems whe
 
 Changes the screen mode to the given mode number.
 
-Please see the [Screen Modes](vdp/Screen-Modes.md) documentation for more information on the screen modes supported by the Agon VDP.
+Please see the [Screen Modes](Screen-Modes.md) documentation for more information on the screen modes supported by the Agon VDP.
 
 This command is identical to the BASIC `MODE` keyword.
 
@@ -213,7 +213,7 @@ VDU 23, char_no, r1, r2, r3, r4, r5, r6, r7, r8
 ```
 Where `char_no` is the character number to re-program, and `r1` to `r8` are the 8 bytes of data that define the character in rows from top to bottom.  Each byte defines one row of the character, with the least significant bit of each byte defining the left-most pixel of the row, and the most significant bit defining the right-most pixel of the row.
 
-Note: There is a related VDU 23 System Command which can [program the entire character range 0-255](vdp/System-Commands.md#vdu-23-0-90-n-b1-b2-b3-b4-b5-b6-b7-b8-redefine-character-n-0-255-with-8-bytes-of-data-), and a reset command is also available to [reset the font](vdp/System-Commands.md#vdu-23-0-91-reset-all-characters-to-original-definition-) back to default.
+Note: There is a related VDU 23 System Command which can [program the entire character range 0-255](System-Commands.md#vdu-23-0-90-n-b1-b2-b3-b4-b5-b6-b7-b8-redefine-character-n-0-255-with-8-bytes-of-data-), and a reset command is also available to [reset the font](System-Commands.md#vdu-23-0-91-reset-all-characters-to-original-definition-) back to default.
 
 The second purpose of this command is to send system commands to the VDP.
 
@@ -221,7 +221,7 @@ The following commands are supported:
 
 ### `VDU 23, 0, <command>, [<arguments>]`: System commands
 
-Commands starting with `VDU 23, 0` are system commands.  These commands are used to configure the VDP and to control its behaviour.  This includes functionality such as the [audio system](vdp/Enhanced-Audio-API.md) and the [buffered commands API](vdp/Buffered-Commands-API.md).  For more information see the [System Commands](vdp/System-Commands.md) documentation.
+Commands starting with `VDU 23, 0` are system commands.  These commands are used to configure the VDP and to control its behaviour.  This includes functionality such as the [audio system](Enhanced-Audio-API.md) and the [buffered commands API](Buffered-Commands-API.md).  For more information see the [System Commands](System-Commands.md) documentation.
 
 ### `VDU 23, 1, n`: Cursor control 
 
@@ -320,7 +320,7 @@ Enabling scroll protection therefore allows you to print a character to the bott
 
 ### `VDU 23, 27, <command>, [<arguments>]`: Bitmap and sprite commands
 
-See the [Bitmap and Sprite Commands](vdp/Bitmaps-API.md) documentation for more information.
+See the [Bitmap and Sprite Commands](Bitmaps-API.md) documentation for more information.
 
 ### `VDU 23, 28`: Hexload
 
@@ -336,13 +336,13 @@ Coordinates given are "inclusive", meaning that drawing locations up to and incl
 
 (Please note that owing to a bug in the VDP firmware, viewports of a single pixel wide or tall were not supported until Console8 VDP 2.7.0.  Prior to that version a command to set a single pixel high viewport would be ignored.)
 
-## `VDU 25, mode, x; y;`: [PLOT command](vdp/PLOT-Commands.md)
+## `VDU 25, mode, x; y;`: [PLOT command](PLOT-Commands.md)
 
 This command is used for graphics plotting, and is equivalent to the BASIC `PLOT` command.
 
 The aim for this command is to support all of Acorn's original `PLOT` modes, however currently only a limited number of plotting modes are supported.  Support for plot modes has expanded over time, and will continue to expand in the future.
 
-For more information see the [PLOT Commands](vdp/PLOT-Commands.md) documentation.
+For more information see the [PLOT Commands](PLOT-Commands.md) documentation.
 
 ## `VDU 26`: Reset graphics and text viewports **
 

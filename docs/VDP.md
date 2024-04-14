@@ -119,6 +119,6 @@ Any VDU command that is the VDP does not recognise (such as `VDU 2` when running
 
 For more information on these commands and a full list, please consult the `VDU 23` section of the [VDU Commands](vdp/VDU-Commands.md) document.  This includes the [Bitmap and Sprite API](vdp/Bitmaps-API.md).
 
-Amongst this you will also find [system commands](vdp/System-Commands.md), which start with `VDU 23, 0` and are unique to the Agon platform.  Within the system commands set you will find the [Audio API](vdp/Enhanced-Audio-API.md), and [Buffered Commands API](vdp/Buffered-Commands-API).
+Amongst this you will also find [system commands](vdp/System-Commands.md), which start with `VDU 23, 0` and are unique to the Agon platform.  Within the system commands set you will find the [Audio API](vdp/Enhanced-Audio-API.md), and [Buffered Commands API](vdp/Buffered-Commands-API.md).
 
 
