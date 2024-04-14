@@ -1,8 +1,8 @@
 # To view the documentation locally on your machine, use the following steps
 #
-# Clone the GitHub cppfront repo locally, then on the command line:
+# Clone the GitHub agon-docs repo locally, then on the command line:
 #
-#   cd /github/cppfront
+#   cd /github/agon-docs
 #   python -m venv venv
 #   source venv/bin/activate
 #   pip install mkdocs-material
