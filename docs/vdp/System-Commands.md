@@ -100,7 +100,7 @@ This command will return the colour of the pixel at the given pixel position to 
 
 ## `VDU 23, 0, &85, channel, command, <args>`: Audio commands
 
-Sends a command to the [VDP Enhanced Audio API](Enhanced-Audio-API.md) **
+Sends a command to the [VDP Enhanced Audio API](Enhanced-Audio-API) **
 
 Prior to VDP 1.04 this command could only perform what is now audio command zero, which plays a note on a channel.
 
