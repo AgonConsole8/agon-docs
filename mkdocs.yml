@@ -69,7 +69,7 @@ nav:
   - 'Guides':
     - 'Updating Firmware': Updating-Firmware-from103.md
     - 'Updating Firmware (prio v1.03)': Updating-Firmware.md
-  - 'Additional ressources':
+  - 'Additional resources':
     - 'External documentation': External-Documentation.md
     - 'Third party projects': Third-Party-Projects.md
 
