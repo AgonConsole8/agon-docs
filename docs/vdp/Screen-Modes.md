@@ -67,7 +67,7 @@ Modes over 128 are double-buffered
 
 | Mode | Horz | Vert | Cols | Refresh |
 |-----:|-----:|-----:|-----:|--------:|
-|    0 |  640 |  480 |   16 |    60hz |
+|*** 0 |  640 |  480 |   16 |    60hz |
 |  * 1 |  640 |  480 |    4 |    60hz |
 |    2 |  640 |  480 |    2 |    60hz |
 |    3 |  640 |  240 |   64 |    60hz |
@@ -104,6 +104,7 @@ Modes over 128 are double-buffered
 
 \** Mode 7 is the "Teletext" mode, and essentially works in a very similar manner to the BBC Micro's Teletext mode, which was also mode 7.
 
+\*** As of Console8 VDP 2.8.0, mode 0 is now the mode that the VDP will use on startup.  The fallback mode when a requested mode is not available remains mode 1.
 
 ### Legacy modes (prior to 1.04)
 

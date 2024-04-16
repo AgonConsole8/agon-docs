@@ -11,6 +11,7 @@ Please note that not all versions of the VDP support the complete command set.  
  § Requires Console8 VDP 2.3.0 or above<br>
  §§ Requires Console8 VDP 2.5.0 or above<br>
  §§§ Requires Console8 VDP 2.7.0 or above<br>
+ §§§§ Requires Console8 VDP 2.8.0 or above<br>
 
 In general, bytes/characters in the range of 0-31 are treated as control or command codes by the VDP.  Depending on the command, the VDP will then interpret bytes that follow as parameters to the command, continuing until sufficient bytes have been read to satisfy the command.  If there are insufficient bytes to satisfy the command, then the VDP will wait until more bytes are available, and timeout after 200ms.  If too many bytes are sent for a command, then the VDP will interpret those new bytes as another command.
 
@@ -203,17 +204,21 @@ Please see the [Screen Modes](Screen-Modes.md) documentation for more informatio
 
 This command is identical to the BASIC `MODE` keyword.
 
+Changing the screen mode will reset the graphics system, returning most settings to their defaults.  The current cursor behaviour (as defined using `VDU 23, 16, x, y`) will be retained.
+
 ## `VDU 23, n`: Re-program display character / System Commands
 
 This command serves two purposes.
 
-Firstly when `n` is in the range of 32-255 it will re-program the character in the character set at the given character code.  This is useful for redefining the character set, or for adding custom characters to the character set.  The format of the command in this mode is:
+Firstly when `n` is in the range of 32-255 it will re-program the character in the system font at the given character code.  This is useful for redefining the character set, or for adding custom characters to the system character set.  The format of the command in this mode is:
 ```
 VDU 23, char_no, r1, r2, r3, r4, r5, r6, r7, r8
 ```
 Where `char_no` is the character number to re-program, and `r1` to `r8` are the 8 bytes of data that define the character in rows from top to bottom.  Each byte defines one row of the character, with the least significant bit of each byte defining the left-most pixel of the row, and the most significant bit defining the right-most pixel of the row.
 
-Note: There is a related VDU 23 System Command which can [program the entire character range 0-255](System-Commands.md#vdu-23-0-90-n-b1-b2-b3-b4-b5-b6-b7-b8-redefine-character-n-0-255-with-8-bytes-of-data-), and a reset command is also available to [reset the font](System-Commands.md#vdu-23-0-91-reset-all-characters-to-original-definition-) back to default.
+Please note that as of Console8 VDP 2.8.0 this form of the command will only work if the system font is the currently selected font.  For more information please see the [Font API](Font-API.md) documentation.
+
+Note: There is a related VDU 23 System Command which can [program the entire character range 0-255](System-Commands.md#vdu-23-0-90-n-b1-b2-b3-b4-b5-b6-b7-b8-redefine-character-n-0-255-with-8-bytes-of-data-), and a reset command is also available to [reset the system font](System-Commands.md#vdu-23-0-91-reset-all-characters-to-original-definition-) back to default.
 
 The second purpose of this command is to send system commands to the VDP.
 
@@ -221,7 +226,7 @@ The following commands are supported:
 
 ### `VDU 23, 0, <command>, [<arguments>]`: System commands
 
-Commands starting with `VDU 23, 0` are system commands.  These commands are used to configure the VDP and to control its behaviour.  This includes functionality such as the [audio system](Enhanced-Audio-API.md) and the [buffered commands API](Buffered-Commands-API.md).  For more information see the [System Commands](System-Commands.md) documentation.
+Commands starting with `VDU 23, 0` are system commands.  These commands are used to configure the VDP and to control its behaviour.  This includes functionality such as the [audio system](Enhanced-Audio-API.md), the [buffered commands API](Buffered-Commands-API.md), [font API](Font-API.md), and [context management API](Context-Management-API.md).  For more information see the [System Commands](System-Commands.md) documentation.
 
 ### `VDU 23, 1, n`: Cursor control 
 
@@ -231,10 +236,12 @@ This command controls the appearance of the text cursor.
 | ----- | ------- |
 | 0 | Hide the cursor |
 | 1 | Show the cursor |
-| 2 | Make the cursor steady §§§ |
-| 3 | Make the cursor flash §§§ |
+| 2 | Make the cursor steady §§§§ |
+| 3 | Make the cursor flash §§§§ |
 
 Please note that in VDU 5 mode the cursor will not be visible, and the cursor control commands will have no effect.
+
+Previous versions of this documentation indicated that values 2 and 3 were supported as of Console8 VDP version 2.7.0.  Unfortunately this was incorrect as a bug prevented these values from working correctly.  (This functionality could however be used via `VDU 23, 0, &0A` on that version of the VDP.)  As of Console8 VDP 2.8.0 these values are now supported.
 
 ### `VDU 23, 6, n1, n2, n3, n4, n5, n6, n7, n8`: Set dotted line pattern §§§
 
@@ -317,6 +324,12 @@ Scroll protection, when enabled, means that when in `VDU 4` mode printing a char
 
 Enabling scroll protection therefore allows you to print a character to the bottom right-most character position on the screen without causing the screen to scroll.
 
+### `VDU 23, 23, n`: Set line thickness §§§
+
+This command sets the line thickness for the various line drawing commands.  The line thickness is set to `n` pixels.  The default line thickness is 1 pixel.
+
+This command was added to Agon Console8 VDP 2.6.0.  Prior to that version, the line thickness was always 1 pixel.  PLOT commands that draw filled shapes are not affected by the line thickness.  Line plot commands that omit the first or last point may produce unexpected results when the line thickness is greater than 1.
+
 
 ### `VDU 23, 27, <command>, [<arguments>]`: Bitmap and sprite commands
 
@@ -348,6 +361,8 @@ For more information see the [PLOT Commands](PLOT-Commands.md) documentation.
 
 This command resets the graphics and text viewports to their default values, homes the text cursor, and resets the graphics origin.  The default graphics viewport is the whole screen, and the default text viewport is the whole screen.
 
+NB prior to Console8 VDP 2.8.0, this command had a bug and did not reset the graphics origin.
+
 ## `VDU 27, char`: Output character to screen §
 
 Sends the next character to the screen.  This allows for characters outside of the normal ASCII range of 32-126 and 128-255 to be drawn on the screen.
@@ -356,7 +371,7 @@ Sends the next character to the screen.  This allows for characters outside of t
 
 This defines a text viewport.  The text viewport defines the area of the screen that text will be drawn to.  It is also the area that will be cleared by the `VDU 12` command.
 
-The coordinates given are character positions, not pixel positions.
+The coordinates given are character positions, based on the currently selected font, not pixel positions.
 
 ## `VDU 29, x; y;`: Set graphics origin
 
@@ -364,13 +379,17 @@ This command sets the graphics origin.  This sets where on the screen graphics c
 
 ## `VDU 30`: Home cursor
 
-When in `VDU 4`` mode, this moves the text cursor to the home (top left) position of the current text viewport.  When in `VDU 5`` mode, this moves the graphics cursor to the home position of the current graphics viewport.
+When in `VDU 4` mode, this moves the text cursor to the home (top left) position of the current text viewport.  When in `VDU 5`` mode, this moves the graphics cursor to the home position of the current graphics viewport.
 
 ## `VDU 31, x, y`: Move text cursor to x, y text position
 
-Moves the text cursor to the given text position.  The coordinates given are character positions, not pixel positions.
+Moves the text cursor to the given text position.  The coordinates given are character positions based on the currently selected font, not pixel positions.
 
 This is equivalent to the BASIC `TAB(x, y)` statement.
+
+Please note that if you have changed the text viewport, the coordinates given will be relative to the text viewport, not the whole screen.
+
+The position of the text cursor is not constrained to the text viewport, so it is possible to move the cursor outside of the viewport.  A tab command attempting to move the cursor outside of the text viewport will be ignored.
 
 ## `VDU 127`: Backspace
 

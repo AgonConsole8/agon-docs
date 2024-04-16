@@ -562,6 +562,24 @@ This command will replace the target buffer with a new buffer that contains a si
 
 It is useful for contructing a single buffer from multiple sources, such as for constructing a bitmap from multiple constituent parts.
 
+## Command 64: Compress a buffer
+
+`VDU 23, 0, &A0, targetBufferId; 64, sourceBufferId;`
+
+This command will compress the contents of a buffer, replacing the target buffer with the compressed data.  Unless the target buffer is the same as the source, the source buffer will be left unchanged.
+
+## Command 65: Decompress a buffer
+
+`VDU 23, 0, &A0, targetBufferId; 65, sourceBufferId;`
+
+This command will decompress the contents of a buffer, replacing the target buffer with the decompressed data.  Unless the target buffer is the same as the source, the source buffer will be left unchanged.
+
+The source buffer must contain a complete set of compressed data, but need not be in a single block.  The decompressed data will be stored in a single block in the target buffer.
+
+Using this command, data can be sent from MOS in a compressed form, and then decompressed on the VDP.  This can be useful for sending large amounts of data over to the VDP, as it can reduce the amount of data that needs to be sent.
+
+The compression algorithm supported by this command and the corresponding "compress" command is "TurboVega-style" compression.  Source code for the compression and decompression routines and tools to use them on other systems can be found in the [TurboVega agon_compression repository](https://github.com/TurboVega/agon_compression).
+
 
 ## Examples
 

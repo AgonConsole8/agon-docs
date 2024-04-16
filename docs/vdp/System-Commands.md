@@ -12,6 +12,7 @@ Please note that not all versions of the VDP support the complete command set.  
  §§ Requires Console8 VDP 2.4.0 or above<br>
  §§§ Requires Console8 VDP 2.6.0 or above<br>
  §§§§ Requires Console8 VDP 2.7.0 or above<br>
+ §§§§§ Requires Console8 VDP 2.8.0 or above<br>
 
 Commands between &80 and &89 will return their data back to the eZ80 via the [serial protocol](#serial-protocol).
 
@@ -88,9 +89,9 @@ This command will return the current text cursor position to MOS.  Once the curs
 
 ## `VDU 23, 0, &83, x; y;`: Get ASCII code of character at character position x, y
 
-This command will return the ASCII code of the character at the given character position to MOS.
+This command will return the ASCII code of the character at the given character position to MOS.  There is a corresponding command `VDU 23, 0, &93, x; y;` that works in the graphics coordinate system.
 
-This command works by comparing pixels on the screen at the given position to the currently defined character set, using the currently selected text colour.  This means that it may not always be accurate, or able to succeed.  Redefining characters after they have been drawn, or changing the text colour, may cause this command to fail.
+This command works by comparing pixels on the screen at the given position to the currently selected font, using the currently selected text colour.  This means that it may not always be accurate, or able to succeed.  Redefining system font characters after they have been drawn, changing the font, modifing the definitions of characters within the selected font, changing the text colour, may cause this command to fail.
 
 This command will not recognise characters that have been mapped to bitmaps using `VDU 23, 0, &92, char, bitmapId;`.
 
@@ -230,27 +231,35 @@ Mouse data packets are sent in response to all of the above commands, and if the
 
 ## `VDU 23, 0, &8A, n`: Set the cursor start column §§§§
 
-This command defines the start column of the cursor.  The displayed cursor will be drawn from the start column to the end column.  The start column must be less than the current font width (which is currently 8 pixels, and cannot currently be adjusted).
+This command defines the start pixel column of the text cursor.  The displayed cursor will be drawn from the start column to the end column.  The start column can be set to any value, but for the cursor to be visible it must be less than the current font width.  The default value is 0.
 
 Acorn systems did not support directly adjusting the number of columns used by the cursor, and so this command is not supported on those systems and is an Agon-specific extension.
 
 ## `VDU 23, 0, &8B, n`: Set the cursor end column §§§§
 
-This command defines the end column of the cursor.  The displayed cursor will be drawn from the start column to the end column.  The end column must be greater than the start column, and less than the current font width.
+This command defines the end pixel column of the cursor.  The displayed cursor will be drawn from the start column to the end column.  The end column can be set to any value, but for the cursor to be visible it must be greater than the start column, and less than the current font width.  The default value is 255, which together with the default start column value ensures the cursor is the full width of the currently selected font.
 
 Together with the start column, this command defines the width of the cursor.
 
-If the start and end column values are equal then the cursor will be drawn as a vertical line.  If the end column value is less than the start column value then the cursor will not be drawn.  If a value is given that is greater than the current font width then the cursor will be drawn to the end of the font width.
+If the start and end column values are equal then the cursor will be drawn as a vertical line.  If a value is given that is greater than the current font width then the cursor will be drawn to the end of the font width.
 
 Acorn systems did not support directly adjusting the number of columns used by the cursor, and so this command is not supported on those systems and is an Agon-specific extension.
+
+## `VDU 23, 0, &8C, x; y;`: Relative cursor movement (by pixels) §§§§§
+
+This command will move the text cursor by the given number of pixels in the X and Y directions.  The primary purpose of this command is to allow for slight adjustments of the text cursor position to facilitate text drawing features such as superscript, subscript and manual kerning.
+
+Normal cursor scrolling and wrapping behaviour will be obeyed, depending on the currently set cursor behaviour.
 
 ## `VDU 23, 0, &90, n, b1, b2, b3, b4, b5, b6, b7, b8`: Redefine character n (0-255) with 8 bytes of data §
 
 This command works identically to `VDU 23, n, b1, b2, b3, b4, b5, b6, b7, b8`, but allows characters 0-31 to also be redefined.
 
-## `VDU 23, 0, &91`: Reset all characters to original definition §
+NB from Console8 VDP 2.8.0 this command will only funciton if the currently selected font is the system font.
 
-This command will reset all characters to their original definitions.
+## `VDU 23, 0, &91`: Reset all system font characters to original definition §
+
+This command will reset all system font characters to their original definitions.
 
 ## `VDU 23, 0, &92, char, bitmapId;`: Map character char to display bitmapId §§
 
@@ -263,6 +272,14 @@ When a character has been mapped to use a bitmap the bitmap will be used in plac
 That last point is important.  It means that if you use a bitmap that is larger than a character, then the next character will overlap the bitmap.  Similarly bitmaps that are taller than a character will overwrite the line of text above the current cursor.  This can be used to create some interesting effects, but can also be a source of visual bugs if you are not careful.  If you are using oversized bitmaps, then using the `VDU 9` to move forward an additional character may be useful.
 
 Bitmaps mapped to characters in this way are plotted using the current foreground GCOL paint mode.
+
+## `VDU 23, 0, &93, x; y;`: Get ASCII code of character at graphics position x, y §§§§§
+
+This command will return the ASCII code of the character at the given graphics position to MOS.  This command is similar to `VDU 23, 0, &83, x; y;`, but uses coordinates from the currently selected graphics coordinate system.  The position is for the top left of the character.
+
+This command works by comparing pixels on the screen at the given position to the currently selected font, using the currently selected text colour.  This means that it may not always be accurate, or able to succeed.  Redefining system font characters after they have been drawn, changing the font, modifing the definitions of characters within the selected font, changing the text colour, may cause this command to fail.
+
+This command will not recognise characters that have been mapped to bitmaps using `VDU 23, 0, &92, char, bitmapId;`.
 
 ## `VDU 23, 0, &94, n`: Read colour palette entry n (returns a pixel colour data packet) §§
 
@@ -281,6 +298,10 @@ Any other colour value will not be recognise, and no response sent.
 
 It should be noted that before Console8 VDP 2.7.0 when reading palette entries for the current text and graphics colours, the data packet returned would reflect back the colour number `n` sent to this command, rather than responding with the actual palette colour number for that colour.  As of Console8 VDP 2.7.0 the actual palette colour number is returned.
 
+## `VDU 23, 0, &95, <command>, [<args>]`: Font management commands §§§§§
+
+This command is used to manage fonts on your system.  For more information please see the [Font API documentation](Font-API.md).
+
 ## `VDU 23, 0, &98, n`: Turn control keys on and off §§§
 
 Turns control keys on and off, where 1=on (the default) and 0=off.
@@ -297,7 +318,29 @@ Until Console8 VDP 2.6.0, this control key behaviour on the VDP was always enabl
 
 From Console8 VDP 2.6.0 onwards, the control keys can be turned off, which may help ensure that unexpected behaviour on the VDP does not occur when using applications running on MOS that may also wish to use these control key combinations.
 
-## `VDU 23, 0, &A0, bufferId, command, <args>`: Buffered command API **
+## `VDU 23, 0, &9C`: Set the text viewport using graphics coordinates §§§§§
+
+Sets the text viewport using the rectangle described by the last two coordinates given via PLOT commands.  This command serves a similar purpose to `VDU 28`, but uses graphics coordinates instead of text coordinates, and does not require the coordinates to be sent as part of the command.  This allows for more flexibility in defining the viewport.
+
+Whilst the graphics cursor positions can be anywhere in the coordinate space, the text viewport will be limited to appear within the screen, and will be clipped to the screen.  If the resultant viewport has zero width or height (as the coordinates were off-screen) then the command will have no effect.  This behaviour differs from `VDU 28` which would reject the command if any of the coordinates given were off-screen.
+
+## `VDU 23, 0, &9D`: Set the graphics viewport using graphics coordinates §§§§§
+
+Sets the graphics viewport using the rectangle described by the last two coordinates given via PLOT commands.  This command serves a similar purpose to `VDU 24`, but uses coordinates from the graphics coordinate stack, which allows for more flexibility in defining the viewport.  This can, for instance, be used to define a new viewport in coordinates that are relative to the current graphics origin.
+
+As per `VDU 23, 0, &9C`, the viewport will be clipped to the screen if it is off-screen.  This behaviour differs from `VDU 24` which would reject the command if any of the coordinates given were off-screen.
+
+## `VDU 23, 0, &9E`: Set the graphics origin using graphics coordinates §§§§§
+
+Sets the graphics origin to the last coordinate given via PLOT commands.  This command serves a similar purpose to `VDU 29`, but uses coordinates from the graphics coordinate stack, which allows for more flexibility in defining the origin.  This can, for instance, be used to define a new origin in coordinates that are relative to the current origin.
+
+## `VDU 23, 0, &9F`: Move the graphics origin and viewports §§§§§
+
+Moves the graphics origin to the current graphics cursor position, and also moves the currently defined text and graphics viewports by the same relative amount that the origin has moved.
+
+As with `VDU 23, 0, &9C` and `VDU 23, 0, &9D` the resultant text and graphics viewports will be clipped to the screen area.  This means that this command is not reversible, i.e. if you move the origin to position `100,100` and then move it to `-100,-100` the viewports will not return to their original sizes, as they will have been shrunk in the process.
+
+## `VDU 23, 0, &A0, <bufferId>, <command>, [<args>]`: Buffered command API **
 
 Send a command to the [VDP Buffered Commands API](Buffered-Commands-API.md)
 
@@ -321,7 +364,6 @@ By default, the original screen modes 0-4 are not available and are instead repl
 
 For more information, see the [Screen modes documentation](Screen-Modes.md).
 
-
 ## `VDU 23, 0, &C3`: Swap the screen buffer and/or wait for VSYNC **
 
 Swap the screen buffer (double-buffered modes only) or wait for VSYNC (all modes).
@@ -332,6 +374,19 @@ Waiting for VSYNC can be useful for ensuring smooth graphical animation, as it w
 
 (In BASIC performing a `*FX 19` command will perform a similar wait for VSYNC, but on the eZ80 side of the system, but will not swap the screen buffer.)
 
+## `VDU 23, 0, &C8, <command>, [<args>]`: Context management API §§§§§
+
+Send a command to the [Context Management API](Context-Management-API.md).  This allows management of the current graphics context, which includes the current font, text and graphics colours, and the current GCOL paint mode.
+
+The context management API allows for the entire current graphics state to be saved and restored, which can be useful for applications that need to temporarily change the graphics state, but then restore it to its original state.  As part of this, the current state can be saved to a stack, and then restored later.  Additionally completely separate context stacks can be selected.
+
+## `VDU 23, 0, &CA`: Flush current drawing commands §§§§§
+
+For performance reasons, all drawing commands (for both graphics and text) received by the VDP are actually placed in a queue, and are not immediately drawn to the screen.  This command will force all pending drawing commands to be processed and drawn to the screen.
+
+This command is useful for some advanced operations, such as on-the-fly redefining character data in a custom font, ensuring that all characters are drawn before the font is redefined.
+
+Most applications will not need to use this command, as the VDP will automatically flush the drawing queue when it receives a command that requires the screen to be updated, such as reading a screen pixel.
 
 ## `VDU 23, 0, &F2, n`: Set dot-dash pattern length §§§§
 

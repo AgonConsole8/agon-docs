@@ -54,6 +54,8 @@ Example:
 
 `VDU 17 15`: Set the text foreground colour to 15
 
+As of Console8 MOS 2.2.0, the `VDU` command is now more sophisticated and can support sending 16-bit values as well as 8-bit values.  More information can be found in the [MOS documentation](MOS.md).
+
 ### From Assembly code on MOS
 
 MOS offers two ways to send VDU commands from assembly code.  The first is to use the `RST 10h` call, which will send the byte in the A register to the VDP.  The second is to use a `RST 18h` call which is used to send multiple bytes to the VDP at once.  (Neither of these calls require the string `VDU` to be included in the data sent to the VDP, and both require raw binary values to be sent, rather than an ASCII string.)
@@ -115,10 +117,10 @@ Any VDU command that is the VDP does not recognise (such as `VDU 2` when running
 
 ## VDU 23 commands
 
-`VDU 23` essentially has a split purpose.  The first is to redefine the display characters, and the second is to send commands to the VDP to access some more sophisticated behaviour.
+`VDU 23` essentially has a split purpose.  The first is to redefine the system font display characters, and the second is to send commands to the VDP to control and access more sophisticated behaviour.
 
 For more information on these commands and a full list, please consult the `VDU 23` section of the [VDU Commands](vdp/VDU-Commands.md) document.  This includes the [Bitmap and Sprite API](vdp/Bitmaps-API.md).
 
-Amongst this you will also find [system commands](vdp/System-Commands.md), which start with `VDU 23, 0` and are unique to the Agon platform.  Within the system commands set you will find the [Audio API](vdp/Enhanced-Audio-API.md), and [Buffered Commands API](vdp/Buffered-Commands-API.md).
+Amongst this you will also find [system commands](vdp/System-Commands.md), which start with `VDU 23, 0`, most of which are unique to the Agon platform.  Within the system commands set you will find the [Audio API](vdp/Enhanced-Audio-API.md), [Buffered Commands API](vdp/Buffered-Commands-API.md), [Font API](vdp/Font-API.md), and [Context Management API](vdp/Context-Management-API.md).
 
 
