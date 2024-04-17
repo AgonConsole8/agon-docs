@@ -1,6 +1,6 @@
 # What is GPIO
 
-GPIO, or General Purpose Input and Output, is typically an electrical interface on a computer that is not dedicated to a single task. On the Agon this is exposed as a series of 32 pins arranged in a 16 x 2 matrix on the rear of the Agon opposite the VGA and power connectors.
+GPIO, or General Purpose Input and Output, is typically an electrical interface on a computer that is not dedicated to a single task. On the Agon this is exposed as a series of pins for the user to interface to. This might be for input controls, such as a joystick or buttons, or outputs to control your Christmas tree lights...
 
 ## GPIO Pinouts
 
