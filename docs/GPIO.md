@@ -1,30 +1,30 @@
-# What is GPIO
+# User GPIO pins
 
-GPIO, or General Purpose Input and Output, is typically an electrical interface on a computer that is not dedicated to a single task. On the Agon this is exposed as a series of pins for the user to interface to. This might be for input controls, such as a joystick or buttons, motion sensors, or outputs to control your Christmas tree lights, send data to other displays, microprocessors, or even connect to the internet.
+GPIO, or General Purpose Input and Output, is an interface on a computer that is not dedicated to a single task. On the Agon this is exposed as a series of pins for the user to interface to. This might be for input controls, such as a joystick or buttons, motion sensors, or outputs to control your Christmas tree lights, send data to other displays, microprocessors, or even connect to the internet.
 
-Whilst sharing many similar pins, there are some slight variations across the range of Agon machines.
+Whilst sharing many similar pins, there are some variations across the range of Agon machines.
 
 The first generation Agon Light has a double row of 32 pins, whereas the Agon Lght 2 has a double row of 34 pins. The additional pair of pins have been added for a battery power supply connection.
 
-The Agon Console8 adds a few extra rows for additional connectivity to parts of the ESP processor.
+The Agon Console 8 adds a few extra rows for additional connectivity to other parts of the ESP processor.
 
 
-## GPIO Pinouts - Original Agon Light
+## GPIO Pinouts - Original Agon Light by Bernardo Kastrup
 
 Viewed from the back, component side up, with the connector to the right of the board.
 
 ![](./images/iopinsAL1.png)
 
 
-## GPIO Pinouts - Agon Origins Edition
+## GPIO Pinouts - Agon Light Origins Edition by Bernardo Kastrup
 
 Viewed from the back, component side up, with the connector to the right of the board. A slight change with an additional pair of pins to the right hand side. The pin numbering is the same as the Agon Light 2 by Olimex.
 
 ![](./images/io_origins.png)
 
-## GPIO Pinouts - Agon Light 2 by Olimex
+## GPIO Pinouts - Agon Light 2 manufactured by Olimex
 
-Whilst the pin numbering system is different, the general layout is the same, apart from the last right hand two pins.
+The general layout is the same as the Origins Edition, apart from pins 1 & 2.
 
 ![](./images/iopinsAL2.png)
 
@@ -36,7 +36,7 @@ It is sometimes useful to have the duplicate pins for different purposes. For ex
 
 ![](./images/io_uext.png)
 
-## GPIO Pinouts - Console 8 by Heber
+## GPIO Pinouts - Console 8 manufactured by Heber
 
 Viewed from the top front, component side up.
 
