@@ -15,7 +15,7 @@ The Agon Light 2 has an additional UEXT port. Whilst this replicates pins which 
 
 Viewed from the back, component side up, with the connector to the right of the board.
 
-![](./images/agon_gpio_pinouts.png)
+![](./images/iopinsAL1.png)
 
 ## GPIO Pinouts - Agon Light 2
 
