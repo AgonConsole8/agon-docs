@@ -8,8 +8,6 @@ The first generation Agon Light has a double row of 32 pins, whereas the Agon Lg
 
 The Agon Console8 adds a few extra rows for additional connectivity to parts of the ESP processor.
 
-The Agon Light 2 has an additional UEXT port. Whilst this replicates pins which are already on the main io connector bus, it is sometimes useful to have the duplicate pins for different purposes. For example, connecting a Nintendo Nunchuck controller on the UEXT, and a joystick on the main io bus.
-
 
 ## GPIO Pinouts - Original Agon Light
 
@@ -19,11 +17,15 @@ Viewed from the back, component side up, with the connector to the right of the 
 
 ## GPIO Pinouts - Agon Light 2
 
-Whilst the pin numbering system is different, the general layout is the same, apart form the last right hand two pins.
+Whilst the pin numbering system is different, the general layout is the same, apart from the last right hand two pins.
 
 ![](./images/iopinsAL2.png)
 
-Note that the additional UEXT connector is mounted upside down to the normal numbering scheme, with the cutout slot at the top.
+Note that the additional UEXT connector is mounted upside down to the normal numbering scheme, with the cutout slot at the top. 
+
+Note that although there are duplicate pins exposed on the UEXT conector as the main IO bus, they are connected to the same pins on the ez80 chip. They are there for convenience, but do not provide any additional hardware ports.
+
+It is sometimes useful to have the duplicate pins for different purposes. For example, connecting a Nintendo Nunchuck controller on the UEXT using Olimex's adapter board, and a joystick on the main IO bus.
 
 ![](./images/io_uext.png)
 
