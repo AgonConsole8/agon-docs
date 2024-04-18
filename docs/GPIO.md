@@ -8,6 +8,8 @@ The first generation Agon Light has a double row of 32 pins, whereas the Agon Li
 
 The Agon Console 8 adds a few extra rows for additional connectivity to other parts of the ESP processor.
 
+More information about using these features can be found in the [MOS documentation](MOS.md).
+
 
 ## GPIO Pinouts - Original Agon Light by Bernardo Kastrup
 
