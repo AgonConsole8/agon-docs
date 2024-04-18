@@ -19,7 +19,7 @@ Viewed from the back, component side up, with the connector to the right of the 
 
 ## GPIO Pinouts - Agon Light 2
 
-Whilst the pin numbering system is different, the genral layout is the same, apart form the last right hand two pins.
+Whilst the pin numbering system is different, the general layout is the same, apart form the last right hand two pins.
 
 ![](./images/iopinsAL2.png)
 
