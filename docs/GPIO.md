@@ -18,7 +18,7 @@ Viewed from the back, component side up, with the connector to the right of the 
 
 ## GPIO Pinouts - Agon Origins Edition
 
-Viewed from the back, component side up, with the connector to the right of the board. A slight change with an additional pair of pins to the right hand side.
+Viewed from the back, component side up, with the connector to the right of the board. A slight change with an additional pair of pins to the right hand side. The pin numbering is the same as the Agon Light 2 by Olimex.
 
 ![](./images/io_origins.png)
 
