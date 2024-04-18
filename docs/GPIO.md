@@ -15,13 +15,20 @@ Viewed from the back, component side up, with the connector to the right of the 
 
 ![](./images/iopinsAL1.png)
 
-## GPIO Pinouts - Agon Light 2
+
+## GPIO Pinouts - Agon Origins Edition
+
+Viewed from the back, component side up, with the connector to the right of the board. A slight change with an additional pair of pins to the right hand side.
+
+![](./images/io_origins.png)
+
+## GPIO Pinouts - Agon Light 2 by Olimex
 
 Whilst the pin numbering system is different, the general layout is the same, apart from the last right hand two pins.
 
 ![](./images/iopinsAL2.png)
 
-Note that the additional UEXT connector is mounted upside down to the normal numbering scheme, with the cutout slot at the top. 
+Olimex's proprietary UEXT connector is mounted next to the main IO bus. 
 
 Note that although there are duplicate pins exposed on the UEXT conector as the main IO bus, they are connected to the same pins on the ez80 chip. They are there for convenience, but do not provide any additional hardware ports.
 
@@ -29,7 +36,7 @@ It is sometimes useful to have the duplicate pins for different purposes. For ex
 
 ![](./images/io_uext.png)
 
-## GPIO Pinouts - Console 8
+## GPIO Pinouts - Console 8 by Heber
 
 Viewed from the top front, component side up.
 
