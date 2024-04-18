@@ -28,5 +28,6 @@ Whilst the pin numbering system is diffrent, the genral layout is the same, apar
 Viewed from the top front, component side up.
 
 The Console 8's pin numbering is different and although they look similar at first, some of the pins do not align with those of the Agon Light, so do not plug an Agon Light peripheral into the io bus of a Console 8.
+Pins marked * go via a transputer.
 
 ![](./images/iopinsC8.png)
