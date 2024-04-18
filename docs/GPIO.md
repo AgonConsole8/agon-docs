@@ -11,8 +11,22 @@ The Agon Console8 adds a few extra rows for additional connectivity to parts fo 
 The Agon Light 2 has an additional UEXT port. Whilst this replicates pins which are already on the main io connector bus, it is sometimes useful to have the duplicate pins for different purposes. For example, connecting a Nintendo Nunchuck controller on the UEXT, and a joystick on the main io bus.
 
 
-## GPIO Pinouts
+## GPIO Pinouts - Original Agon Light
 
 Viewed from the back, component side up, with the connector to the right of the board.
 
 ![](./images/agon_gpio_pinouts.png)
+
+## GPIO Pinouts - Agon Light 2
+
+Whilst the pin numbering system is diffrent, the genral layout is the same, apart form the last right hand two pins.
+
+![](./images/iopinsAL2.png)
+
+## GPIO Pinouts - Console 8
+
+Viewed from the top front, component side up.
+
+The Console 8's pin numbering is different and although they look similar at first, some of the pins do not align with those of the Agon Light, so do not plug an Agon Light peripheral into the io bus of a Console 8.
+
+![](./images/iopinsC8.png)
