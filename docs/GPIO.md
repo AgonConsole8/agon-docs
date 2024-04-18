@@ -23,7 +23,7 @@ Whilst the pin numbering system is different, the general layout is the same, ap
 
 ![](./images/iopinsAL2.png)
 
-Note that the additional UEXT connector is mounted upside down to the normal numbering scheme, with connections as shown here.
+Note that the additional UEXT connector is mounted upside down to the normal numbering scheme, with the cutout slot at the top.
 
 ![](./images/io_uext.png)
 
