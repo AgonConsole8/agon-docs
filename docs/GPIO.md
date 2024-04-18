@@ -4,7 +4,7 @@ GPIO, or General Purpose Input and Output, is an interface on a computer that is
 
 Whilst sharing many similar pins, there are some variations across the range of Agon machines.
 
-The first generation Agon Light has a double row of 32 pins, whereas the Agon Lght 2 has a double row of 34 pins. The additional pair of pins have been added for a battery power supply connection.
+The first generation Agon Light has a double row of 32 pins, whereas the Agon Light 2 has a double row of 34 pins. The additional pair of pins have been added for a battery power supply connection.
 
 The Agon Console 8 adds a few extra rows for additional connectivity to other parts of the ESP processor.
 
