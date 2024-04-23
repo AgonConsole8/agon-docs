@@ -213,3 +213,6 @@ All suggestions are welcome, though the developers will be concentrating on key 
 
 ## Why is feature {x} not documented anywhere?
 You might have found an opportunity to make a valuable contribution to the Agon community. Take a look at the community [documentation](https://github.com/AgonConsole8/agon-docs) and create a pull request.
+
+## I'd like to discuss my project or ideas with like-minded people
+Perhaps you have some cool ideas and you want to run them past people, or you want to watch some of the developers talk, or you've followed all the instructions here and broke something and now you'd like to ask around to see if someone else has had the same experience? There is a [Discord server](https://discord.gg/sN3vXru26s) available for Agon & Console 8 community discussions.
