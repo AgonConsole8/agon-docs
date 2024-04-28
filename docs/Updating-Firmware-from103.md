@@ -43,10 +43,10 @@ Please follow each step as closely as possible and make sure that each item on t
 2. On windows start a PowerShell terminal, on Linux start a shell and on MacOS start Terminal
 3. Change folder to the folder 'agon-binaries', where you unzipped the downloaded binaries earlier, using the 'cd' command
 4. Change to the subfolder of the VDP release you'd like to upgrade to:
-	- For a very recent Console8 release: On Windows, change to the subfolder '.\VDP\Console8 2.6.0\'
-	On Linux/MacOS, change to the subfolder ./VDP/Console8\ 2.6.0/
-	- For the official Quark 1.04 release: On Windows, change to the subfolder '.\VDP\Quark 1.04\'
-	On Linux/MacOS, change to the subfolder ./VDP/Quark\ 1.04/
+	- For a very recent Console8 release: On Windows, change to the subfolder '.\firmware\Console8 2.6.0\'
+	On Linux/MacOS, change to the subfolder ./firmware/Console8\ 2.6.0/
+	- For the official Quark 1.04 release: On Windows, change to the subfolder '.\firmware\Quark 1.04\'
+	On Linux/MacOS, change to the subfolder ./firmware/Quark\ 1.04/
 
 5. Start the upgrade script with the serial/COM port you noted earlier - COMXX and /dev/ttyUSBXXX are examples here:
 	- On Windows type - '.\flash.bat COMXX'
