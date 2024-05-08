@@ -72,6 +72,19 @@ nav:
   - 'Additional resources':
     - 'External documentation': External-Documentation.md
     - 'Third party projects': Third-Party-Projects.md
+  - 'Coding Quicklinks':
+    - 'MOS api': MOS-API.md
+    - 'System Variables': MOS-API.md/systemevariables
+    - 'Bitmaps api': vdp/Bitmaps-API.md
+    - 'Buffered Commands': vdp/Buffered-Commands-API.md
+    - 'Context api': vdp/Context-Management-API.md
+    - 'Enhanced Audio': vdp/Enhanced-Audio-API.md
+    - 'Font api': vdp/Font-API.md
+    - 'PLOT functions': vdp/PLOT-Commands.md
+    - 'Screen Modes': vdp/Screen-Modes.md
+    - 'System Commands': vdp/System-Commands.md
+    - 'VDU Commands': vdp/VDU-Commands.md
+
 
 
 markdown_extensions:
