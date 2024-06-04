@@ -340,6 +340,10 @@ Until Console8 VDP 2.6.0, this control key behaviour on the VDP was always enabl
 
 From Console8 VDP 2.6.0 onwards, the control keys can be turned off, which may help ensure that unexpected behaviour on the VDP does not occur when using applications running on MOS that may also wish to use these control key combinations.
 
+## `VDU 23, 0, &9B, bufferId;`: Print the contents of a buffer to the screen §§§§§§
+
+If a buffer is found with the given `bufferId`, then this command will print a buffer out to the screen, using only the raw character values. This bypasses VDU command processing, so no control characters at all are supported and will be printed as-is.
+
 ## `VDU 23, 0, &9C`: Set the text viewport using graphics coordinates §§§§§
 
 Sets the text viewport using the rectangle described by the last two coordinates given via PLOT commands.  This command serves a similar purpose to `VDU 28`, but uses graphics coordinates instead of text coordinates, and does not require the coordinates to be sent as part of the command.  This allows for more flexibility in defining the viewport.
