@@ -566,7 +566,7 @@ It is useful for contructing a single buffer from multiple sources, such as for 
 
 `VDU 23, 0, &A0, bufferId; 32, operation, [<format>, <arguments...>]`
 
-As of the time of writing, this command is experimental and subject to change.  It features in the Console8 VDP 2.9.0 test release.  The exact operations and arguments supported by this command may change in the future.
+As of the time of writing, this command is experimental and subject to change.  It features in the Console8 VDP 2.9.0 release, but to use this command you need to enable the feature by setting the affine transforms test flag.  This is done using the command `VDU 23, 0, &F8, 1; 1;`.  The exact operations and arguments supported by this command may change in the future.
 
 The purpose of this command is to create or manipulate a 2D affine transformation matrix stored in a buffer.  Affine transforms are used to manipulate 2D points, and can be used to perform operations such as translation, rotation, scaling, and shearing.
 

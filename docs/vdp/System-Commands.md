@@ -305,7 +305,7 @@ This command is used to manage fonts on your system.  For more information pleas
 
 ## `VDU 23, 0, &96, <flags>, <bufferId>;`: Set an affine transform matrix §§§§§§
 
-As of the time of writing, this command is experimental and subject to change.  It features in the Console8 VDP 2.9.0 test release.
+As of the time of writing, this command is experimental and subject to change.  To enable it you must turn on the affine transform feature flag, using the `VDU 23, 0, &F8, 1; 1;` command.
 
 This command tells the graphics system to use an affine transform matrix held within the given buffer for subsequent drawing commands.  This allows for the transformation of graphics when they are drawn in a variety of ways, including scaling, rotation, and translation.
 
@@ -422,6 +422,23 @@ The line pattern can be set using `VDU 23, 6, n1, n2, n3, n4, n5, n6, n7, n8`, w
 
 Support for this command was added in Console8 VDP 2.7.0.
 
+## `VDU 23, 0, &F8, flagId; value;`: Set a test flag §§§§§§
+
+This command is used to set a test flag.  Test flags are used to enable new and experimental features in the VDP that may not be quite ready for general use, and/or have an API that may change in the future.  They are intended for use by developers and testers.
+
+The `flagId` is the ID of the flag to set, and the `value` is the value to set the flag to.  The meaning of the `value` that any particular flag is set to will be specific to the flag being set.  A value must always be provided, even if the flag does not require a value to be set.
+
+As of Console8 VDP 2.9.0 the following test flags are supported:
+
+| Flag ID | Value | Description |
+| ------- | ----- | ----------- |
+| 1 | 0 (N/A) | Enable the Affine Transforms feature |
+
+If a flag is set that is not recognised then it will have no effect.  This means that if a feature graduates from being a test feature then so long as the API for the feature remains the same, then software that set the flag to enable the feature will still work.
+
+## `VDU 23, 0, &F9, flagId;`: Clear a test flag §§§§§§
+
+This command is used to clear a test flag.
 
 ## `VDU 23, 0, &FE, n`: Console mode **
 
