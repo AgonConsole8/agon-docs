@@ -648,6 +648,36 @@ Using this command, data can be sent from MOS in a compressed form, and then dec
 The compression algorithm supported by this command and the corresponding "compress" command is "TurboVega-style" compression.  Source code for the compression and decompression routines and tools to use them on other systems can be found in the [TurboVega agon_compression repository](https://github.com/TurboVega/agon_compression).
 
 
+## Command 72: Expand a bitmap
+
+`VDU 23, 0, &A0, bufferId; 72, options, sourceBufferId; [width;] <mappingDataBufferId; | mapping-data...>`
+
+This command will expend a bitmap stored in the source buffer indicated by `sourceBufferId` that uses an arbitrary number of bits per pixel into a new buffer (indicated by `bufferId`) that uses 8-bits per pixel.  
+
+The primary intent of this command is to allow the VDP to support other formats of bitmap than the natively supported formats.  The bitmap should be mapped to valid RGBA2222 colour values, allowing the destination buffer to then be set as a bitmap in RGBA2222 format.  It should be noted that the destination buffer is not automatically marked as being a bitmap.
+
+It should also be noted that this command could be used for purposes other than expanding bitmaps, although the language used to describe the function of this command is based around bitmaps.  This is left to the user to explore.
+
+The `options` parameter is an 8-bit value that can have bits set to modify the behaviour of the operation.  The following bits are defined:
+
+| Bits | Description |
+| ---- | ----------- |
+| 0-2  | Number of bits per pixel in the source bitmap |
+| 3    | When set, the source bitmap is aligns to the next byte at a given width (in pixels) |
+| 4    | When set, mapping data is in a buffer |
+| 5-7  | Reserved for future use (set to zero) |
+
+The number of bits per pixel in the source bitmap is specified by the bottom 3 bits of the `options` parameter.  This can be any value from 1 to 8 where a 0 is interpreted as 8.
+
+It is assumed that pixels are stored in the source buffer in a continuous manner, one byte at a time, starting from the top-most bits of the first byte.
+
+If bit 3 has been set of the options byte, then following the `sourceBufferId` should be a 16-bit `width` parameter.  This value is used as a pixel count, after which the system will align to the next byte.  This is useful when dealing with bitmaps that have widths that do not align to a byte boundary.
+
+The various different values that pixels will be mapped to should immediately follow in the command stream, with the number of bits per pixel given dictating how many mapping value bytes are sent (so 1 bits per pixel will have 2 values, 2 bits per pixel will have 4 values, and so on).  If bit 4 has been set of the options byte, then following the `width` parameter should be a 16-bit `mappingDataBufferId` parameter.  This buffer should contain the mapping data which will be used instead of values sent as part of the command stream..
+
+When a buffer is used for mapping data, that buffer must exist, and must contain a single block of at least the number of values required for the given number of bits per pixel.
+
+
 ## Examples
 
 What follows are some examples of how the VDP Buffered Commands API can be used to perform various tasks.
