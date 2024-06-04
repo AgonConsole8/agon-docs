@@ -13,12 +13,13 @@ Please note that not all versions of the VDP support the complete command set.  
  §§§ Requires Console8 VDP 2.6.0 or above<br>
  §§§§ Requires Console8 VDP 2.7.0 or above<br>
  §§§§§ Requires Console8 VDP 2.8.0 or above<br>
+ §§§§§§ Requires Console8 VDP 2.9.0 or above<br>
 
 Commands between &80 and &89 will return their data back to the eZ80 via the [serial protocol](#serial-protocol).
 
 NB:
 
-- Prior to MOS 1.03 the subset commands that it supported were indexed from &00, not &80. For example, `VDU 23, 0, &02` to request the cursor position.
+- Prior to MOS 1.03 the subset commands that it supported were indexed from &00, not &80. For example, `VDU 23, 0, &02` to request the cursor position.  Commands in the range &00-&7F were used on Acorn systems to control the VDU hardware, so to avoid conflicts, and to allow for the possibility of supporting some of those commands, Agon commands were re-indexed from &80.
 
 
 ## `VDU 23, 0, &0A, n`: Set cursor start line and appearance §§§§
@@ -38,7 +39,7 @@ This command works in conjunction with `VDU 23, 0, &0B, n`, `VDU 23, 0, &8A, n`,
 
 The cursor start line must be less than the current font height (which is currently 8 pixels, and cannot currently be adjusted).
 
-Support for this command was introduced in the Console8 VDP 2.7.0.  It's behaviour is compatible with the equivalent commands on the Acorn BBC Micro and RISC OS.
+Support for this command was introduced in the Console8 VDP 2.7.0.  Its behaviour is compatible with the equivalent commands on the Acorn BBC Micro and RISC OS.
 
 
 ## `VDU 23, 0, &0B, n`: Set cursor end line §§§§
@@ -301,6 +302,27 @@ It should be noted that before Console8 VDP 2.7.0 when reading palette entries f
 ## `VDU 23, 0, &95, <command>, [<args>]`: Font management commands §§§§§
 
 This command is used to manage fonts on your system.  For more information please see the [Font API documentation](Font-API.md).
+
+## `VDU 23, 0, &96, <flags>, <bufferId>;`: Set an affine transform matrix §§§§§§
+
+As of the time of writing, this command is experimental and subject to change.  It features in the Console8 VDP 2.9.0 test release.
+
+This command tells the graphics system to use an affine transform matrix held within the given buffer for subsequent drawing commands.  This allows for the transformation of graphics when they are drawn in a variety of ways, including scaling, rotation, and translation.
+
+The `flags` field is used to indicate which parts of the graphics system should use the matrix.  The following flags bits are supported:
+
+| Bit | Name | Description |
+| --- | ---- | ----------- |
+| 0   | Bitmap | Apply the matrix to bitmap drawing commands |
+| 1-7 | Reserved | Reserved for future use |
+
+The `bufferId` indicates which buffer holds the matrix data to use.  The matrix is assumed to be a 3x3 matrix of 32-bit floating point values, stored in little-endian byte order.  As creating and manipulating floating point data is not supported in the eZ80 various options are provided as part of the [buffered commands API](Buffered-Commands-API.md) to allow for the creation and manipulation of these matrices.
+
+The `bufferId` set is used as a reference to the matrix.  If a matrix exists in the buffer then a copy of that will be used for all applicable drawing operations when they are performed, otherwise drawing operations will occur as if no matrix was set.  If a matrix is changed after it has been set, then the new matrix will be used for subsequent drawing operations.
+
+Setting the `bufferId` to 65535 (or -1) will clear the matrix, and subsequent drawing operations will not be transformed.
+
+Please note that when an affine transform is set to be applied when drawing bitmaps, the transform is always applied as if the top left of the bitmap is the "origin" point for the transform  So if an affine transform is set to only perform a rotation, then the bitmap will rotate around its top left corner.  This may be slightly contrary to expectations when using OS coordinates, as when plotting a bitmap using the PLOT command you specify the location for the bottom left of the bitmap.  So when using OS coordinates, the origin point of the transformation becomes where the top-left pixel would have been.
 
 ## `VDU 23, 0, &98, n`: Turn control keys on and off §§§
 
