@@ -562,7 +562,7 @@ This command will replace the target buffer with a new buffer that contains a si
 
 It is useful for contructing a single buffer from multiple sources, such as for constructing a bitmap from multiple constituent parts.
 
-## Command 32: Create or maniplate a 2D affine transformation matrix
+## Command 32: Create or manipulate a 2D affine transformation matrix
 
 `VDU 23, 0, &A0, bufferId; 32, operation, [<format>, <arguments...>]`
 
