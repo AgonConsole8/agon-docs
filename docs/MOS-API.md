@@ -88,6 +88,7 @@ Parameters:
 - `A`: Stream delimiter (if `BC`=0)
 
 Returns:
+
 - `A`: Last character displayed (length mode) OR Delimeter (delimeter mode)
 - `BC`: 0
 - `HL(U)`: Address of last character displayed + 1 (length mode) OR location of delimeter (delimeter mode)
