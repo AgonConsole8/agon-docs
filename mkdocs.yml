@@ -61,11 +61,23 @@ nav:
     - 'Start here': index.md
     - 'FAQ': FAQ.md
     - 'Theory of operation': Theory-of-operation.md
-  - 'Reference':
-    - 'MOS': MOS.md
-    - 'VDP': VDP.md
-    - 'BBC Basic': BBC-BASIC-for-Agon.md
-    - 'GPIO': GPIO.md
+  - 'MOS':
+      - 'Command line': MOS.md
+      - 'API': MOS-API.md
+  - 'VDP':
+    - 'Overview': VDP.md
+    - 'Main Commands': vdp/VDU-Commands.md
+    - 'Screen Modes': vdp/Screen-Modes.md
+    - 'PLOT Commands': vdp/PLOT-Commands.md
+    - 'System Commands': vdp/System-Commands.md
+    - 'Audio API': vdp/Enhanced-Audio-API.md
+    - 'Bitmaps and Sprites API': vdp/Bitmaps-API.md
+    - 'Buffered Commands API': vdp/Buffered-Commands-API.md
+    - 'Context Management API': vdp/Context-Management-API.md
+    - 'Font Management API': vdp/Font-API.md
+
+  - 'BBC Basic': BBC-BASIC-for-Agon.md
+  - 'GPIO': GPIO.md
   - 'Guides':
     - 'Updating Firmware': Updating-Firmware-from103.md
     - 'Updating Firmware (prio v1.03)': Updating-Firmware.md
