@@ -47,9 +47,9 @@ Macro:
 ; - `F`unction: One of the function numbers listed above
 ;
 MOSCALL:	MACRO	function
-		LD	A, function
-		RST.LIS	08h
-		ENDMACRO 	
+			LD	A, function
+			RST.LIS	08h
+			ENDMACRO
 ```
 
 Example:
@@ -57,8 +57,8 @@ Example:
 ```
 ; OSRDCH: Read a character in from the ESP32 keyboard handler
 ;
-OSRDCH:		MOSCALL	mos_getkey
-		OR	A 		
+OSRDCH:	MOSCALL	mos_getkey
+		OR	A
 		JR	Z, OSRDCH		; Loop until key is pressed
 		RET
 ```
@@ -75,7 +75,7 @@ Example:
 ; OSWRCH: Write a character out to the ESP32 VDU handler via the MOS
 ; A: Character to write
 ;
-OSWRCH:		RST.LIS	10h			; This calls a RST in the eZ80 address space
+OSWRCH:	RST.LIS	10h			; This calls a RST in the eZ80 address space
 		RET
 ```
 
@@ -108,7 +108,7 @@ Example:
 		RST.LIS	18h			; This calls a RST in the eZ80 address space
 		RET
 ;
-text:		DB	"Hello World", 0
+text:	DB	"Hello World", 0
 ```
 
 ## The MOS API
@@ -124,13 +124,14 @@ Read a keypress from the VDP
 Parameters: None
 
 Returns:
+
 - `A`: The keycode of the character pressed
 
 ### `0x01`: mos_load
 
 Load a file from SD card
 
-Parameters: 
+Parameters:
 - `HL(U)`: Address of filename (zero terminated)
 - `DE(U)`: Address at which to load
 - `BC(U)`: Maximum allowed size (bytes)
@@ -138,6 +139,7 @@ Parameters:
 Preserves: `HL(U)`, `DE(U)`, `BC(U)`
 
 Returns:
+
 - `A`: File error, or 0 if OK
 - `F`: Carry reset if no room for file, otherwise set
 
@@ -145,7 +147,7 @@ Returns:
 
 Save a file to SD card
 
-Parameters: 
+Parameters:
 
 - `HL(U)`: Address of filename (zero terminated)
 - `DE(U)`: Address to save from
@@ -162,7 +164,7 @@ Returns:
 
 Change current directory on the SD card
 
-Parameters: 
+Parameters:
 
 - `HL(U)`: Address of path (zero terminated)
 
@@ -178,7 +180,7 @@ List SD card folder contents to screen.
 
 This is a simple directory listing command that will list the contents of the current directory to the screen.  More advanced directory listing functionality for applications to use is available via the [FatFS commands API](#fatfs-commands).
 
-Parameters: 
+Parameters:
 
 - `HL(U)`: Address of path (zero terminated)
 
@@ -192,7 +194,7 @@ Returns:
 
 Delete a file or folder from the SD card
 
-Parameters: 
+Parameters:
 
 - `HL(U)`: Address of path (zero terminated)
 
@@ -206,7 +208,7 @@ Returns:
 
 Rename a file on the SD card
 
-Parameters: 
+Parameters:
 
 - `HL(U)`: Address of filename1 (zero terminated)
 - `DE(U)`: Address of filename2 (zero terminated)
@@ -221,7 +223,7 @@ Returns:
 
 Make a folder on the SD card
 
-Parameters: 
+Parameters:
 
 - `HL(U)`: Address of path (zero terminated)
 
@@ -245,7 +247,7 @@ Returns:
 
 Invoke the line editor
 
-Parameters: 
+Parameters:
 
 - `HL(U)`: Address of the buffer
 - `BC(U)`: Buffer length
@@ -254,9 +256,11 @@ Parameters:
 Preserves: `HL(U)`, `BC(U)`, `DE(U)`
 
 Returns:
+
 - `A`: Key that was used to exit the input loop (CR=13, ESC=27)
 
 Editor behaviour flags are as follows:
+
 | Bit | Description |
 | --- | ----------- |
 | 0   | When set, buffer will be cleared before use |
@@ -271,7 +275,7 @@ Editor behaviour flags are as follows:
 
 Get a file handle
 
-Parameters: 
+Parameters:
 
 - `HL(U)`: Address of filename (zero terminated)
 - `C`: Mode
@@ -279,6 +283,7 @@ Parameters:
 Preserves: `HL(U)`, `BC(U)`, `DE(U)`, `IX(U)`, `IY(U)`
 
 Returns:
+
 - `A`: Filehandle, or 0 if couldn't open
 
 Mode can be one of: fa_read, fa_write, fa_open_existing, fa_create_new, fa_create_always, fa_open_always or fa_open_append
@@ -289,7 +294,7 @@ NB: If you open the file using mos_fopen, you must close it using mos_fclose, no
 
 Close a file handle
 
-Parameters: 
+Parameters:
 
 - `C`: Filehandle, or 0 to close all open files
 
@@ -303,13 +308,14 @@ Returns:
 
 Get a character from an open file
 
-Parameters: 
+Parameters:
 
 - `C`: Filehandle
 
 Preserves: `HL(U)`, `BC(U)`, `DE(U)`, `IX(U)`, `IY(U)`
 
 Returns:
+
 - `A`: Character read
 - `F`: C set if last character in file, otherwise NC (MOS 1.04 or greater)
 
@@ -317,7 +323,7 @@ Returns:
 
 Write a character to an open file
 
-Parameters: 
+Parameters:
 
 - `C`: Filehandle
 - `B`: Character to write
@@ -330,20 +336,21 @@ Returns: None
 
 Check for end of file
 
-Parameters: 
+Parameters:
 
 - `C`: Filehandle
 
 Preserves: `HL(U)`, `BC(U)`, `DE(U)`, `IX(U)`, `IY(U)`
 
 Returns:
+
 - `A`: 1 if at end of file, otherwise 0
 
 ### `0x0F`: mos_getError
 
 Copy an error string to a buffer
 
-Parameters: 
+Parameters:
 
 - `E`: The error code
 - `HL(U)`: Address of buffer to copy message into
@@ -357,7 +364,7 @@ Returns: None
 
 Execute a MOS command
 
-Parameters: 
+Parameters:
 
 - `HL(U)`: Pointer the the MOS command string
 
@@ -373,7 +380,7 @@ NB previously documentation for this command was incorrect, as it documented add
 
 Copy a file on the SD card
 
-Parameters: 
+Parameters:
 
 - `HL(U)`: Address of filename1 (zero terminated)
 - `DE(U)`: Address of filename2 (zero terminated)
@@ -528,7 +535,7 @@ Write a block of data to a file (Requires MOS 1.03 or above)
 Parameters:
 
 - `C`: Filehandle
-- `HLU`: Pointer to a buffer that contains the data to write 
+- `HLU`: Pointer to a buffer that contains the data to write
 - `DEU`: Number of bytes to write out
 
 Preserves: `HL(U)`, `BC(U)`
@@ -612,6 +619,7 @@ Parameters:
 Preserves: `HL(U)`, `DE(U)`, `IX(U)`, `IY(U)`
 
 Returns:
+
 - `A`: Status
 	- `0`: OK
 	- `1`: No response from I2C slave
@@ -632,6 +640,7 @@ Parameters:
 Preserves: `HL(U)`, `DE(U)`, `IX(U)`, `IY(U)`
 
 Returns:
+
 - `A`: Status
 	- `0`: OK
 	- `1`: No response from I2C slave
@@ -676,7 +685,7 @@ Example:
 			PUSH	BC				; Preserve number of bytes read
 			MOSCALL	ffs_fclose			; Close the file
 			POP	BC				; BC: Number of bytes read
-			RET 
+			RET
 
 filename:		DB	"example.txt", 0		; The file to read
 
@@ -747,12 +756,12 @@ Example:
 			LD	BC, 256				; Number of bytes to write
 			MOSCALL	ffs_write			; Write the data
 			MOSCALL	ffs_fclose			; Close the file
-			RET 
+			RET
 
-filename:		DB	"example.txt", 0		; The file to read
+filename:	DB	"example.txt", 0		; The file to read
 
-fil:			DS	FIL_SIZE			; FIL buffer (defined in mos_api.inc)
-buffer:			DS	256				; Buffer containing data to write out
+fil:		DS	FIL_SIZE			; FIL buffer (defined in mos_api.inc)
+buffer:		DS	256				; Buffer containing data to write out
 ```
 
 ### `0x84`: ffs_fseek
@@ -848,9 +857,9 @@ Example:
 			MOSCALL	ffs_stat
 			RET
 
-filename:		DB	"example.txt", 0		; The file to read
+filename:	DB	"example.txt", 0		; The file to read
 
-filinfo:		DS	FILINFO_SIZE			; FILINFO buffer (defined in mos_api.inc)
+filinfo:	DS	FILINFO_SIZE			; FILINFO buffer (defined in mos_api.inc)
 ```
 
 ### `0x9E`: ffs_getcwd
@@ -880,33 +889,33 @@ The following system variables are available in [mos_api.inc](#usage-from-z80-as
 ; System variable indexes for api_sysvars
 ; Index into _sysvars in globals.asm
 ;
-sysvar_time:		EQU	00h	; 4: Clock timer in centiseconds (incremented by 2 every VBLANK)
-sysvar_vpd_pflags:	EQU	04h	; 1: Flags to indicate completion of VDP commands
-sysvar_keyascii:	EQU	05h	; 1: ASCII keycode, or 0 if no key is pressed
-sysvar_keymods:		EQU	06h	; 1: Keycode modifiers
-sysvar_cursorX:		EQU	07h	; 1: Cursor X position
-sysvar_cursorY:		EQU	08h	; 1: Cursor Y position
-sysvar_scrchar:		EQU	09h	; 1: Character read from screen
-sysvar_scrpixel:	EQU	0Ah	; 3: Pixel data read from screen (R,B,G)
-sysvar_audioChannel:	EQU	0Dh	; 1: Audio channel 
+sysvar_time:			EQU	00h	; 4: Clock timer in centiseconds (incremented by 2 every VBLANK)
+sysvar_vpd_pflags:		EQU	04h	; 1: Flags to indicate completion of VDP commands
+sysvar_keyascii:		EQU	05h	; 1: ASCII keycode, or 0 if no key is pressed
+sysvar_keymods:			EQU	06h	; 1: Keycode modifiers
+sysvar_cursorX:			EQU	07h	; 1: Cursor X position
+sysvar_cursorY:			EQU	08h	; 1: Cursor Y position
+sysvar_scrchar:			EQU	09h	; 1: Character read from screen
+sysvar_scrpixel:		EQU	0Ah	; 3: Pixel data read from screen (R,B,G)
+sysvar_audioChannel:	EQU	0Dh	; 1: Audio channel
 sysvar_audioSuccess:	EQU	0Eh	; 1: Audio channel note queued (0 = no, 1 = yes)
-sysvar_scrWidth:	EQU	0Fh	; 2: Screen width in pixels
-sysvar_scrHeight:	EQU	11h	; 2: Screen height in pixels
-sysvar_scrCols:		EQU	13h	; 1: Screen columns in characters
-sysvar_scrRows:		EQU	14h	; 1: Screen rows in characters
-sysvar_scrColours:	EQU	15h	; 1: Number of colours displayed
+sysvar_scrWidth:		EQU	0Fh	; 2: Screen width in pixels
+sysvar_scrHeight:		EQU	11h	; 2: Screen height in pixels
+sysvar_scrCols:			EQU	13h	; 1: Screen columns in characters
+sysvar_scrRows:			EQU	14h	; 1: Screen rows in characters
+sysvar_scrColours:		EQU	15h	; 1: Number of colours displayed
 sysvar_scrpixelIndex:	EQU	16h	; 1: Index of pixel data read from screen
-sysvar_vkeycode:	EQU	17h	; 1: Virtual key code from FabGL
-sysvar_vkeydown		EQU	18h	; 1: Virtual key state from FabGL (0=up, 1=down)
-sysvar_vkeycount:	EQU	19h	; 1: Incremented every time a key packet is received
-sysvar_rtc:		EQU	1Ah	; 8: Real time clock data
-sysvar_keydelay:	EQU	22h	; 2: Keyboard repeat delay
-sysvar_keyrate:		EQU	24h	; 2: Keyboard repeat rate
-sysvar_keyled:		EQU	26h	; 1: Keyboard LED status
-sysvar_scrMode:		EQU	27h	; 1: Screen mode (from MOS 1.04)
-sysvar_rtc_enable:	EQU 28h ; 1: RTC enable status (from Console8 MOS 2.0.0)
-sysvar_mouseX:		EQU 29h ; 2: Mouse X position
-sysvar_mouseY:		EQU 2Bh ; 2: Mouse Y position
+sysvar_vkeycode:		EQU	17h	; 1: Virtual key code from FabGL
+sysvar_vkeydown			EQU	18h	; 1: Virtual key state from FabGL (0=up, 1=down)
+sysvar_vkeycount:		EQU	19h	; 1: Incremented every time a key packet is received
+sysvar_rtc:				EQU	1Ah	; 8: Real time clock data
+sysvar_keydelay:		EQU	22h	; 2: Keyboard repeat delay
+sysvar_keyrate:			EQU	24h	; 2: Keyboard repeat rate
+sysvar_keyled:			EQU	26h	; 1: Keyboard LED status
+sysvar_scrMode:			EQU	27h	; 1: Screen mode (from MOS 1.04)
+sysvar_rtc_enable:		EQU 28h ; 1: RTC enable status (from Console8 MOS 2.0.0)
+sysvar_mouseX:			EQU 29h ; 2: Mouse X position
+sysvar_mouseY:			EQU 2Bh ; 2: Mouse Y position
 sysvar_mouseButtons:	EQU 2Dh ; 1: Mouse left+right+middle buttons (bits 0-2, 0=up, 1=down)
 sysvar_mouseWheel:		EQU 2Eh ; 1: Mouse wheel delta
 sysvar_mouseXDelta:		EQU 2Fh ; 2: Mouse X delta
