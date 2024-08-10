@@ -13,12 +13,13 @@ Please note that not all versions of the VDP support the complete command set.  
  §§§ Requires Console8 VDP 2.6.0 or above<br>
  §§§§ Requires Console8 VDP 2.7.0 or above<br>
  §§§§§ Requires Console8 VDP 2.8.0 or above<br>
+ §§§§§§ Requires Console8 VDP 2.9.0 or above<br>
 
 Commands between &80 and &89 will return their data back to the eZ80 via the [serial protocol](#serial-protocol).
 
 NB:
 
-- Prior to MOS 1.03 the subset commands that it supported were indexed from &00, not &80. For example, `VDU 23, 0, &02` to request the cursor position.
+- Prior to MOS 1.03 the subset commands that it supported were indexed from &00, not &80. For example, `VDU 23, 0, &02` to request the cursor position.  Commands in the range &00-&7F were used on Acorn systems to control the VDU hardware, so to avoid conflicts, and to allow for the possibility of supporting some of those commands, Agon commands were re-indexed from &80.
 
 
 ## `VDU 23, 0, &0A, n`: Set cursor start line and appearance §§§§
@@ -38,7 +39,7 @@ This command works in conjunction with `VDU 23, 0, &0B, n`, `VDU 23, 0, &8A, n`,
 
 The cursor start line must be less than the current font height (which is currently 8 pixels, and cannot currently be adjusted).
 
-Support for this command was introduced in the Console8 VDP 2.7.0.  It's behaviour is compatible with the equivalent commands on the Acorn BBC Micro and RISC OS.
+Support for this command was introduced in the Console8 VDP 2.7.0.  Its behaviour is compatible with the equivalent commands on the Acorn BBC Micro and RISC OS.
 
 
 ## `VDU 23, 0, &0B, n`: Set cursor end line §§§§
@@ -302,6 +303,27 @@ It should be noted that before Console8 VDP 2.7.0 when reading palette entries f
 
 This command is used to manage fonts on your system.  For more information please see the [Font API documentation](Font-API.md).
 
+## `VDU 23, 0, &96, <flags>, <bufferId>;`: Set an affine transform matrix §§§§§§
+
+As of the time of writing, this command is experimental and subject to change.  To enable it you must turn on the affine transform feature flag, using the `VDU 23, 0, &F8, 1; 1;` command.
+
+This command tells the graphics system to use an affine transform matrix held within the given buffer for subsequent drawing commands.  This allows for the transformation of graphics when they are drawn in a variety of ways, including scaling, rotation, and translation.
+
+The `flags` field is used to indicate which parts of the graphics system should use the matrix.  The following flags bits are supported:
+
+| Bit | Name | Description |
+| --- | ---- | ----------- |
+| 0   | Bitmap | Apply the matrix to bitmap drawing commands |
+| 1-7 | Reserved | Reserved for future use |
+
+The `bufferId` indicates which buffer holds the matrix data to use.  The matrix is assumed to be a 3x3 matrix of 32-bit floating point values, stored in little-endian byte order.  As creating and manipulating floating point data is not supported in the eZ80 various options are provided as part of the [buffered commands API](Buffered-Commands-API.md) to allow for the creation and manipulation of these matrices.
+
+The `bufferId` set is used as a reference to the matrix.  If a matrix exists in the buffer then a copy of that will be used for all applicable drawing operations when they are performed, otherwise drawing operations will occur as if no matrix was set.  If a matrix is changed after it has been set, then the new matrix will be used for subsequent drawing operations.
+
+Setting the `bufferId` to 65535 (or -1) will clear the matrix, and subsequent drawing operations will not be transformed.
+
+Please note that when an affine transform is set to be applied when drawing bitmaps, the transform is always applied as if the top left of the bitmap is the "origin" point for the transform  So if an affine transform is set to only perform a rotation, then the bitmap will rotate around its top left corner.  This may be slightly contrary to expectations when using OS coordinates, as when plotting a bitmap using the PLOT command you specify the location for the bottom left of the bitmap.  So when using OS coordinates, the origin point of the transformation becomes where the top-left pixel would have been.
+
 ## `VDU 23, 0, &98, n`: Turn control keys on and off §§§
 
 Turns control keys on and off, where 1=on (the default) and 0=off.
@@ -317,6 +339,10 @@ Irrespective of whether the VDP has done anything with a control key, or whether
 Until Console8 VDP 2.6.0, this control key behaviour on the VDP was always enabled, and could not be turned off.
 
 From Console8 VDP 2.6.0 onwards, the control keys can be turned off, which may help ensure that unexpected behaviour on the VDP does not occur when using applications running on MOS that may also wish to use these control key combinations.
+
+## `VDU 23, 0, &9B, bufferId;`: Print the contents of a buffer to the screen §§§§§§
+
+If a buffer is found with the given `bufferId`, then this command will print a buffer out to the screen, using only the raw character values. This bypasses VDU command processing, so no control characters at all are supported and will be printed as-is.
 
 ## `VDU 23, 0, &9C`: Set the text viewport using graphics coordinates §§§§§
 
@@ -396,6 +422,23 @@ The line pattern can be set using `VDU 23, 6, n1, n2, n3, n4, n5, n6, n7, n8`, w
 
 Support for this command was added in Console8 VDP 2.7.0.
 
+## `VDU 23, 0, &F8, flagId; value;`: Set a test flag §§§§§§
+
+This command is used to set a test flag.  Test flags are used to enable new and experimental features in the VDP that may not be quite ready for general use, and/or have an API that may change in the future.  They are intended for use by developers and testers.
+
+The `flagId` is the ID of the flag to set, and the `value` is the value to set the flag to.  The meaning of the `value` that any particular flag is set to will be specific to the flag being set.  A value must always be provided, even if the flag does not require a value to be set.
+
+As of Console8 VDP 2.9.0 the following test flags are supported:
+
+| Flag ID | Value | Description |
+| ------- | ----- | ----------- |
+| 1 | 0 (N/A) | Enable the Affine Transforms feature |
+
+If a flag is set that is not recognised then it will have no effect.  This means that if a feature graduates from being a test feature then so long as the API for the feature remains the same, then software that set the flag to enable the feature will still work.
+
+## `VDU 23, 0, &F9, flagId;`: Clear a test flag §§§§§§
+
+This command is used to clear a test flag.
 
 ## `VDU 23, 0, &FE, n`: Console mode **
 

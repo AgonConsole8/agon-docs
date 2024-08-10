@@ -186,6 +186,8 @@ Before a bitmap plot can be used a valid bitmap must be selected using either `V
 
 Bitmap plots will only draw non-transparent pixels to the screen.  When using "foreground" PLOTs, the bitmap is drawn to screen using the current foreground GCOL painting mode using the colour from the bitmap.  When using "background" PLOTs, the bitmap is drawn to screen using the current background GCOL painting mode using the currently selected background colour.  Inverse plot modes invert on-screen pixels that correspond to non-transparent pixels in the bitmap.
 
+As of Console8 VDP version 2.9.0 it is possible to set an affine transform matrix to be applied to bitmap plots.  This allows for bitmaps to be scaled, rotated, sheared, and translated when being drawn onto the screen.  The transform matrix is set using `VDU 23, 0, &96, 1, bufferId;` which is documented in the [System Commands](System-Commands.md) documentation.  The buffered commands API provides commands to set and manipluate the transform matrix, and is documented in the [Buffered Commands](Buffered-Commands-API.md) documentation.
+
 
 ## PLOT support prior to VDP 1.04
 

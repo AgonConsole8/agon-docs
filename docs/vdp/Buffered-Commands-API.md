@@ -562,6 +562,73 @@ This command will replace the target buffer with a new buffer that contains a si
 
 It is useful for contructing a single buffer from multiple sources, such as for constructing a bitmap from multiple constituent parts.
 
+## Command 32: Create or manipulate a 2D affine transformation matrix
+
+`VDU 23, 0, &A0, bufferId; 32, operation, [<format>, <arguments...>]`
+
+As of the time of writing, this command is experimental and subject to change.  It features in the Console8 VDP 2.9.0 release, but to use this command you need to enable the feature by setting the affine transforms test flag.  This is done using the command `VDU 23, 0, &F8, 1; 1;`.  The exact operations and arguments supported by this command may change in the future.
+
+The purpose of this command is to create or manipulate a 2D affine transformation matrix stored in a buffer.  Affine transforms are used to manipulate 2D points, and can be used to perform operations such as translation, rotation, scaling, and shearing.
+
+To use this API you do not need to understand the mathematics of affine transformations.  The API is designed to be simple to use, and to allow for complex transformations to be built up from simple operations.
+
+Technically, a 2D affine transformation matrix is a 3x3 matrix that can be used to perform transformations on 2D points, and can be applied to drawing operations.  The matrix is stored in row-major order, and is stored as 32-bit single-precision IEEE-754 floating point values.  The matrix is stored in a single block in the buffer.  The drawing system may store a second block in the buffer to cache an inverse of the matrix, but you should not rely on that being there.
+
+A challenge with this API is that inherently neither the VDU command system nor the eZ80 CPU support floating-point arithmetic.  The API therefore supports sending numbers across in a variety of different formats to help facilitate this, and will convert the values sent to floating-point values as required.  The API supports sending fixed-point values, 16-bit and 32-bit integers, and 16-bit and 32-bit floating-point values.  Values must just be sent across as bytes in the VDU command stream in little-endian order, much like any other value byte must be send.
+
+Several different operations are supported by this command.  When an operation is performed, the result is stored back in the buffer, replacing any existing data that may have been there.  Most operations will combine their result with the existing matrix in the buffer.  This means that you can combine for instance rotation and scaling into one transform matrix.  The following operations are supported:
+
+| Operation | Arguments | Description |
+| --------- | -------------- | ----------- |
+| 0 | 0 | Set an "identity matrix" (effectively a "reset" operation) |
+| 1 | 0 | Invert the matrix (this will only succeed if the buffer already contains a valid transform matrix) |
+| 2 | 1 | Rotate anticlockwise by angle in degrees |
+| 3 | 1 | Rotate anticlockwise by angle in radians |
+| 4 | 1 | Multiply all values in the first 8 matrix positions by an amount |
+| 5 | 2 | Scale X and Y by given scaling factors |
+| 6 | 2 | Translate X and Y by a number of pixels |
+| 7 | 2 | Translate X and Y by using currently selected graphics coordinate system units |
+| 8 | 2 | Shear X and Y by given amounts |
+| 9 | 2 | Skew X and Y by angle in degrees |
+| 10 | 2 | Skew X and Y by angle in radians |
+| 11 | 6 | Transform (combine with another transform matrix - requires 6 values to be sent - the final matrix row will be set to 0, 0, 1) |
+
+Repeatedly calling this command with different operations will build up a transform matrix in the buffer.  It should be noted that if the buffer is not cleared out before starting to build up a new matrix (or set to an identity matrix) then the results may not be as expected.
+
+Every operation that requires arguments to be provided must then send a byte to indicate the format of the arguments that follow.  The format byte is as follows:
+
+| Bit value | Description |
+| --- | ----------- |
+| 0-4 | Shift (used for fixed-point values, ignored for floating-point) |
+| 5 | Unused, must be zero (Reserved for future use) |
+| 6 | When set, data is provided in fixed-point format, otherwise it is IEEE-754 floating point |
+| 7 | When set, data is presented as 16-bit values, otherwise they are 32-bit values |
+
+The fixed-point format supported by this command essentially means that values sent will be interpreted as a binary number with a "binary point".  The binary point starts out to the right of the right-most bit of the value (the least significant bit), meaning that when a shift value of zero is used the number being sent is an integer.  A shift of 1 will move the binary point one place to the left, effectively dividing the number by 2.  A shift of 2 will divide the number sent by 4, and so on.  
+
+The shift value is a 5-bit value, and its use varies depending on whether a 16-bit or a 32-bit value is being sent (i.e. if bit 7 has been set).  When a 32-bit value is sent (bit 7 is clear), the shift is interpretted as a 5-bit unsigned integer, i.e. it has the range of 0-31.  For 16-bit values, the 5-bit shift is a signed integer, giving a range of -16 to +15.  This allows for a negative shift to be applied to 16-bit values, meaning the number sent will be multiplied by 2 when a shift of -1 is given, by 4 for a shift of -2, and so on.
+
+As can be seen, the API also supports sending IEEE-754 floating point values.  These can be sent either as single-precision values (using 32-bits), or as half-precision values (in 16-bits).  The "shift" bits in the format byte will be ignored when sending floating-point values.  A format value of `0` therefore indicates that values will be sent as 32-bit single-precision IEEE-754 floating point values, and a format value of `&80` indicates values will be sent as 16-bit half-precision IEEE-754 values.
+
+In all cases data should be sent in little-endian byte order.
+
+### Advanced operations
+
+Similar to the Adjust command, it is possible to perform some advanced operations with this command by setting some of the upper bits of the operation byte.  The following bits are defined:
+
+| Bit value | Description |
+| --- | ----------- |
+| &10 | Use advanced offsets (when using buffer-fetched values) |
+| &20 | Fetch values from a buffer (and offset), rather than the command stream |
+| &40 | Separate arguments will have individual format bytes |
+
+The most important of these is the "fetch values from a buffer" bit.  When this bit is set, a format byte is still read from the VDU command stream, but then the next two bytes in the stream are interpreted as a buffer ID, which should then be followed by an offset (2 further bytes, unless the "use advanced offsets" bit is set).  The value to be used in the operation will then be fetched from the buffer at the given offset, and interpretted using the format described in the format byte.  Using this allows for transform matrices to be built up over time in multiple buffers, and then combined into a single buffer.  This can be useful for building up complex transformations in a modular way.
+
+When this flag is set, all arguments are fetched from the given buffer, at the given offset.  If the operation requires multiple bytes they will be read consecutively from the buffer.  The format byte is still used to interpret the values fetched from the buffer.
+
+When the "Separate arguments have individual format bits" flag is set then each argument will be prefaced with its own format byte, rather than a single byte being used to dictate the format of all arguments.  This can be useful when sending multiple arguments of different types.  This can be combined with the other flags.
+
+
 ## Command 64: Compress a buffer
 
 `VDU 23, 0, &A0, targetBufferId; 64, sourceBufferId;`
@@ -579,6 +646,36 @@ The source buffer must contain a complete set of compressed data, but need not b
 Using this command, data can be sent from MOS in a compressed form, and then decompressed on the VDP.  This can be useful for sending large amounts of data over to the VDP, as it can reduce the amount of data that needs to be sent.
 
 The compression algorithm supported by this command and the corresponding "compress" command is "TurboVega-style" compression.  Source code for the compression and decompression routines and tools to use them on other systems can be found in the [TurboVega agon_compression repository](https://github.com/TurboVega/agon_compression).
+
+
+## Command 72: Expand a bitmap
+
+`VDU 23, 0, &A0, bufferId; 72, options, sourceBufferId; [width;] <mappingDataBufferId; | mapping-data...>`
+
+This command will expend a bitmap stored in the source buffer indicated by `sourceBufferId` that uses an arbitrary number of bits per pixel into a new buffer (indicated by `bufferId`) that uses 8-bits per pixel.  
+
+The primary intent of this command is to allow the VDP to support other formats of bitmap than the natively supported formats.  The bitmap should be mapped to valid RGBA2222 colour values, allowing the destination buffer to then be set as a bitmap in RGBA2222 format.  It should be noted that the destination buffer is not automatically marked as being a bitmap.
+
+It should also be noted that this command could be used for purposes other than expanding bitmaps, although the language used to describe the function of this command is based around bitmaps.  This is left to the user to explore.
+
+The `options` parameter is an 8-bit value that can have bits set to modify the behaviour of the operation.  The following bits are defined:
+
+| Bits | Description |
+| ---- | ----------- |
+| 0-2  | Number of bits per pixel in the source bitmap |
+| 3    | When set, the source bitmap is aligns to the next byte at a given width (in pixels) |
+| 4    | When set, mapping data is in a buffer |
+| 5-7  | Reserved for future use (set to zero) |
+
+The number of bits per pixel in the source bitmap is specified by the bottom 3 bits of the `options` parameter.  This can be any value from 1 to 8 where a 0 is interpreted as 8.
+
+It is assumed that pixels are stored in the source buffer in a continuous manner, one byte at a time, starting from the top-most bits of the first byte.
+
+If bit 3 has been set of the options byte, then following the `sourceBufferId` should be a 16-bit `width` parameter.  This value is used as a pixel count, after which the system will align to the next byte.  This is useful when dealing with bitmaps that have widths that do not align to a byte boundary.
+
+The various different values that pixels will be mapped to should immediately follow in the command stream, with the number of bits per pixel given dictating how many mapping value bytes are sent (so 1 bits per pixel will have 2 values, 2 bits per pixel will have 4 values, and so on).  If bit 4 has been set of the options byte, then following the `width` parameter should be a 16-bit `mappingDataBufferId` parameter.  This buffer should contain the mapping data which will be used instead of values sent as part of the command stream..
+
+When a buffer is used for mapping data, that buffer must exist, and must contain a single block of at least the number of values required for the given number of bits per pixel.
 
 
 ## Examples

@@ -26,7 +26,7 @@ Please follow each step as closely as possible and make sure that each item on t
 	- If you'd like to upgrade to the latest official Quark 1.04 release, please download [MOS.bin](https://github.com/breakintoprogram/agon-mos/releases/download/v1.04/MOS.bin)
 8. Eject the SD card from your PC, insert it into your Agon
 9. RESET your Agon
-10. Download [agon binaries](https://github.com/envenomator/agon-binaries/archive/refs/heads/master.zip) to your PC and unzip it. I'll refer the unzipped folder later as 'agon-binaries-master'
+10. Download [agon binaries](https://github.com/envenomator/envenomator.github.io/archive/refs/heads/master.zip) to your PC and unzip it. I'll refer the unzipped folder later as 'agon-binaries'
 11. If you are using Linux/MacOS, please install python and install the python esptool.py using [this](https://docs.espressif.com/projects/esptool/en/latest/esp32/) guide from espressif
 
 ## Upgrade the Agon MOS
@@ -41,12 +41,12 @@ Please follow each step as closely as possible and make sure that each item on t
 0. Complete all the steps from the preparation requirements
 1. Upgrade the Agon MOS first
 2. On windows start a PowerShell terminal, on Linux start a shell and on MacOS start Terminal
-3. Change folder to the folder 'agon-binaries-master', where you unzipped the downloaded binaries earlier, using the 'cd' command
+3. Change folder to the folder 'agon-binaries', where you unzipped the downloaded binaries earlier, using the 'cd' command
 4. Change to the subfolder of the VDP release you'd like to upgrade to:
-	- For a very recent Console8 release: On Windows, change to the subfolder '.\VDP\Console8 2.6.0\'
-	On Linux/MacOS, change to the subfolder ./VDP/Console8\ 2.6.0/
-	- For the official Quark 1.04 release: On Windows, change to the subfolder '.\VDP\Quark 1.04\'
-	On Linux/MacOS, change to the subfolder ./VDP/Quark\ 1.04/
+	- For a very recent Console8 release: On Windows, change to the subfolder '.\firmware\Console8 2.6.0\'
+	On Linux/MacOS, change to the subfolder ./firmware/Console8\ 2.6.0/
+	- For the official Quark 1.04 release: On Windows, change to the subfolder '.\firmware\Quark 1.04\'
+	On Linux/MacOS, change to the subfolder ./firmware/Quark\ 1.04/
 
 5. Start the upgrade script with the serial/COM port you noted earlier - COMXX and /dev/ttyUSBXXX are examples here:
 	- On Windows type - '.\flash.bat COMXX'

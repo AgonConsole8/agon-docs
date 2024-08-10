@@ -338,8 +338,54 @@ This command was added to Agon Console8 VDP 2.6.0.  Prior to that version, the l
 See the [Bitmap and Sprite Commands](Bitmaps-API.md) documentation for more information.
 
 ### `VDU 23, 28`: Hexload
+This command switches the VDP to a dedicated Intel Hex receiver/decoder. After sending this command, the VDP temporarily blocks all other functions and expects Intel Hex-formatted data on it's USB/serial port. The baudrate and serial configuration settings are displayed on-screen, and the VDP loops through all incoming records until the final End-of-File record is received.
+Starting console8-vdp 2.8.2+, the user can press the 'escape' key to abort an incoming transfer and return the VDP to it's regular function.
 
+Detailed documentation for the Intel Hex format can be found [here](https://en.wikipedia.org/wiki/Intel_HEX)
+
+The purpose of hexload is to enable a user to send binaries directly to ez80 memory, using a text-formatted binary (Intel Hex) from an external PC to the external USB/serial port of an Agon system. The solution has a few components that need to work together in order to make this happen:
+
+![overview](../images/hexload.png)
+
+A specific client that sends the VDU sequence to the VDP, to start the 'remote' Intel Hex receiver/decoder, is the component that is responsible for receiving preformatted data-records from the VDP. Data is sent to the client using VDP virtual keystroke packets, where packets contains an ASCII keycode for each received byte.
+The format of this data and the sequence of events of the protocol to the client is detailed below.
+The current hexload [utility](https://github.com/envenomator/agon-hexload) streams the incoming data directly to memory and optionally to the filesystem. The memory destination address(es) are dependent on which address records are present in the Intel Hex file sent to the VDP. If no address records are present (for example when a binary is converted to Intel Hex format before sending) the VDP defaults to the Agon 0x40000 load address.
+
+The MOS has no specific role, other than to accept virtual keyboard packets and send out bytes to the VDP.
+
+In order to reliably transfer the incoming Intel Hex stream at full serial speeds, the VDP runs a dedicated Intel Hex receiver and decodes all Intel Hex records to data packets that are sent to the MOS as virtual keystrokes. This allows the VDP to perform the bulk of Intel Hex processing, while the lower-powered ez80 can focus on data reception.
+
+The RTS/CTS flowcontrol lines on the USB/serial interface are hardwired for ESP32 boot selection, per Espressif standards. Any flowcontrol on the USB/serial interface is therefore not possible on this serial interface, which leads to potential periodic loss of incoming packets. While the Intel Hex format specifies a checksum at the end of each record, this will only detect single-bit errors and not multi-bit issues that easily arise when the USB/serial is overrun. In order to deal with this, the VDP starting 2.8.2+ allows for an extended, Agon-proprietary Intel Hex format where CRC16 verification takes place at each record between PC and VDP, and the VDP sends back it's calculated CRC16. The PC sender can detect if the VDP has received incorrect data, whereupon it retransmits a record if necessary. At the start of an extended format session, the PC sends a custom Intel Hex record that contains the full CRC32 checksum of all data to be sent to the VDP. The VDP then verifies and displays the results upon End-of-File record reception.
+
+The RTS/CTS flowcontrol lines between VDP and ez80 are only in use one-way to the VDP, not from the VDP to the ez80. This creates a similar challenge in absence of flowcontrol. The data format sent to the hexload utility periodically waits for acknowledgement and asks for a mirror of each record's checksum to be sent back to the VDP. Starting 2.8.2+, using extended format, the VDP will retransmit corrupted data to the ez80, because it has a way to temporarily pause the incoming traffic from the PC.
+
+#### Internal data records
+At each Intel Hex DATA record, the VDP sends these bytes as virtual keystrokes to MOS:
+1. Start/stop byte - 0x01 indicates a data packet follows, 0x00 indicates end of transfer / return to normal VDP function
+2. Three bytes of the 24-bit address of the following packet, in big-endian format (U / H / L)
+3. A single byte containing the number of data bytes to be sent in this packet
+4. 0-n data bytes as indicated previously
+
+The hexload utility should then transmit a single byte to the VDP, containing a 2s complement to the sum of all received bytes. This byte is added to the running checksum by the VDP, to detect and indicate communication errors to the Hexload utility.
+Address information from Intel Hex ADDRESS records, are parsed by the VDP and sent to the hexload utility as part of data packets with an address header.
+
+#### Extended Intel Hex format
+A Agon-proprietary extended format has been devised, to allow CRC16 checks at each Intel hex record's line, retransmission upon failed verification and full CRC32 verification at end of transmission. The VDP switches to reception of the extended format, upon receipt of a specific IntelHex-formatted start record:
+
+    :06 0000 FF XXXXXXXX CC
+
+1. : start of record
+2. 6 bytes of payload data, indicated by a single byte (2 ASCII nibbles '06')
+3. 0x0000 start address (4 ASCII nibbles '0000' ignored / unused)
+4. Non-standard record type 0xFF (2 ASCII nibbles 'FF')
+5. The CRC32 of the entire payload to be sent, in Intel Hex format (6 ASCII nibbles)
+6. A regular Intel Hex checksum of a single byte (2 ASCII nibbles)
 This command is used by the hexload utility, and should not be used by user applications.
+
+After switching to the extended format, the VDP expects all subsequent Intel Hex records to have a CRC16 appended to it, containing the CRC16 of the original Intel Hex record, including the ':' character. In this way, all content can be verified. The CRC16 is sent using Intel Hex format, using 4 ASCII nibbles.
+The VDP then sends back it's own calculated CRC16 in binary form (2 bytes), so it allows the PC sender application to retransmit records if necessary.
+
+After the PC sender sends the last (End-of-file) Intel Hex record, the VDP sends back it's calculated CRC32 in binary form (4 bytes), and issues a result statement before it exits the receiver/decoder role.
 
 ## `VDU 24, left; bottom; right; top;`: Set graphics viewport **
 
