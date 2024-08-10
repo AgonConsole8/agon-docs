@@ -263,7 +263,7 @@ This command will reset all system font characters to their original definitions
 
 ## `VDU 23, 0, &92, char, bitmapId;`: Map character char to display bitmapId §§
 
-This command will map a character to a bitmap.  The bitmap ID given must be a valid bitmap ID.  The purpose of this command is to allow for fast and efficient drawing of bitmaps to the screen, by allowing them to be drawn as characters.
+This command will map a character to a bitmap.  The bitmap ID given must be a valid bitmap in a 16 bit buffer ID.  The purpose of this command is to allow for fast and efficient drawing of bitmaps to the screen, by allowing them to be drawn as characters.
 
 Any character number can be used, including those in the range of 0-31, or the usual/normal alphabetic range.  This could be used, for instance, to create a custom colour font.  It could alternatively be used with characters in the range of 128-255 to define a custom graphical tile-set, like PETSCII but in colour.
 
