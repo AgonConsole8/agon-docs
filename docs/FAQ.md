@@ -15,7 +15,7 @@ Minimum:
 - A micro USB card
 
 NB:
-- The orginal Agon Light requires a PS/2 keyboard, or a USB keyboard that supports the PS/2 protocol with a USB to PS/2 adaptor.
+- The original Agon Light requires a PS/2 keyboard, or a USB keyboard that supports the PS/2 protocol with a USB to PS/2 adaptor.
 - The Agon Light 2 requires a USB keyboard that supports the PS/2 protocol, or a PS/2 keyboard with a PS/2 to USB adaptor.
 
 ## Does AGON support CP/M?
@@ -91,7 +91,7 @@ The Agon-compatible Zilog product numbers are:
 **ATTENTION:** the cable with product number ZUS**BES**C0200ZACG is **NOT** suitable for Agon!
 
 ## Can I go back to an earlier firmware version / downgrade?
-Absolutely (and this has been tested), but cecause literally ANY version can be flashed, please be mindful going back to older versions. The Pleistocene may not have a wall-outlet to charge your time travel device.
+Absolutely (and this has been tested), but because literally ANY version can be flashed, please be mindful going back to older versions. The Pleistocene may not have a wall-outlet to charge your time travel device.
 
 Do yourselves a big favor, and stay away from anything below Quark 1.03, or that Zilog ZDS cable I mentioned you shouldn't buy, might suddenly start get interesting again.
 
@@ -99,12 +99,12 @@ Do yourselves a big favor, and stay away from anything below Quark 1.03, or that
 Yes, it can be used with any Agon platform.
 
 ## How should I connect the Agon to my PC for programming the VDP?
-To program an older VDP (1.03 or earlier) to a newer version, you need to connect the Agon using a USB (data) cable. Some very cheap USB cables may only have wires for powering/charging a USB device, without any wired datalines. Fortunately these are becoming scarce nowadays, but if all else fails, you might be using the wrong cable (or have the incorrect jumper setting; see above)
+To program an older VDP (1.03 or earlier) to a newer version, you need to connect the Agon using a USB (data) cable. Some very cheap USB cables may only have wires for powering/charging a USB device, without any wired data lines. Fortunately these are becoming scarce nowadays, but if all else fails, you might be using the wrong cable (or have the incorrect jumper setting; see above)
 
 The Agon will present a virtual serial port (COM) on your PC, that communicates directly with the ESP32 graphics chip (VDP).
 
 ## How can I find out the COM port on my PC, to connect to the Agon?
-It depends on the OS you have. In Linux, when you insert your USB cable and type 'dmesg | grep tty', it should show. 
+It depends on the OS you have. In Linux, when you insert your USB cable and type 'dmesg | grep tty', it should show.
 
 In Windows, it should show up in device manager, or in powershell type '[System.IO.Ports.SerialPort]::getportnames()'.
 
@@ -161,7 +161,7 @@ The main differences are:
 - LIPO battery charging circuit
 - UEXT connector
 - USB C power connector
-- Plastic boxed 34-pin GPIO connector 
+- Plastic boxed 34-pin GPIO connector
 
 And there are some minor revisions to discrete components on the board. Other than that, it is functionally identical to the original Agon Light design.
 

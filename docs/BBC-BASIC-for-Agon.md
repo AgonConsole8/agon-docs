@@ -111,7 +111,7 @@ Change the the current text output colour
 - If c is between 0 and 63, the foreground text colour will be set
 - If c is between 128 and 191, the background text colour will be set
 
-The following two commands are only applicable to paletted modes with less than 64 colours.
+The following two commands are only applicable to palette modes with less than 64 colours.
 
 Syntax: `COLOUR l,p`
 
@@ -193,7 +193,7 @@ Example:
 
 ```
   10 REM CLOCK
-  20 : 
+  20 :
   30 CLS
   40 PRINT TAB(2,2); TIME$
   50 GOTO 40
@@ -247,5 +247,5 @@ To do this correctly, you must call the star command indirectly using the OSCLI 
 
 Example: This will work
 ```
-30 OSCLI("LOAD " + f$ + " " + STR$(addr%)) 
+30 OSCLI("LOAD " + f$ + " " + STR$(addr%))
 ```

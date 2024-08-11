@@ -89,9 +89,9 @@ Parameters:
 
 Returns:
 
-- `A`: Last character displayed (length mode) OR Delimeter (delimeter mode)
+- `A`: Last character displayed (length mode) OR Delimiter (delimiter mode)
 - `BC`: 0
-- `HL(U)`: Address of last character displayed + 1 (length mode) OR location of delimeter (delimeter mode)
+- `HL(U)`: Address of last character displayed + 1 (length mode) OR location of delimiter (delimiter mode)
 - `E`: Value of `A` upon entry
 
 Example:
@@ -284,7 +284,7 @@ Preserves: `HL(U)`, `BC(U)`, `DE(U)`, `IX(U)`, `IY(U)`
 
 Returns:
 
-- `A`: Filehandle, or 0 if couldn't open
+- `A`: File handle, or 0 if couldn't open
 
 Mode can be one of: fa_read, fa_write, fa_open_existing, fa_create_new, fa_create_always, fa_open_always or fa_open_append
 
@@ -296,7 +296,7 @@ Close a file handle
 
 Parameters:
 
-- `C`: Filehandle, or 0 to close all open files
+- `C`: File handle, or 0 to close all open files
 
 Preserves: `HL(U)`, `BC(U)`, `DE(U)`, `IX(U)`, `IY(U)`
 
@@ -310,7 +310,7 @@ Get a character from an open file
 
 Parameters:
 
-- `C`: Filehandle
+- `C`: File handle
 
 Preserves: `HL(U)`, `BC(U)`, `DE(U)`, `IX(U)`, `IY(U)`
 
@@ -325,7 +325,7 @@ Write a character to an open file
 
 Parameters:
 
-- `C`: Filehandle
+- `C`: File handle
 - `B`: Character to write
 
 Preserves: `HL(U)`, `BC(U)`, `DE(U)`, `IX(U)`, `IY(U)`
@@ -338,7 +338,7 @@ Check for end of file
 
 Parameters:
 
-- `C`: Filehandle
+- `C`: File handle
 
 Preserves: `HL(U)`, `BC(U)`, `DE(U)`, `IX(U)`, `IY(U)`
 
@@ -504,7 +504,7 @@ Get a pointer to a FIL structure in MOS (Requires MOS 1.03 or above)
 
 Parameters:
 
-- `C`: Filehandle
+- `C`: File handle
 
 Preserves: `BC(U)`
 
@@ -518,7 +518,7 @@ Read a block of data from a file (Requires MOS 1.03 or above)
 
 Parameters:
 
-- `C`: Filehandle
+- `C`: File handle
 - `HLU`: Pointer to a buffer to read the data into
 - `DEU`: Number of bytes to read
 
@@ -534,7 +534,7 @@ Write a block of data to a file (Requires MOS 1.03 or above)
 
 Parameters:
 
-- `C`: Filehandle
+- `C`: File handle
 - `HLU`: Pointer to a buffer that contains the data to write
 - `DEU`: Number of bytes to write out
 
@@ -550,7 +550,7 @@ Move the read/write pointer in a file (Requires MOS 1.03 or above)
 
 Parameters:
 
-- `C`: Filehandle
+- `C`: File handle
 - `HLU`: Least significant 3 bytes of the offset from the start of the file
 - `E`: Most significant byte of the offset (set to 0 for files < 16MB)
 
@@ -889,7 +889,7 @@ The following system variables are available in [mos_api.inc](#usage-from-z80-as
 ; System variable indexes for api_sysvars
 ; Index into _sysvars in globals.asm
 ;
-sysvar_time:			EQU	00h	; 4: Clock timer in centiseconds (incremented by 2 every VBLANK)
+sysvar_time:			EQU	00h	; 4: Clock timer in centi seconds (incremented by 2 every VBLANK)
 sysvar_vpd_pflags:		EQU	04h	; 1: Flags to indicate completion of VDP commands
 sysvar_keyascii:		EQU	05h	; 1: ASCII keycode, or 0 if no key is pressed
 sysvar_keymods:			EQU	06h	; 1: Keycode modifiers
