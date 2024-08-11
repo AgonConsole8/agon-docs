@@ -11,7 +11,7 @@ Examples below are given in BBC BASIC.
 
 A common source of errors when sending commands to the VDP from BASIC via VDU statements is to forget to use a `;` after a number to indicate a 16-bit value should be sent.  If you see unexpected behaviour from your BASIC code that is the most likely source of the problem.
 
-All commands must specify a buffer ID as a 16-bit integer.  There are 65534 buffers available for general use, with one buffer ID (number 65535) reserved for special functions, and is generally interpretted as meaning "current buffer".  As with all other VDP commands, these 16-bit values are sent as two bytes in little-endian order, and are documented as per BBC BASIC syntax, such as `bufferId;`.
+All commands must specify a buffer ID as a 16-bit integer.  There are 65534 buffers available for general use, with one buffer ID (number 65535) reserved for special functions, and is generally interpreted as meaning "current buffer".  As with all other VDP commands, these 16-bit values are sent as two bytes in little-endian order, and are documented as per BBC BASIC syntax, such as `bufferId;`.
 
 On a restart all buffers will be empty.  One should not assume however that buffers are empty when your program is run, as other programs may have already used the buffers.  Indeed, it is a valid use case to have a "loader" program that is designed to be run before another program to prepare a set of buffers for that second program to use.  It is therefore advisable to clear out the buffers before use.
 
@@ -74,7 +74,7 @@ This command otherwise works identically to `VDU 23, 27, 6`.
 
 It should be noted that it is possible to modify the buffer that a bitmap is stored in using the "adjust buffer contents" and "reverse contents" commands (`5` and `24` respectively).  This can allow you to do things such as changing colours in a bitmap, or flipping an image horizontally or vertically.  This will even work on bitmaps that are being used inside sprites.
 
-Using commands targetting a buffer that create new blocks, such as "consolidate" or "split", will invalidate the bitmap and remove it from use.
+Using commands targeting a buffer that create new blocks, such as "consolidate" or "split", will invalidate the bitmap and remove it from use.
 
 ### Using buffers for sound samples
 
@@ -222,7 +222,7 @@ Fundamentally, this command adjusts values of a buffer at a given offset one byt
 
 Advanced offsets are sent as a 24-bit value in little-endian order, which can allow for buffers that are larger than 64kb to be adjusted.  If the top-bit of this 24-bit value is set, then the 16-bit value immediately following the offset is used as a block index number, and the remaining 23-bits of the offset value are used as an offset within that block.  When the "advanced" offset mode bit has been set then all offsets associated with this command must be sent as advanced offsets.
 
-The "buffer-fetched value" mode allows for the operand value to be fetched from a buffer.  The operand sent as part of the command in this case is a pair of 16-bit values giving the buffer ID and offset to indicate where the actual operand value should be fetched from.  An operand buffer ID of -1 (65535) will be interpretted as meaning "this buffer", and thus can only be used inside a buffered command sequence.  If the advanced offset mode is used, then the operand value is an advanced offset value.
+The "buffer-fetched value" mode allows for the operand value to be fetched from a buffer.  The operand sent as part of the command in this case is a pair of 16-bit values giving the buffer ID and offset to indicate where the actual operand value should be fetched from.  An operand buffer ID of -1 (65535) will be interpreted as meaning "this buffer", and thus can only be used inside a buffered command sequence.  If the advanced offset mode is used, then the operand value is an advanced offset value.
 
 The "multiple target values" mode allows for multiple bytes to be adjusted at once.  When this mode is used, the `count` value must be provided to indicate how many bytes should be adjusted.  Unless the "multiple operand values" mode is also used, the operand value is used for all bytes adjusted.
 
@@ -262,7 +262,7 @@ VDU 23, 0, &A0, 3; 5, &E5, 12; 7; 4; 42;
 
 As we are working on a little-endian system, integers longer than one byte are sent with their least significant byte first.  This means that the add with carry operation can be used to add together integers of any size, so long as they are the same size.  To do this, both the "multiple target values" and "multiple operand values" modes must be used.
 
-The following commands will add together a 16-bit, 24-bit, 32-bit, and 40-bit integers, all targetting the value stored in buffer 3 starting at offset 12, and all using the operand value of 42:
+The following commands will add together a 16-bit, 24-bit, 32-bit, and 40-bit integers, all targeting the value stored in buffer 3 starting at offset 12, and all using the operand value of 42:
 ```
 VDU 23, 0, &A0, 3; 5, &C4, 12; 2; 42;  : REM 2 bytes; a 16-bit integer
 VDU 23, 0, &A0, 3; 5, &C4, 12; 3; 42; 0  : REM 3 bytes; a 24-bit integer
@@ -278,7 +278,7 @@ Take note of how the operand value is padded out with zeros to match the size of
 
 This command will conditionally call a buffer if the condition operation passes.  This command works in a similar manner to the "Adjust buffer contents" command.
 
-With this command a buffer ID of 65535 (-1) is always interpretted as "current buffer", and so can only be used within a buffered command sequence.  If used outside of a buffered command sequence then this command will do nothing.
+With this command a buffer ID of 65535 (-1) is always interpreted as "current buffer", and so can only be used within a buffered command sequence.  If used outside of a buffered command sequence then this command will do nothing.
 
 The basic set of condition operations are as follows:
 
@@ -426,7 +426,7 @@ If there is insufficient memory available on the VDP to complete this command th
 
 `VDU 23, 0, &A0, bufferId; 16, blockSize; [targetBufferId1;] [targetBufferId2;] ... 65535;`
 
-Splits a buffer into multiple blocks, as per command 15, but then spreads the resultant blocks across the target buffers.  The target buffers are specified as a list of buffer IDs, terminated by a buffer ID of -1 (65535).  
+Splits a buffer into multiple blocks, as per command 15, but then spreads the resultant blocks across the target buffers.  The target buffers are specified as a list of buffer IDs, terminated by a buffer ID of -1 (65535).
 
 The blocks are spread across the target buffers in the order they are specified, and the spread will loop around the buffers until all the blocks have been distributed.  The target buffers will be cleared out before the blocks are spread across them.
 
@@ -560,7 +560,7 @@ This command is similar to performing a "copy" operation followed by a "consolid
 
 This command will replace the target buffer with a new buffer that contains a single block that is the result of consolidating the blocks from the source buffers.  If the target buffer already contains a single block of the same size as the source buffers then it will re-use the memory, and so will be faster than performing a separate "copy by reference" and "consolidate" operation.
 
-It is useful for contructing a single buffer from multiple sources, such as for constructing a bitmap from multiple constituent parts.
+It is useful for constructing a single buffer from multiple sources, such as for constructing a bitmap from multiple constituent parts.
 
 ## Command 32: Create or manipulate a 2D affine transformation matrix
 
@@ -604,9 +604,9 @@ Every operation that requires arguments to be provided must then send a byte to 
 | 6 | When set, data is provided in fixed-point format, otherwise it is IEEE-754 floating point |
 | 7 | When set, data is presented as 16-bit values, otherwise they are 32-bit values |
 
-The fixed-point format supported by this command essentially means that values sent will be interpreted as a binary number with a "binary point".  The binary point starts out to the right of the right-most bit of the value (the least significant bit), meaning that when a shift value of zero is used the number being sent is an integer.  A shift of 1 will move the binary point one place to the left, effectively dividing the number by 2.  A shift of 2 will divide the number sent by 4, and so on.  
+The fixed-point format supported by this command essentially means that values sent will be interpreted as a binary number with a "binary point".  The binary point starts out to the right of the right-most bit of the value (the least significant bit), meaning that when a shift value of zero is used the number being sent is an integer.  A shift of 1 will move the binary point one place to the left, effectively dividing the number by 2.  A shift of 2 will divide the number sent by 4, and so on.
 
-The shift value is a 5-bit value, and its use varies depending on whether a 16-bit or a 32-bit value is being sent (i.e. if bit 7 has been set).  When a 32-bit value is sent (bit 7 is clear), the shift is interpretted as a 5-bit unsigned integer, i.e. it has the range of 0-31.  For 16-bit values, the 5-bit shift is a signed integer, giving a range of -16 to +15.  This allows for a negative shift to be applied to 16-bit values, meaning the number sent will be multiplied by 2 when a shift of -1 is given, by 4 for a shift of -2, and so on.
+The shift value is a 5-bit value, and its use varies depending on whether a 16-bit or a 32-bit value is being sent (i.e. if bit 7 has been set).  When a 32-bit value is sent (bit 7 is clear), the shift is interpreted as a 5-bit unsigned integer, i.e. it has the range of 0-31.  For 16-bit values, the 5-bit shift is a signed integer, giving a range of -16 to +15.  This allows for a negative shift to be applied to 16-bit values, meaning the number sent will be multiplied by 2 when a shift of -1 is given, by 4 for a shift of -2, and so on.
 
 As can be seen, the API also supports sending IEEE-754 floating point values.  These can be sent either as single-precision values (using 32-bits), or as half-precision values (in 16-bits).  The "shift" bits in the format byte will be ignored when sending floating-point values.  A format value of `0` therefore indicates that values will be sent as 32-bit single-precision IEEE-754 floating point values, and a format value of `&80` indicates values will be sent as 16-bit half-precision IEEE-754 values.
 
@@ -622,7 +622,7 @@ Similar to the Adjust command, it is possible to perform some advanced operation
 | &20 | Fetch values from a buffer (and offset), rather than the command stream |
 | &40 | Separate arguments will have individual format bytes |
 
-The most important of these is the "fetch values from a buffer" bit.  When this bit is set, a format byte is still read from the VDU command stream, but then the next two bytes in the stream are interpreted as a buffer ID, which should then be followed by an offset (2 further bytes, unless the "use advanced offsets" bit is set).  The value to be used in the operation will then be fetched from the buffer at the given offset, and interpretted using the format described in the format byte.  Using this allows for transform matrices to be built up over time in multiple buffers, and then combined into a single buffer.  This can be useful for building up complex transformations in a modular way.
+The most important of these is the "fetch values from a buffer" bit.  When this bit is set, a format byte is still read from the VDU command stream, but then the next two bytes in the stream are interpreted as a buffer ID, which should then be followed by an offset (2 further bytes, unless the "use advanced offsets" bit is set).  The value to be used in the operation will then be fetched from the buffer at the given offset, and interpreted using the format described in the format byte.  Using this allows for transform matrices to be built up over time in multiple buffers, and then combined into a single buffer.  This can be useful for building up complex transformations in a modular way.
 
 When this flag is set, all arguments are fetched from the given buffer, at the given offset.  If the operation requires multiple bytes they will be read consecutively from the buffer.  The format byte is still used to interpret the values fetched from the buffer.
 
@@ -652,7 +652,7 @@ The compression algorithm supported by this command and the corresponding "compr
 
 `VDU 23, 0, &A0, bufferId; 72, options, sourceBufferId; [width;] <mappingDataBufferId; | mapping-data...>`
 
-This command will expend a bitmap stored in the source buffer indicated by `sourceBufferId` that uses an arbitrary number of bits per pixel into a new buffer (indicated by `bufferId`) that uses 8-bits per pixel.  
+This command will expend a bitmap stored in the source buffer indicated by `sourceBufferId` that uses an arbitrary number of bits per pixel into a new buffer (indicated by `bufferId`) that uses 8-bits per pixel.
 
 The primary intent of this command is to allow the VDP to support other formats of bitmap than the natively supported formats.  The bitmap should be mapped to valid RGBA2222 colour values, allowing the destination buffer to then be set as a bitmap in RGBA2222 format.  It should be noted that the destination buffer is not automatically marked as being a bitmap.
 
@@ -723,7 +723,7 @@ Whilst this example illustrates loading a sample, it is easily adaptable to load
 
 This example will print out "Hello " 20 times.
 
-This is admitedly a contrived example, as there is an obvious way to achieve what this code does in plain BASIC, but it is intended to illustrate the API.  The technique used here can be fairly easily adapted to more complex scenarios.
+This is admittedly a contrived example, as there is an obvious way to achieve what this code does in plain BASIC, but it is intended to illustrate the API.  The technique used here can be fairly easily adapted to more complex scenarios.
 
 This example uses three buffers.  The first buffer is used to print out a string.  The second buffer is used to store a value that will be used to control how many times the string printing buffer is called.  The third buffer is used to call the string printing buffer the required number of times, and is gradually built up.
 
@@ -754,7 +754,7 @@ This example uses three buffers.  The first buffer is used to print out a string
 
 It should be noted that after this code has been run the iteration counter in buffer ID 2 will have been reduced to zero.  Calling buffer 3 again at that point will result in the counter looping around to 255 on its first decrement, and then counting down from there, so you will see the loop run 256 times.  To avoid this, the iteration counter in buffer 2 should be reset to the desired value before calling buffer 3 again.
 
-Another thing to note is that if there were any additional commands added to buffer 3 beyond the final conditional call then it is likely that the VDP would crash, which is obviously not ideal.  This would happen because the call stack depth (i.e. number of "calls within a call") will have become too deep, and the command interpretter inside the VDP will have run out of memory.  This code works as-is because the conditional call is the last command in buffer 3 the VDP uses a method called "tail call optimisation" to avoid having to return to the caller.  The call is automatically turned into a "jump".  This is a technique that is used in many programming languages, and is a useful technique to be aware of.
+Another thing to note is that if there were any additional commands added to buffer 3 beyond the final conditional call then it is likely that the VDP would crash, which is obviously not ideal.  This would happen because the call stack depth (i.e. number of "calls within a call") will have become too deep, and the command interpreter inside the VDP will have run out of memory.  This code works as-is because the conditional call is the last command in buffer 3 the VDP uses a method called "tail call optimisation" to avoid having to return to the caller.  The call is automatically turned into a "jump".  This is a technique that is used in many programming languages, and is a useful technique to be aware of.
 
 A safer way to write this code would be to use a conditional jump (command 8) rather than a conditional call.  This would avoid the call stack depth issue, and allow additional commands to be placed in buffer 3 after that jump.
 

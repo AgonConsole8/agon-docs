@@ -14,7 +14,7 @@ There are two important concepts to understand when working with contexts, speci
 
 ### Context Stacks
 
-At any time you can choose to save the current graphics sytem state (context) to the context stack, or restore the last saved context from the stack.
+At any time you can choose to save the current graphics system state (context) to the context stack, or restore the last saved context from the stack.
 
 This allows for a simple way to save the current graphics system state, make temporary changes, and then step back to that previous state.
 

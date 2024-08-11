@@ -33,7 +33,7 @@ This command is used to mark a buffer as containing font data.  The `bufferId` m
 
 The `flags` parameter is reserved for future use, and should be set to 0.  In the future it will be used for indicating variable width fonts, and other font properties.
 
-Font data is assumed to be a contiguous block of data, one character at a time, with a full 256 character definitions, from character 0 to 255.  The buffer passed to this command should contain a single block of data of an appropriate size for the font.  If the data has been uploaded in mutliple parts, it should be concatenated into a single block before calling this command using the appropriate commands in the bufferered commands API.
+Font data is assumed to be a contiguous block of data, one character at a time, with a full 256 character definitions, from character 0 to 255.  The buffer passed to this command should contain a single block of data of an appropriate size for the font.  If the data has been uploaded in multiple parts, it should be concatenated into a single block before calling this command using the appropriate commands in the buffered commands API.
 
 Fonts are monochrome, and the data is assumed to be one character at a time.  Each character is stored in a byte-aligned format, where each row of a character is stored in a number of bytes equal to `(width + 7) / 8`, with their pixels organised most significant bit first, with as many rows as indicated by the `height`.  "Most significant bit first" means that the leftmost pixel of the character is stored in the most significant bit of the first byte, so a font that is 6 pixels wide would be stored in bits 7-2, with bits 1 and 0 ignored when rendering the font.
 
