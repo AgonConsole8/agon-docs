@@ -460,7 +460,7 @@ The `stepLength` parameter is a 16-bit number giving the length of each step in 
 
 Each phase is defined by two parameters.  Firstly there is an adjustment value, given as a 16-bit number.  This is the amount that the frequency will be adjusted by for each step in the phase.  Secondly there is a number of steps for the phase, given as a 16-bit number.
 
-(In comparison, the BBC Micro's `ENVELOPE` command has a fixed three phase design, all time values were given in centi seconds, and would automatically repeat unless the top bit of the step length value was set.  The pitch envelope could not be applied cumulatively.  Two phase envelopes were achieved by setting the number of steps in the second phase to zero.)
+(In comparison, the BBC Micro's `ENVELOPE` command has a fixed three phase design, all time values were given in centiseconds, and would automatically repeat unless the top bit of the step length value was set.  The pitch envelope could not be applied cumulatively.  Two phase envelopes were achieved by setting the number of steps in the second phase to zero.)
 
 The following example sets a stepped frequency envelope on channel 1:
 
