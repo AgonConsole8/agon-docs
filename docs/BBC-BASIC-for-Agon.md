@@ -111,8 +111,6 @@ Change the the current text output colour
 - If c is between 0 and 63, the foreground text colour will be set
 - If c is between 128 and 191, the background text colour will be set
 
-The following two commands are only applicable to palette modes with less than 64 colours.
-
 Syntax: `COLOUR l,p`
 
 Set the logical colour l to the physical colour p
