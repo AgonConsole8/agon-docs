@@ -889,7 +889,7 @@ The following system variables are available in [mos_api.inc](#usage-from-z80-as
 ; System variable indexes for api_sysvars
 ; Index into _sysvars in globals.asm
 ;
-sysvar_time:			EQU	00h	; 4: Clock timer in centi seconds (incremented by 2 every VBLANK)
+sysvar_time:			EQU	00h	; 4: Clock timer in centiseconds (incremented by 2 every VBLANK)
 sysvar_vpd_pflags:		EQU	04h	; 1: Flags to indicate completion of VDP commands
 sysvar_keyascii:		EQU	05h	; 1: ASCII keycode, or 0 if no key is pressed
 sysvar_keymods:			EQU	06h	; 1: Keycode modifiers
