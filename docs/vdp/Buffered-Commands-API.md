@@ -776,6 +776,17 @@ The various different values that pixels will be mapped to should immediately fo
 When a buffer is used for mapping data, that buffer must exist, and must contain a single block of at least the number of values required for the given number of bits per pixel.
 
 
+## Command 128: Debug info command
+
+`VDU 23, 0, &A0, bufferId; 128`
+
+This command is a debugging command that will print out info on a buffer to the USB serial console.  This is useful for debugging purposes, and can be used to check the contents of a buffer after a series of operations have been performed on it.
+
+The info printed to the console will tell you how many blocks/streams are stored against the `bufferId`.  If the buffer contains a transform matrix, then the matrix will be printed out in a human-readable format.  For other buffers the whole of the first block/stream will be output to the console in hexadecimal format.  NB the whole block/stream will be output, so be aware that if the buffer is large then a lot of data will be sent to the console.
+
+Before Console8 VDP 2.10.0 this command would only work if you were using a VDP compiled with the `DEBUG` flag set.  As of Console8 VDP 2.10.0 this command will now work without the flag being set.
+
+
 ## Examples
 
 What follows are some examples of how the VDP Buffered Commands API can be used to perform various tasks.
