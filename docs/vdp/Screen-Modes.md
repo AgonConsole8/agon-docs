@@ -86,6 +86,10 @@ Modes over 128 are double-buffered
 |   16 |  800 |  600 |    4 |    60hz |
 |   17 |  800 |  600 |    2 |    60hz |
 |   18 | 1024 |  768 |    2 |    60hz |
+| § 20 |  512 |  384 |   64 |    60hz |
+| § 21 |  512 |  384 |   16 |    60hz |
+| § 22 |  512 |  384 |    4 |    60hz |
+| § 23 |  512 |  384 |    2 |    60hz |
 |  129 |  640 |  480 |    4 |    60hz |
 |  130 |  640 |  480 |    2 |    60hz |
 |  132 |  640 |  240 |   16 |    60hz |
@@ -99,12 +103,17 @@ Modes over 128 are double-buffered
 |  141 |  320 |  200 |   16 |    70hz |
 |  142 |  320 |  200 |    4 |    70hz |
 |  143 |  320 |  200 |    2 |    70hz |
+| § 149 |  512 |  384 |   16 |    60hz |
+| § 150 |  512 |  384 |    4 |    60hz |
+| § 151 |  512 |  384 |    2 |    60hz |
 
 \* Mode 1 is the "default" mode, and is the mode that the system will use on startup.  It is also the mode that the system will fall back to use if it was not possible to change to the requested mode.
 
 \** Mode 7 is the "Teletext" mode, and essentially works in a very similar manner to the BBC Micro's Teletext mode, which was also mode 7.
 
 \*** As of Console8 VDP 2.8.0, mode 0 is now the mode that the VDP will use on startup.  The fallback mode when a requested mode is not available remains mode 1.
+
+§ Support for screen modes 20-23 and 149-151 was added in Console8 VDP 2.10.0
 
 ### Legacy modes (prior to 1.04)
 
