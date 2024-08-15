@@ -218,6 +218,8 @@ Where `char_no` is the character number to re-program, and `r1` to `r8` are the 
 
 Please note that as of Console8 VDP 2.8.0 this form of the command will only work if the system font is the currently selected font.  For more information please see the [Font API](Font-API.md) documentation.
 
+Additionally, rather than re-programming the display character, there is also a function available to [remap the character to a bitmap](System-Commands.md#vdu-23-0-92-char-bitmapid-map-character-char-to-display-bitmapid-), allowing these font character replacements to be multi-coloured.
+
 Note: There is a related VDU 23 System Command which can [program the entire character range 0-255](System-Commands.md#vdu-23-0-90-n-b1-b2-b3-b4-b5-b6-b7-b8-redefine-character-n-0-255-with-8-bytes-of-data-), and a reset command is also available to [reset the system font](System-Commands.md#vdu-23-0-91-reset-all-characters-to-original-definition-) back to default.
 
 The second purpose of this command is to send system commands to the VDP.
