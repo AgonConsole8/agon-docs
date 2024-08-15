@@ -36,7 +36,7 @@ The `bin` folder can be used to store programs that can be run from MOS.  These 
 
 If you have attempted to use a command that was not built into MOS, and was not found in the `mos` folder, MOS will then look in the `bin` folder for a file with the same name as the command with a `.bin` extension. If it finds one, it will load and run that file.
 
-NB there is currently no way to control the memory address that a program in the `bin` folder will be loaded to, so if you have a program that needs to be loaded at a specific address, you will need to use the `LOAD` command to load it manually.  Additionally there is no way to control the manner in which MOS searches for commands, so if you have a program in the `bin` folder that you want to run, you will need to ensure that there is no built-in command or moslet with the same name.  These limitations may be changed in the future.
+NB there is currently no way to control the memory address that a program in the `bin` folder will be loaded to, so if you have a program that needs to be loaded at a specific address, you will need to use the `LOAD` command to load it manually.  Additionally there is no way to control the manner in which MOS searches for commands, so if you have a program in the `bin` folder that you want to run, you will need to ensure that there is no built-in command or "moslet" with the same name.  These limitations may be changed in the future.
 
 ### The `autoexec.txt` file
 
@@ -57,9 +57,9 @@ As of Console8 MOS 2.2.0 the autoexec.txt file will run on every boot.  Previous
 
 ## Soft Boot
 
-Presssing `CTRL+ALT+DEL` will reboot MOS on the eZ80. (`CTRL+SHIFT+ESC` for MOS 1.02 or earlier)
+Pressing `CTRL+ALT+DEL` will reboot MOS on the eZ80. (`CTRL+SHIFT+ESC` for MOS 1.02 or earlier)
 
-NB:  This assumes that MOS is still talking to the VDP, as it is the VDP that is responsible for detecting the keypresses.  Sometimes a soft reboot key combination will therefore not work, and you may need to instead press the reset button on your Agon.
+NB:  This assumes that MOS is still talking to the VDP, as it is the VDP that is responsible for detecting keypresses.  Sometimes a soft reboot key combination will therefore not work, and you may need to instead press the reset button on your Agon.
 
 ## The MOS Command Line Interface
 
@@ -103,7 +103,7 @@ MOS commands are case-insensitive, and can be abbreviated with a dot `.`.  For e
 
 To aid users coming from other systems, several commands have aliases, for example `DELETE` and `ERASE` are equivalent.  The aliases are listed in the command descriptions below.
 
-Commands are described below.  Commands parameters are described with angle brackers `<param>` and optional parameters are indicated with square brackets `[<param>]` or `[-flag]`, and alternative parameters are shown either side of a `|` character.
+Commands are described below.  Commands parameters are described with angle brackets `<param>` and optional parameters are indicated with square brackets `[<param>]` or `[-flag]`, and alternative parameters are shown either side of a `|` character.
 
 Any command that requires a memory address will expect a 24-bit address value.
 
@@ -173,7 +173,7 @@ Outputs some credits and version numbers for third-party libraries used in the A
 
 Syntax: `*DELETE <filename>` (Aliases include `ERASE`)
 
-Delete a file or folder (must be empty). 
+Delete a file or folder (must be empty).
 
 ### `DIR`
 
@@ -329,7 +329,7 @@ Sets the current system keyboard layout.
 - 13: Danish *
 - 14: Swedish *
 - 15: Portuguese *
-- 16: Brazilian Portugese *
+- 16: Brazilian Portuguese *
 - 17: Dvorak *
 
 \* These layouts are only supported from Console8 MOS 2.2.0 onwards.  The exact keyboard layouts supported will depend on the version of the VDP firmware you have installed.  Prior to Console8 MOS 2.2.0 keyboard values of 9 or above would be ignored.  From Console8 MOS 2.2.0 onwards any keyboard value can be specified - if the keyboard layout is not supported by the VDP firmware then it will be ignored.
@@ -368,7 +368,7 @@ This command is similar to the `VDU` command in BBC BASIC, but instead of separa
 
 Prior to Console8 MOS 2.2.0, the `VDU` command would only accept 8-bit numbers as arguments.  Any values provided greater than 255 would be ignored.
 
-From Console8 MOS 2.2.0 onwards this command will now also support 16-bit numbers as arguments, and several different ways to indicate hexidecimal numbers.  The BBC BASIC standard of suffixing a number with a semicolon character `;` to indicate a 16-bit number is supported.  As well as the `&` prefix for hexidecimal numbers, you can also use `0x` as a prefix, or `h` as a suffix.  Hexidecimal numbers provided greater than 255 will always be treated as 16-bit numbers.
+From Console8 MOS 2.2.0 onwards this command will now also support 16-bit numbers as arguments, and several different ways to indicate hexadecimal numbers.  The BBC BASIC standard of suffixing a number with a semicolon character `;` to indicate a 16-bit number is supported.  As well as the `&` prefix for hexadecimal numbers, you can also use `0x` as a prefix, or `h` as a suffix.  Hexadecimal numbers provided greater than 255 will always be treated as 16-bit numbers.
 
 
 ## Memory map
@@ -377,6 +377,6 @@ Addresses are 24-bit, unless otherwise specified
 
 - `&000000 - &01FFFF`: MOS (Flash ROM)
 - `&040000 - &0BDFFF`: User RAM
-- `&0B0000 - &0B7FFF`: Storage for loading MOS star command executables off SD card 
+- `&0B0000 - &0B7FFF`: Storage for loading MOS star command executables off SD card
 - `&0BC000 - 0BFFFFF`: Global heap and stack
 

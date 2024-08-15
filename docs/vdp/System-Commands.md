@@ -92,7 +92,7 @@ This command will return the current text cursor position to MOS.  Once the curs
 
 This command will return the ASCII code of the character at the given character position to MOS.  There is a corresponding command `VDU 23, 0, &93, x; y;` that works in the graphics coordinate system.
 
-This command works by comparing pixels on the screen at the given position to the currently selected font, using the currently selected text colour.  This means that it may not always be accurate, or able to succeed.  Redefining system font characters after they have been drawn, changing the font, modifing the definitions of characters within the selected font, changing the text colour, may cause this command to fail.
+This command works by comparing pixels on the screen at the given position to the currently selected font, using the currently selected text colour.  This means that it may not always be accurate, or able to succeed.  Redefining system font characters after they have been drawn, changing the font, modifying the definitions of characters within the selected font, changing the text colour, may cause this command to fail.
 
 This command will not recognise characters that have been mapped to bitmaps using `VDU 23, 0, &92, char, bitmapId;`.
 
@@ -256,7 +256,7 @@ Normal cursor scrolling and wrapping behaviour will be obeyed, depending on the 
 
 This command works identically to `VDU 23, n, b1, b2, b3, b4, b5, b6, b7, b8`, but allows characters 0-31 to also be redefined.
 
-NB from Console8 VDP 2.8.0 this command will only funciton if the currently selected font is the system font.
+NB from Console8 VDP 2.8.0 this command will only function if the currently selected font is the system font.
 
 ## `VDU 23, 0, &91`: Reset all system font characters to original definition §
 
@@ -278,7 +278,7 @@ Bitmaps mapped to characters in this way are plotted using the current foregroun
 
 This command will return the ASCII code of the character at the given graphics position to MOS.  This command is similar to `VDU 23, 0, &83, x; y;`, but uses coordinates from the currently selected graphics coordinate system.  The position is for the top left of the character.
 
-This command works by comparing pixels on the screen at the given position to the currently selected font, using the currently selected text colour.  This means that it may not always be accurate, or able to succeed.  Redefining system font characters after they have been drawn, changing the font, modifing the definitions of characters within the selected font, changing the text colour, may cause this command to fail.
+This command works by comparing pixels on the screen at the given position to the currently selected font, using the currently selected text colour.  This means that it may not always be accurate, or able to succeed.  Redefining system font characters after they have been drawn, changing the font, modifying the definitions of characters within the selected font, changing the text colour, may cause this command to fail.
 
 This command will not recognise characters that have been mapped to bitmaps using `VDU 23, 0, &92, char, bitmapId;`.
 
@@ -378,7 +378,7 @@ This command is used by the agon-flash tool to update the VDP firmware.  It shou
 
 Turns logical screen scaling on and off, where 1=on and 0=off.
 
-When logical scaling is turned off, the graphics system will no longer use the 1280x1024 logical coordinate system and instead use pixel coordinates.  The screen origin point at 0,0 will change to be the top left of the screen, and the Y axis will go down the screen instead of up.  
+When logical scaling is turned off, the graphics system will no longer use the 1280x1024 logical coordinate system and instead use pixel coordinates.  The screen origin point at 0,0 will change to be the top left of the screen, and the Y axis will go down the screen instead of up.
 
 For more information, see the [Screen modes documentation](Screen-Modes.md).
 
@@ -451,7 +451,7 @@ This mode is not intended for general use.  If you are looking for a way to outp
 
 ## `VDU 23, 0, &FF`: Switch to or resume "terminal mode"
 
-This command enables "terminal mode", which changges the behaviour of the VDP to be more like a traditional terminal.  This is useful for running CP/M in place of MOS on the eZ80, or other software that expects to be running on a terminal.
+This command enables "terminal mode", which changes the behaviour of the VDP to be more like a traditional terminal.  This is useful for running CP/M in place of MOS on the eZ80, or other software that expects to be running on a terminal.
 
 When terminal mode is enabled, VDU commands will no longer be recognised and processed, keyboard entry in BBC BASIC/MOS is no longer supported, and the VDP protocol is essentially suspended.  Instead the VDP acts as a dumb terminal, and will send all keyboard input to the eZ80's UART0.  The eZ80 can then process this input as it sees fit.
 

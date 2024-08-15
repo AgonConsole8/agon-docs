@@ -1,6 +1,6 @@
 ## How to upgrade from Quark 1.02 to 1.03 using the Agon-Flash utility
 
-NB this document is very outdated and needs to be rewritten.  If you have found your way here, please be aware that the instructions below are no longer correct, or the best way to udpate your Agon machine.
+NB this document is very outdated and needs to be rewritten.  If you have found your way here, please be aware that the instructions below are no longer correct, or the best way to update your Agon machine.
 
 Instructions kindly collated by Tim Delmare
 
@@ -32,7 +32,7 @@ There are reported compatibility issues with the Arduino IDE / ESPTools running 
 - [MOS 1.03 binary](https://github.com/breakintoprogram/agon-mos/releases/download/v1.03/MOS.bin)
 - [VDP 1.03 source code](https://github.com/breakintoprogram/agon-vdp/archive/refs/tags/v1.03.zip)
 - [BBC BASIC 1.04 binary](https://github.com/breakintoprogram/agon-bbc-basic/releases/download/v1.04/bbcbasic.bin)
-- [Agon MOS Flash Upgrader](https://github.com/envenomator/agon-flash/releases/download/v1.2/flash.bin)
+- [Agon MOS Flash Updater](https://github.com/envenomator/agon-flash/releases/download/v1.2/flash.bin)
 
 #### Configure the Arduino IDE
 
@@ -40,7 +40,7 @@ If you have already configured the Arduino IDE for Agon then you can skip this s
 
 ### Update Steps
 
-If you do not have the Zilog cable then the order in which you do things is especially important. Update the MOS first. If you update the VDP first, you will not be able to update MOS using the Agon MOS Flash Upgrader due to changes in the MOS.
+If you do not have the Zilog cable then the order in which you do things is especially important. Update the MOS first. If you update the VDP first, you will not be able to update MOS using the Agon MOS Flash Updater due to changes in the MOS.
 
 #### 1. Update the MOS
 
