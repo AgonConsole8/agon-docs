@@ -182,6 +182,10 @@ Up to and including Console8 VDP 2.5.0 this command would have no effect when in
 
 From Console8 VDP 2.6.0 onwards, the command will now work in all screen modes, and will allow for the definition of custom colours.  Please note that when in a 64 colour screen mode there is no "palette" for the screen display per-se, so the command will not have any effect to the existing screen display.  It will only affect the colours used for subsequent graphics or text operations.
 
+It should be noted that from Console8 VDP 2.10.1 onwards, if you are in a screen mode with a palette (i.e. with less than 64 colours) if you redefine a palette entry to use a colour that is identical to an existing palette entry then any pixels drawn into the framebuffer of that colour will always be for the lowest numbered palette entry.  This is a limitation of the underlying graphics system the VDP uses which, whilst it maintains a palette for video signal output, only accepts commands to draw using "real" colours.  This could lead to some unexpected results in some limited circumstances, such as if your program is attempting to produce animations via palette cycling.  This can be worked around by ensuring that your palette contains unique entries when you are drawing to the screen, and then change the palette after drawing has been completed.  In reality most users are unlikely to encounter this issue, as they will work with a palette that does not contain duplicate entries, but it is worth being aware of.
+
+(This is a result of improvements in how the palette is handled.  Prior to VDP 2.10.0 the palette was not being properly changed when an entry was adjusted, which could result in the VDP using incorrect colours when drawing bitmaps.  This issue was fixed in VDP 2.10.0.  That this results in the above described behaviour is considered to be the least worst option.  This may be addressed in a future version of the VDP firmware.)
+
 This command is equivalent to the two ways the BASIC `COLOUR` keyword can be used to redefine the colour palette: `COLOUR l, p` or `COLOUR l, r, g, b`.
 
 ## `VDU 20`: Reset palette and text/graphics colours and drawing modes §§

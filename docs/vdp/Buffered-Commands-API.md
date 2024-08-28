@@ -671,7 +671,7 @@ Similar to commands 32 and 33, it is possible to perform some advanced operation
 | &20 | Fetch values from a buffer (and offset), rather than the command stream |
 
 
-## Command 40: Create a transformed a bitmap
+## Command 40: Create a transformed bitmap
 
 `VDU 23, 0, &A0, bufferId; 40, options, transformBufferId; sourceBitmapId; [width; height;]`
 
