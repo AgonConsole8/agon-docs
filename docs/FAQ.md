@@ -18,8 +18,10 @@ NB:
 - The original Agon Light requires a PS/2 keyboard, or a USB keyboard that supports the PS/2 protocol with a USB to PS/2 adaptor.
 - The Agon Light 2 requires a USB keyboard that supports the PS/2 protocol, or a PS/2 keyboard with a PS/2 to USB adaptor.
 
-## Does AGON support CP/M?
-Officially it is not designed to run CP/M out of the box. There are however third-party developers who are porting CP/M to the platform, and the official build will support this.
+## Does Agon support CP/M?
+Officially it is not designed to run CP/M out of the box. There are however third-party developers who have ported CP/M to the platform, and the official build supports this.
+
+There is also available a [CP/M compatibility layer](https://github.com/nihirash/zinc), allowing some CP/M software to run directly from the MOS command line.
 
 ## Is there a template available for the SD card, to get me started quickly?
 Check out the Popup [MOS repository](https://github.com/tomm/popup-mos); click the green 'Code' icon and select 'Download ZIP' from the dropdown menu. Unzip the file and copy over everything from the 'popup-os-main' folder to an empty SD card. The card should have folders like demos/docs/games/mos/utils in the root of the card
