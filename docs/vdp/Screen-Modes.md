@@ -22,7 +22,7 @@ There are two VDU commands that will affect the screen modes that are available,
 
 This command selects a screen mode, where the screen mode is a single byte value and must be a mode from the list below.
 
-Screen modes numbered above 128 are double-buffered, meaning that the screen is drawn to an off-screen buffer, and then the buffer is copied to the screen.  This prevents flickering when drawing to the screen.
+Screen modes numbered above 128 are double-buffered, meaning that the screen is drawn to an off-screen buffer, and then the buffer is copied to the screen.  This prevents flickering when drawing to the screen.  Double-buffered mode numbers are equivalent to a regular mode with 128 added.  Please note that owing to memory limitations not all screen modes can be double-buffered.
 
 As drawing operations, when in a double-buffered mode, are only performed in the off-screen buffer this means that the screen will not be updated until the active buffer is swapped.  This means, for instance, that if you enter a double-buffered screen mode in BASIC by using `MODE 129` then commands that you type will not be visible, as your input is being written to the off-screen buffer.  Commands will still be processed, but you will only see their effect when the buffer is swapped.  Buffers are swapped using `VDU 23, 0, &C3`
 
@@ -86,6 +86,11 @@ Modes over 128 are double-buffered
 |   16 |  800 |  600 |    4 |    60hz |
 |   17 |  800 |  600 |    2 |    60hz |
 |   18 | 1024 |  768 |    2 |    60hz |
+| § 19 | 1024 |  768 |    4 |    60hz |
+| § 20 |  512 |  384 |   64 |    60hz |
+| § 21 |  512 |  384 |   16 |    60hz |
+| § 22 |  512 |  384 |    4 |    60hz |
+| § 23 |  512 |  384 |    2 |    60hz |
 |  129 |  640 |  480 |    4 |    60hz |
 |  130 |  640 |  480 |    2 |    60hz |
 |  132 |  640 |  240 |   16 |    60hz |
@@ -99,12 +104,19 @@ Modes over 128 are double-buffered
 |  141 |  320 |  200 |   16 |    70hz |
 |  142 |  320 |  200 |    4 |    70hz |
 |  143 |  320 |  200 |    2 |    70hz |
+| § 145 |  800 |  600 |    2 |    60hz |
+| § 146 | 1024 |  768 |    2 |    60hz |
+| § 149 |  512 |  384 |   16 |    60hz |
+| § 150 |  512 |  384 |    4 |    60hz |
+| § 151 |  512 |  384 |    2 |    60hz |
 
 \* Mode 1 is the "default" mode, and is the mode that the system will use on startup.  It is also the mode that the system will fall back to use if it was not possible to change to the requested mode.
 
 \** Mode 7 is the "Teletext" mode, and essentially works in a very similar manner to the BBC Micro's Teletext mode, which was also mode 7.
 
 \*** As of Console8 VDP 2.8.0, mode 0 is now the mode that the VDP will use on startup.  The fallback mode when a requested mode is not available remains mode 1.
+
+§ Support for screen modes 19-23, 145-146 and 149-151 was added in Console8 VDP 2.10.0
 
 ### Legacy modes (prior to 1.04)
 

@@ -6,7 +6,7 @@ Please follow each step as closely as possible and make sure that each item on t
 ## Preparation
 0. Connect your Agon to a VGA monitor and PS/2 capable keyboard. You need to interact with it using the keyboard and monitor in the first update step
 1. If you haven't done so already, prepare a micro SD card by formatting it with the FAT32 format and place the contents of a distribution [1](https://agonmite.gluonspace.com/) or [2](https://github.com/tomm/popup-mos) on it. If you already had a working SD card with stuff on it, just continue using it; then there is no need to format it or anything
-2. Connect your Agon to a PC using a USB data cable. The type of USB cable may differ according to the Agon platform you're using: 
+2. Connect your Agon to a PC using a USB data cable. The type of USB cable may differ according to the Agon platform you're using:
 	- the Olimex AgonLight2 has a USB-C type connector
 	- the Agon Console8 has a USB-B type connector
 	- the Agon Origins edition has a USB-B type connector
@@ -19,7 +19,7 @@ Please follow each step as closely as possible and make sure that each item on t
 
 	![detail](images/jumpers.webp)
 
-5. If it doesn't exist yet, create a folder named 'mos' on the SD card 
+5. If it doesn't exist yet, create a folder named 'mos' on the SD card
 6. Download the file [flash.bin](https://github.com/envenomator/agon-flash/releases/download/v1.6/flash.bin) and place it <em>IN THE 'mos' FOLDER</em> of your SD card
 7. Download one of the following options and place 'MOS.bin' in <em>IN THE ROOT</em> of your SD card:
 	- If you'd like to upgrade to the latest and greatest Console8 release, please download [MOS.bin](https://github.com/AgonConsole8/agon-mos/releases/latest/download/MOS.bin)

@@ -9,7 +9,7 @@ Please note that this list is _far_ from exhaustive. If you have a project that 
 
 A batteries-included SDCard template for Agon Light / Agon Light 2 / Console8
 
-## Flash Upgrader
+## Flash Updater
 
 [https://github.com/envenomator/agon-flash](https://github.com/envenomator/agon-flash)
 
@@ -17,7 +17,7 @@ A utility to flash a MOS image to the eZ80F92 Flash without a ZDS USB cable, and
 
 ## Hex Loader
 
-[https://github.com/envenomator/agon-hexload](https://github.com/envenomator/agon-hexload
+[https://github.com/envenomator/agon-hexload](https://github.com/envenomator/agon-hexload)
 
 Playing microSD jockey during assemble/compile/transfer/test/debug cycles is no fun at all. This utility shortens this cycle significantly by removing the need to physically bring over new binaries to the Agon.
 

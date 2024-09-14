@@ -182,7 +182,7 @@ A simple example of how to send a sample to the VDP using this command is as fol
 140 SOUND 1, -10, 10, length / 50
 ```
 
-NB This example can be very slow as it sends the sample data byte-by-byte, taking just over 1s to send 2kb of data.  During this time your computer will be unresponsive, and it is not possible to output to screen any kind of progress as any such `PRINT` command will be interpretted as part of the sample data.  Unfortunately at present there is no way to send data in bulk to the VDP from BBC BASIC, or to read chunks of files into memory in one go.  For faster transfer of sample data you will need to write a program in assembly language and make use of file access APIs from MOS and the RST #18 vector to send larger chunks of data to the VDP.
+NB This example can be very slow as it sends the sample data byte-by-byte, taking just over 1s to send 2kb of data.  During this time your computer will be unresponsive, and it is not possible to output to screen any kind of progress as any such `PRINT` command will be interpreted as part of the sample data.  Unfortunately at present there is no way to send data in bulk to the VDP from BBC BASIC, or to read chunks of files into memory in one go.  For faster transfer of sample data you will need to write a program in assembly language and make use of file access APIs from MOS and the RST #18 vector to send larger chunks of data to the VDP.
 
 The [VDP Buffered Commands API](Buffered-Commands-API.md) provides an alternative example of sending sample data to the VDP which allows for progress to be reported whilst the sample is being uploaded.
 
@@ -382,7 +382,7 @@ As noted elsewhere, during this release phase the channel is considered to be fr
 
 `VDU 23, 0, &85, channel, 6, 2, attackCount, [level, duration;]*, sustainCount, [level, duration;]*, releaseCount, [level, duration;]*`
 
-\* this sub-phase data is optional, dependening on the preceding count value, and will repeat as necessary to match the count.
+\* this sub-phase data is optional, depending on the preceding count value, and will repeat as necessary to match the count.
 
 This command will set up a volume envelope that supports multiple sub-phases for each attack/decay, sustain, and release phases.  Conceptually this command is similar to the simpler type 1 ADSR envelope, but it allows each phase to be split into sub-phases for greater control.
 

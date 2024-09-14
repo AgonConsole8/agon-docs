@@ -11,7 +11,7 @@ Examples below are given in BBC BASIC.
 
 A common source of errors when sending commands to the VDP from BASIC via VDU statements is to forget to use a `;` after a number to indicate a 16-bit value should be sent.  If you see unexpected behaviour from your BASIC code that is the most likely source of the problem.
 
-All commands must specify a buffer ID as a 16-bit integer.  There are 65534 buffers available for general use, with one buffer ID (number 65535) reserved for special functions, and is generally interpretted as meaning "current buffer".  As with all other VDP commands, these 16-bit values are sent as two bytes in little-endian order, and are documented as per BBC BASIC syntax, such as `bufferId;`.
+All commands must specify a buffer ID as a 16-bit integer.  There are 65534 buffers available for general use, with one buffer ID (number 65535) reserved for special functions, and is generally interpreted as meaning "current buffer".  As with all other VDP commands, these 16-bit values are sent as two bytes in little-endian order, and are documented as per BBC BASIC syntax, such as `bufferId;`.
 
 On a restart all buffers will be empty.  One should not assume however that buffers are empty when your program is run, as other programs may have already used the buffers.  Indeed, it is a valid use case to have a "loader" program that is designed to be run before another program to prepare a set of buffers for that second program to use.  It is therefore advisable to clear out the buffers before use.
 
@@ -74,7 +74,7 @@ This command otherwise works identically to `VDU 23, 27, 6`.
 
 It should be noted that it is possible to modify the buffer that a bitmap is stored in using the "adjust buffer contents" and "reverse contents" commands (`5` and `24` respectively).  This can allow you to do things such as changing colours in a bitmap, or flipping an image horizontally or vertically.  This will even work on bitmaps that are being used inside sprites.
 
-Using commands targetting a buffer that create new blocks, such as "consolidate" or "split", will invalidate the bitmap and remove it from use.
+Using commands targeting a buffer that create new blocks, such as "consolidate" or "split", will invalidate the bitmap and remove it from use.
 
 ### Using buffers for sound samples
 
@@ -222,7 +222,7 @@ Fundamentally, this command adjusts values of a buffer at a given offset one byt
 
 Advanced offsets are sent as a 24-bit value in little-endian order, which can allow for buffers that are larger than 64kb to be adjusted.  If the top-bit of this 24-bit value is set, then the 16-bit value immediately following the offset is used as a block index number, and the remaining 23-bits of the offset value are used as an offset within that block.  When the "advanced" offset mode bit has been set then all offsets associated with this command must be sent as advanced offsets.
 
-The "buffer-fetched value" mode allows for the operand value to be fetched from a buffer.  The operand sent as part of the command in this case is a pair of 16-bit values giving the buffer ID and offset to indicate where the actual operand value should be fetched from.  An operand buffer ID of -1 (65535) will be interpretted as meaning "this buffer", and thus can only be used inside a buffered command sequence.  If the advanced offset mode is used, then the operand value is an advanced offset value.
+The "buffer-fetched value" mode allows for the operand value to be fetched from a buffer.  The operand sent as part of the command in this case is a pair of 16-bit values giving the buffer ID and offset to indicate where the actual operand value should be fetched from.  An operand buffer ID of -1 (65535) will be interpreted as meaning "this buffer", and thus can only be used inside a buffered command sequence.  If the advanced offset mode is used, then the operand value is an advanced offset value.
 
 The "multiple target values" mode allows for multiple bytes to be adjusted at once.  When this mode is used, the `count` value must be provided to indicate how many bytes should be adjusted.  Unless the "multiple operand values" mode is also used, the operand value is used for all bytes adjusted.
 
@@ -262,7 +262,7 @@ VDU 23, 0, &A0, 3; 5, &E5, 12; 7; 4; 42;
 
 As we are working on a little-endian system, integers longer than one byte are sent with their least significant byte first.  This means that the add with carry operation can be used to add together integers of any size, so long as they are the same size.  To do this, both the "multiple target values" and "multiple operand values" modes must be used.
 
-The following commands will add together a 16-bit, 24-bit, 32-bit, and 40-bit integers, all targetting the value stored in buffer 3 starting at offset 12, and all using the operand value of 42:
+The following commands will add together a 16-bit, 24-bit, 32-bit, and 40-bit integers, all targeting the value stored in buffer 3 starting at offset 12, and all using the operand value of 42:
 ```
 VDU 23, 0, &A0, 3; 5, &C4, 12; 2; 42;  : REM 2 bytes; a 16-bit integer
 VDU 23, 0, &A0, 3; 5, &C4, 12; 3; 42; 0  : REM 3 bytes; a 24-bit integer
@@ -278,7 +278,7 @@ Take note of how the operand value is padded out with zeros to match the size of
 
 This command will conditionally call a buffer if the condition operation passes.  This command works in a similar manner to the "Adjust buffer contents" command.
 
-With this command a buffer ID of 65535 (-1) is always interpretted as "current buffer", and so can only be used within a buffered command sequence.  If used outside of a buffered command sequence then this command will do nothing.
+With this command a buffer ID of 65535 (-1) is always interpreted as "current buffer", and so can only be used within a buffered command sequence.  If used outside of a buffered command sequence then this command will do nothing.
 
 The basic set of condition operations are as follows:
 
@@ -426,7 +426,7 @@ If there is insufficient memory available on the VDP to complete this command th
 
 `VDU 23, 0, &A0, bufferId; 16, blockSize; [targetBufferId1;] [targetBufferId2;] ... 65535;`
 
-Splits a buffer into multiple blocks, as per command 15, but then spreads the resultant blocks across the target buffers.  The target buffers are specified as a list of buffer IDs, terminated by a buffer ID of -1 (65535).  
+Splits a buffer into multiple blocks, as per command 15, but then spreads the resultant blocks across the target buffers.  The target buffers are specified as a list of buffer IDs, terminated by a buffer ID of -1 (65535).
 
 The blocks are spread across the target buffers in the order they are specified, and the spread will loop around the buffers until all the blocks have been distributed.  The target buffers will be cleared out before the blocks are spread across them.
 
@@ -560,21 +560,22 @@ This command is similar to performing a "copy" operation followed by a "consolid
 
 This command will replace the target buffer with a new buffer that contains a single block that is the result of consolidating the blocks from the source buffers.  If the target buffer already contains a single block of the same size as the source buffers then it will re-use the memory, and so will be faster than performing a separate "copy by reference" and "consolidate" operation.
 
-It is useful for contructing a single buffer from multiple sources, such as for constructing a bitmap from multiple constituent parts.
+It is useful for constructing a single buffer from multiple sources, such as for constructing a bitmap from multiple constituent parts.
 
-## Command 32: Create or manipulate a 2D affine transformation matrix
+## Commands 32 and 33: Create or manipulate a 2D or 3D affine transformation matrix
 
 `VDU 23, 0, &A0, bufferId; 32, operation, [<format>, <arguments...>]`
+`VDU 23, 0, &A0, bufferId; 33, operation, [<format>, <arguments...>]`
 
-As of the time of writing, this command is experimental and subject to change.  It features in the Console8 VDP 2.9.0 release, but to use this command you need to enable the feature by setting the affine transforms test flag.  This is done using the command `VDU 23, 0, &F8, 1; 1;`.  The exact operations and arguments supported by this command may change in the future.
+As of the time of writing, this command is experimental and subject to change.  It features in the Console8 VDP 2.9.0 release, but to use this command you need to enable the feature by setting the affine transforms test flag.  This is done using the command `VDU 23, 0, &F8, 1; 1;`.  The exact operations and arguments supported by this command may change in the future.  Command 33 was added in the Console8 VDP 2.10.0 release.
 
-The purpose of this command is to create or manipulate a 2D affine transformation matrix stored in a buffer.  Affine transforms are used to manipulate 2D points, and can be used to perform operations such as translation, rotation, scaling, and shearing.
+The purpose of these commands is to create or manipulate an affine transform matrix stored in a buffer.  Affine transforms are used to manipulate 2D or 3D points, and can be used to perform operations such as translation, rotation, scaling, and shearing.  Command 32 creates or manipulates a 2D affine transform matrix, and command 33 creates or manipulates a 3D affine transform matrix.  Affine transforms are used to manipulate 2D or 3D points, and can be used to perform operations such as translation, rotation, scaling, and shearing.
 
 To use this API you do not need to understand the mathematics of affine transformations.  The API is designed to be simple to use, and to allow for complex transformations to be built up from simple operations.
 
-Technically, a 2D affine transformation matrix is a 3x3 matrix that can be used to perform transformations on 2D points, and can be applied to drawing operations.  The matrix is stored in row-major order, and is stored as 32-bit single-precision IEEE-754 floating point values.  The matrix is stored in a single block in the buffer.  The drawing system may store a second block in the buffer to cache an inverse of the matrix, but you should not rely on that being there.
+Technically, a 2D affine transformation matrix is a 3x3 matrix that can be used to perform transformations on 2D points, and can be applied to drawing operations.  A 3D affine transform uses a 4x4 matrix to account for the extra dimension.  The matrix is stored in row-major order, and is stored as 32-bit single-precision IEEE-754 floating point values.  The matrix is stored in a single block in the buffer.  The drawing system may store a second block in the buffer to cache an inverse of the matrix, but you should not rely on that being there.
 
-A challenge with this API is that inherently neither the VDU command system nor the eZ80 CPU support floating-point arithmetic.  The API therefore supports sending numbers across in a variety of different formats to help facilitate this, and will convert the values sent to floating-point values as required.  The API supports sending fixed-point values, 16-bit and 32-bit integers, and 16-bit and 32-bit floating-point values.  Values must just be sent across as bytes in the VDU command stream in little-endian order, much like any other value byte must be send.
+A challenge with this API is that inherently neither the VDU command system nor the eZ80 CPU directly support floating-point arithmetic.  The API therefore supports sending numbers across in a variety of different formats to help facilitate this, and will convert the values sent to floating-point values as required.  The API supports sending fixed-point values, 16-bit and 32-bit integers, and 16-bit and 32-bit floating-point values.  Values must just be sent across as bytes in the VDU command stream in little-endian order, much like any other value byte must be send.
 
 Several different operations are supported by this command.  When an operation is performed, the result is stored back in the buffer, replacing any existing data that may have been there.  Most operations will combine their result with the existing matrix in the buffer.  This means that you can combine for instance rotation and scaling into one transform matrix.  The following operations are supported:
 
@@ -582,16 +583,16 @@ Several different operations are supported by this command.  When an operation i
 | --------- | -------------- | ----------- |
 | 0 | 0 | Set an "identity matrix" (effectively a "reset" operation) |
 | 1 | 0 | Invert the matrix (this will only succeed if the buffer already contains a valid transform matrix) |
-| 2 | 1 | Rotate anticlockwise by angle in degrees |
-| 3 | 1 | Rotate anticlockwise by angle in radians |
+| 2 | 1 (3 for 3D) | Rotate anticlockwise by angle in degrees |
+| 3 | 1 (3 for 3D) | Rotate anticlockwise by angle in radians |
 | 4 | 1 | Multiply all values in the first 8 matrix positions by an amount |
-| 5 | 2 | Scale X and Y by given scaling factors |
-| 6 | 2 | Translate X and Y by a number of pixels |
-| 7 | 2 | Translate X and Y by using currently selected graphics coordinate system units |
-| 8 | 2 | Shear X and Y by given amounts |
-| 9 | 2 | Skew X and Y by angle in degrees |
-| 10 | 2 | Skew X and Y by angle in radians |
-| 11 | 6 | Transform (combine with another transform matrix - requires 6 values to be sent - the final matrix row will be set to 0, 0, 1) |
+| 5 | 2 (3 for 3D) | Scale X and Y (and Z for 3D) by given scaling factors |
+| 6 | 2 (3 for 3D) | Translate X and Y (and Z for 3D) by a number of pixels |
+| 7 | 2 (3 for 3D) | Translate X and Y by using currently selected graphics coordinate system units, (Z transform in pixels for 3D version) |
+| 8 | 2 (3 for 3D) | Shear X and Y by given amounts |
+| 9 | 2 (3 for 3D) | Skew X and Y by angle in degrees |
+| 10 | 2 (3 for 3D) | Skew X and Y by angle in radians |
+| 11 | 6 (12 for 3D) | Transform (combine with another transform matrix - requires 6 values to be sent, or 12 values for 3D - the final matrix row will be set to `0, 0, 1`, or `0, 0, 0, 1` for a 3D matrix) |
 
 Repeatedly calling this command with different operations will build up a transform matrix in the buffer.  It should be noted that if the buffer is not cleared out before starting to build up a new matrix (or set to an identity matrix) then the results may not be as expected.
 
@@ -599,14 +600,14 @@ Every operation that requires arguments to be provided must then send a byte to 
 
 | Bit value | Description |
 | --- | ----------- |
-| 0-4 | Shift (used for fixed-point values, ignored for floating-point) |
-| 5 | Unused, must be zero (Reserved for future use) |
-| 6 | When set, data is provided in fixed-point format, otherwise it is IEEE-754 floating point |
-| 7 | When set, data is presented as 16-bit values, otherwise they are 32-bit values |
+| 0-&1F | Shift (used for fixed-point values, ignored for floating-point) |
+| &20 | Unused, must be zero (Reserved for future use) |
+| &40 | When set, data is provided in fixed-point format, otherwise it is IEEE-754 floating point |
+| &80 | When set, data is presented as 16-bit values, otherwise they are 32-bit values |
 
-The fixed-point format supported by this command essentially means that values sent will be interpreted as a binary number with a "binary point".  The binary point starts out to the right of the right-most bit of the value (the least significant bit), meaning that when a shift value of zero is used the number being sent is an integer.  A shift of 1 will move the binary point one place to the left, effectively dividing the number by 2.  A shift of 2 will divide the number sent by 4, and so on.  
+The fixed-point format supported by this command essentially means that values sent will be interpreted as a binary number with a "binary point".  The binary point starts out to the right of the right-most bit of the value (the least significant bit), meaning that when a shift value of zero is used the number being sent is an integer.  A shift of 1 will move the binary point one place to the left, effectively dividing the number by 2.  A shift of 2 will divide the number sent by 4, and so on.
 
-The shift value is a 5-bit value, and its use varies depending on whether a 16-bit or a 32-bit value is being sent (i.e. if bit 7 has been set).  When a 32-bit value is sent (bit 7 is clear), the shift is interpretted as a 5-bit unsigned integer, i.e. it has the range of 0-31.  For 16-bit values, the 5-bit shift is a signed integer, giving a range of -16 to +15.  This allows for a negative shift to be applied to 16-bit values, meaning the number sent will be multiplied by 2 when a shift of -1 is given, by 4 for a shift of -2, and so on.
+The shift value is a 5-bit value, and its use varies depending on whether a 16-bit or a 32-bit value is being sent (i.e. if bit 7 has been set).  When a 32-bit value is sent (bit 7 is clear), the shift is interpreted as a 5-bit unsigned integer, i.e. it has the range of 0-31.  For 16-bit values, the 5-bit shift is a signed integer, giving a range of -16 to +15.  This allows for a negative shift to be applied to 16-bit values, meaning the number sent will be multiplied by 2 when a shift of -1 is given, by 4 for a shift of -2, and so on.
 
 As can be seen, the API also supports sending IEEE-754 floating point values.  These can be sent either as single-precision values (using 32-bits), or as half-precision values (in 16-bits).  The "shift" bits in the format byte will be ignored when sending floating-point values.  A format value of `0` therefore indicates that values will be sent as 32-bit single-precision IEEE-754 floating point values, and a format value of `&80` indicates values will be sent as 16-bit half-precision IEEE-754 values.
 
@@ -622,11 +623,108 @@ Similar to the Adjust command, it is possible to perform some advanced operation
 | &20 | Fetch values from a buffer (and offset), rather than the command stream |
 | &40 | Separate arguments will have individual format bytes |
 
-The most important of these is the "fetch values from a buffer" bit.  When this bit is set, a format byte is still read from the VDU command stream, but then the next two bytes in the stream are interpreted as a buffer ID, which should then be followed by an offset (2 further bytes, unless the "use advanced offsets" bit is set).  The value to be used in the operation will then be fetched from the buffer at the given offset, and interpretted using the format described in the format byte.  Using this allows for transform matrices to be built up over time in multiple buffers, and then combined into a single buffer.  This can be useful for building up complex transformations in a modular way.
+The most important of these is the "fetch values from a buffer" bit.  When this bit is set, a format byte is still read from the VDU command stream, but then the next two bytes in the stream are interpreted as a buffer ID, which should then be followed by an offset (2 further bytes, unless the "use advanced offsets" bit is set).  The value to be used in the operation will then be fetched from the buffer at the given offset, and interpreted using the format described in the format byte.  Using this allows for transform matrices to be built up over time in multiple buffers, and then combined into a single buffer.  This can be useful for building up complex transformations in a modular way.
 
 When this flag is set, all arguments are fetched from the given buffer, at the given offset.  If the operation requires multiple bytes they will be read consecutively from the buffer.  The format byte is still used to interpret the values fetched from the buffer.
 
 When the "Separate arguments have individual format bits" flag is set then each argument will be prefaced with its own format byte, rather than a single byte being used to dictate the format of all arguments.  This can be useful when sending multiple arguments of different types.  This can be combined with the other flags.
+
+
+## Command 34: Create or combine a matrix of arbitrary dimensions
+
+`VDU 23, 0, &A0, bufferId; 23, operation, rows, columns, [<arguments>]`
+
+As of the time of writing, this command is experimental and subject to change.  It features in the Console8 VDP 2.10.0 release, but to use this command you need to enable the feature by setting the affine transforms test flag.  This is done using the command `VDU 23, 0, &F8, 1; 1;`.  The exact operations and arguments supported by this command may change in the future.
+
+This command expands on commands 32 and 33 to allow for the creation of a matrix of arbitrary dimensions.  The matrix is stored in a buffer, and is stored in row-major order.  The matrix is stored as 32-bit single-precision IEEE-754 floating point values.  The matrix is stored in a single block in the buffer.
+
+This command works in a similar manner to commands 32 and 33, and where applicable supports the same floating point data formats.  The operations supported by this command are as follows:
+
+| Operation | Arguments | Description |
+| --------- | -------------- | ----------- |
+| 0 | `format, <arguments...>` | Set the matrix to the values provided |
+| 1 | `sourceBufferId; row, column, format, <arguments...>` | Copy source matrix and set an individual value |
+| 2 | `format, <value>` | Create a matrix with all entries filled with the given value |
+| 3 | `format, <value>` | Create a matrix filled with zeros and set the diagonal to the given value |
+| 4 | `sourceBufferId1; sourceBufferId2;` | Add two matrices together |
+| 5 | `sourceBufferId1; sourceBufferId2;` | Subtract matrices (target = source1 - source2) |
+| 6 | `sourceBufferId1; sourceBufferId2;` | Multiply two matrices together |
+| 7 | `sourceBufferId; format, <value>` | Multiply matrix by a scalar value |
+| 8 | `sourceBufferId; row, column` | Extract a sub-matrix from a source matrix at given row and column. Target matrix will be filled from top-left, truncating or padding with zeros as necessary |
+| 9 | `sourceBufferId; row` | Create a new copy of the source matrix, inserting a row at given offset |
+| 10 | `sourceBufferId; column` | Create a new copy of the source matrix, inserting a column at given offset |
+| 11 | `sourceBufferId; row` | Create a new copy of the source matrix, removing a row at given offset |
+| 12 | `sourceBufferId; column` | Create a new copy of the source matrix, removing a column at given offset |
+
+The target matrix will always be created with the number of rows and columns given in the command.  If the source matrix is not the same size as the target matrix then the source matrix will be truncated or padded with zeros as necessary.
+
+When multiplying two different matrixes together, usually it is required that the second matrix will have the same number of rows as there are columns in the first matrix.  This command however will allow different matrixes of different dimensions to be multiplied together.  It does this by making the matrixes square and padding with zeros where necessary, where the square size is the maximum of the dimensions of the sources and target matrixes.
+
+
+### Advanced operations
+
+Similar to commands 32 and 33, it is possible to perform some advanced operations with this command by setting some of the upper bits of the operation byte.  The following bits are defined:
+
+| Bit value | Description |
+| --- | ----------- |
+| &10 | Use advanced offsets (when using buffer-fetched values) |
+| &20 | Fetch values from a buffer (and offset), rather than the command stream |
+
+
+## Command 40: Create a transformed bitmap
+
+`VDU 23, 0, &A0, bufferId; 40, options, transformBufferId; sourceBitmapId; [width; height;]`
+
+As of the time of writing, this command is experimental and subject to change.  It features in the Console8 VDP 2.10.0 release, but to use this command you need to enable the feature by setting the affine transforms test flag.  This is done using the command `VDU 23, 0, &F8, 1; 1;`.  The exact options and arguments supported by this command may change in the future.
+
+This command applies an affine transformation to a bitmap, creating a new RGBA2222 format bitmap.  It will replace the target buffer with the new bitmap, and creates a corresponding bitmap.
+
+The `options` parameter is an 8-bit value that can have bits set to modify the behaviour of the operation.  The following bits are defined, and can be combined together:
+
+| Bit value | Arguments | Description |
+| --- | --- | ----------- |
+| 1 |  | Target bitmap should be resized.  When _not_ set, target will be same dimensions as the original bitmap. |
+| 2 | `width; height;`| Target bitmap will be resized to explicitly given dimensions
+| 4 |  | Automatically translate target bitmap position.  When set the calculated transformed minimum x,y coordinates will be placed at the top left of the target |
+
+Usually the target bitmap will be the same size as the source bitmap, but it is possible to resize the target bitmap to a different size.  When no explicit size is given, but the "resize" bit has been set, then the target bitmap size will depend on the transformation being applied.  This could mean, for example, that applying a progressive series of rotations to a bitmap can result in several different sizes of target bitmap.
+
+
+## Command 41: Apply a transform matrix to data in a buffer
+
+`VDU 23, 0, &A0, bufferId; 41, options, format, transformBufferId; sourceBufferId; [<arguments>]`
+
+As of the time of writing, this command is experimental and subject to change.  It features in the Console8 VDP 2.10.0 release, but to use this command you need to enable the feature by setting the affine transforms test flag.  This is done using the command `VDU 23, 0, &F8, 1; 1;`.  The exact options and arguments supported by this command may change in the future.
+
+This command will copy the source buffer and transform sets of values held within it using the given format and transform matrix.  The transformed values will be stored in the target buffer, replacing any existing data that may have been there.  The options byte, and optional arguments (depending on which bits of the options byte are set), control how the transformation is applied.
+
+The `options` parameter is an 8-bit value that can have bits set to modify the behaviour of this command, including which arguments should be sent.  The following bits are defined, and can be combined together:
+
+| Bit value | Arguments | Description |
+| --- | --- | ----------- |
+| &01 | `size` | Explicit data set size (otherwise data size will be one less than the number of rows in the transform matrix) |
+| &02 | `offset;` | Has an offset into the buffer for where to find the first data set (NB this may be an "advanced offset" if that option is set) |
+| &04 | `stride;` | Has an explicit stride (in bytes) between value sets |
+| &08 | `limit;` | Has an explicit limit to the number of data items to be transformed |
+| &10 |  | "Advanced offsets" should be used |
+| &20 |  | Optional argument values should be fetched from buffers (and thus be a bufferId and offset in the command stream) |
+| &40 |  | Data transforms should be applied on a block-by-block basis on data in the source buffer |
+
+The `format` argument indicates the format of data in the source buffer, using the same format as for the affine transform commands.  This means that values to be transformed will be interpretted either as fixed-point or floating-point values in either 16 or 32 bits.  Using fixed-point format with a shift value of zero will interpret the values as integers (e.g. a format of `&C0` means source data is in 16-bit integers).  Data in the target buffer will be stored in the same format as the source buffer.
+
+This command works with sets of data.  Typically if you are using this command to transform 2D points the size of the data set will be two, to indicate that you're transforming two values, the X and Y coordinates.  These sets of data values must appear contiguously in the source buffer.  The `stride` dictates how far apart (in bytes) the start of each set of data lies in the source buffer.  The `limit` parameter can be used to limit the number of data sets that are transformed.
+
+As an example, this command can be used to transform sets of coordinates in a buffer that contains a series of PLOT commands.  A complete PLOT VDU command is a sequence of 6 bytes, where the first byte is `25` for PLOT, the second byte is the PLOT operation code, and then there are two 16-bit integer values for the X and Y coordinates.  The `offset` therefore would be set to `2`, and the `stride` would be set to `6`.  Our `format` needs to indicate we are using 16-bit fixed-point values with no shift, so that equates to `&C0`.  As we wish to set an explicit (start) offset and stride we need an `options` value of `6` (which is 2 + 4).  A command to use a 2D transform matrix stored in buffer `10` on a command sequence the data stored in buffer 20, writing the transformed data to buffer 30, would look like this:
+
+```
+VDU 23, 0, &A0, 30; 41, 6, &C0, 10; 20; 2; 6;
+```
+
+This example makes two significant assumptions.  The first, as mentioned above, is that the source buffer only contains a series of PLOT commands.  The second assumption is that we are using a 2D affine transform matrix created by command 32, which will have created a 3x3 matrix, and therefore an explicit `size` argument is not needed - it will be automatically derived as a data set size of 2, i.e. X and Y coordinates.
+
+Once this example command has been executed, buffer 30 would contain the same sequence of PLOT commands as buffer 20, but with the X and Y coordinates transformed by the matrix stored in buffer 10.  Buffer 30 could then be called, and a transformed version of the PLOT commands would be drawn on the screen.
+
+It should be noted that since it is only the coordinates that are transformed, the nature of the PLOT commands themselves will not be changed.  If the transform matrix was created with only "translate" or "scale" operations then the effect will work as expected for all PLOT commands (except for bitmap plots, which would not be drawn scaled as only the target coordinates woulld have changed), but if the transform included "rotate", "shear" or "skew" then results may differ.  PLOT commands that only draw lines, or fill triangles, will draw properly transformed versions of those shapes.  The effect on some other PLOT commands, such as those to fill a rectangle, or plot a circle/arc/sector will differ, as it is just the coordinates that are being transformed.  A rectangle may be drawn with a different size, but its sides will still be drawn aligned to the X and Y axis, and a circle will still be round.
 
 
 ## Command 64: Compress a buffer
@@ -652,7 +750,7 @@ The compression algorithm supported by this command and the corresponding "compr
 
 `VDU 23, 0, &A0, bufferId; 72, options, sourceBufferId; [width;] <mappingDataBufferId; | mapping-data...>`
 
-This command will expend a bitmap stored in the source buffer indicated by `sourceBufferId` that uses an arbitrary number of bits per pixel into a new buffer (indicated by `bufferId`) that uses 8-bits per pixel.  
+This command will expend a bitmap stored in the source buffer indicated by `sourceBufferId` that uses an arbitrary number of bits per pixel into a new buffer (indicated by `bufferId`) that uses 8-bits per pixel.
 
 The primary intent of this command is to allow the VDP to support other formats of bitmap than the natively supported formats.  The bitmap should be mapped to valid RGBA2222 colour values, allowing the destination buffer to then be set as a bitmap in RGBA2222 format.  It should be noted that the destination buffer is not automatically marked as being a bitmap.
 
@@ -676,6 +774,17 @@ If bit 3 has been set of the options byte, then following the `sourceBufferId` s
 The various different values that pixels will be mapped to should immediately follow in the command stream, with the number of bits per pixel given dictating how many mapping value bytes are sent (so 1 bits per pixel will have 2 values, 2 bits per pixel will have 4 values, and so on).  If bit 4 has been set of the options byte, then following the `width` parameter should be a 16-bit `mappingDataBufferId` parameter.  This buffer should contain the mapping data which will be used instead of values sent as part of the command stream..
 
 When a buffer is used for mapping data, that buffer must exist, and must contain a single block of at least the number of values required for the given number of bits per pixel.
+
+
+## Command 128: Debug info command
+
+`VDU 23, 0, &A0, bufferId; 128`
+
+This command is a debugging command that will print out info on a buffer to the USB serial console.  This is useful for debugging purposes, and can be used to check the contents of a buffer after a series of operations have been performed on it.
+
+The info printed to the console will tell you how many blocks/streams are stored against the `bufferId`.  If the buffer contains a transform matrix, then the matrix will be printed out in a human-readable format.  For other buffers the whole of the first block/stream will be output to the console in hexadecimal format.  NB the whole block/stream will be output, so be aware that if the buffer is large then a lot of data will be sent to the console.
+
+Before Console8 VDP 2.10.0 this command would only work if you were using a VDP compiled with the `DEBUG` flag set.  As of Console8 VDP 2.10.0 this command will now work without the flag being set.
 
 
 ## Examples
@@ -723,7 +832,7 @@ Whilst this example illustrates loading a sample, it is easily adaptable to load
 
 This example will print out "Hello " 20 times.
 
-This is admitedly a contrived example, as there is an obvious way to achieve what this code does in plain BASIC, but it is intended to illustrate the API.  The technique used here can be fairly easily adapted to more complex scenarios.
+This is admittedly a contrived example, as there is an obvious way to achieve what this code does in plain BASIC, but it is intended to illustrate the API.  The technique used here can be fairly easily adapted to more complex scenarios.
 
 This example uses three buffers.  The first buffer is used to print out a string.  The second buffer is used to store a value that will be used to control how many times the string printing buffer is called.  The third buffer is used to call the string printing buffer the required number of times, and is gradually built up.
 
@@ -754,7 +863,7 @@ This example uses three buffers.  The first buffer is used to print out a string
 
 It should be noted that after this code has been run the iteration counter in buffer ID 2 will have been reduced to zero.  Calling buffer 3 again at that point will result in the counter looping around to 255 on its first decrement, and then counting down from there, so you will see the loop run 256 times.  To avoid this, the iteration counter in buffer 2 should be reset to the desired value before calling buffer 3 again.
 
-Another thing to note is that if there were any additional commands added to buffer 3 beyond the final conditional call then it is likely that the VDP would crash, which is obviously not ideal.  This would happen because the call stack depth (i.e. number of "calls within a call") will have become too deep, and the command interpretter inside the VDP will have run out of memory.  This code works as-is because the conditional call is the last command in buffer 3 the VDP uses a method called "tail call optimisation" to avoid having to return to the caller.  The call is automatically turned into a "jump".  This is a technique that is used in many programming languages, and is a useful technique to be aware of.
+Another thing to note is that if there were any additional commands added to buffer 3 beyond the final conditional call then it is likely that the VDP would crash, which is obviously not ideal.  This would happen because the call stack depth (i.e. number of "calls within a call") will have become too deep, and the command interpreter inside the VDP will have run out of memory.  This code works as-is because the conditional call is the last command in buffer 3 the VDP uses a method called "tail call optimisation" to avoid having to return to the caller.  The call is automatically turned into a "jump".  This is a technique that is used in many programming languages, and is a useful technique to be aware of.
 
 A safer way to write this code would be to use a conditional jump (command 8) rather than a conditional call.  This would avoid the call stack depth issue, and allow additional commands to be placed in buffer 3 after that jump.
 

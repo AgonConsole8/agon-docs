@@ -17,7 +17,7 @@ As of Console8 VDP 2.2.0, it is now possible to use Acorn GXR style "sprite" cod
 
 In addition to GXRs two commands, the Agon VDP has several other commands for managing bitmaps, and additional commands to manage "sprites".
 
-As has been noted above, bitmap data is stored in buffers.  Acorn's original API design only allows for a maximum of 255 bitmaps, as they used an 8-bit ID, however buffers are identified with a 16-bit identifier.  This means that the Agon VDP can support a much larger number of bitmaps, in theory up to 65534 of them.  To allow access to these additional bitmaps, the Agon VDP several additional commands working with bitmaps using 16-bit IDs.  Those 16-bit IDs directly correspond to the IDs of the buffers in which the bitmpas are stored.  Bitmaps with 8-bit IDs are automatically mapped onto buffer IDs in the range 64000-64255.
+As has been noted above, bitmap data is stored in buffers.  Acorn's original API design only allows for a maximum of 255 bitmaps, as they used an 8-bit ID, however buffers are identified with a 16-bit identifier.  This means that the Agon VDP can support a much larger number of bitmaps, in theory up to 65534 of them.  To allow access to these additional bitmaps, the Agon VDP several additional commands working with bitmaps using 16-bit IDs.  Those 16-bit IDs directly correspond to the IDs of the buffers in which the bitmaps are stored.  Bitmaps with 8-bit IDs are automatically mapped onto buffer IDs in the range 64000-64255.
 
 In general, commands to manage bitmaps using 16-bit IDs are numbered 32 higher than the equivalent command using an 8-bit ID (32 is `&20` in hexadecimal).  For instance, the command to select a bitmap with an 8-bit ID is `VDU 23, 27, 0, n`, whereas the command to select a bitmap with a 16-bit ID is `VDU 23, 27, &20, bufferId;`.
 
@@ -71,7 +71,7 @@ From Console8 VDP 2.6.0, the bitmap data captured using this command will be sto
 
 Bitmaps captured on Console8 VDP 2.6.0 or later also now use "inclusive" coordinates, and so will be 1 pixel taller and wider than bitmaps captured on earlier versions of the VDP.  This is to ensure that the bitmap captures the entire area defined by the graphics cursor positions.  This is consistent with the behaviour of this command on Acorn systems.
 
-### `VDU 23, 27, 2, w; h; col1; col2;`: Create a solid colour rectangular bitmap 
+### `VDU 23, 27, 2, w; h; col1; col2;`: Create a solid colour rectangular bitmap
 
 Creates a new bitmap in RGBA8888 format with the given width and height, and fills it with a solid colour.  The colour is given as two 16-bit numbers, col1 and col2, which are combined to form a 32-bit number in RGBA colour range.
 

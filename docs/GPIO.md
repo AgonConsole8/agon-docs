@@ -30,9 +30,9 @@ The general layout is the same as the Origins Edition, apart from pins 1 & 2.
 
 ![](./images/iopinsAL2.png)
 
-Olimex's proprietary UEXT connector is mounted next to the main IO bus. 
+Olimex's proprietary UEXT connector is mounted next to the main IO bus.
 
-Note that although there are duplicate pins exposed on the UEXT conector as the main IO bus, they are connected to the same pins on the ez80 chip. They are there for convenience, but do not provide any additional hardware ports.
+Note that although there are duplicate pins exposed on the UEXT connector as the main IO bus, they are connected to the same pins on the ez80 chip. They are there for convenience, but do not provide any additional hardware ports.
 
 It is sometimes useful to have the duplicate pins for different purposes. For example, connecting a Nintendo Nunchuck controller on the UEXT using Olimex's adapter board, and a joystick on the main IO bus.
 
