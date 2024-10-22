@@ -14,6 +14,7 @@ There are four RST instructions for accessing MOS functionality from Z80.
 - `RST 08h`: Execute a MOS command
 - `RST 10h`: Output a single character to the VDP
 - `RST 18h`: Output a stream of characters to the VDP (MOS 1.03 or above)
+- `RST 38h`: Outputs a crash report (Console8 MOS 2.3.0 or above)
 
 In addition, if you are using the Zilog ZDS II assembler you may wish to include the file `mos_api.inc` in your project.  The Console8 version can be found in the folder [src](https://github.com/AgonConsole8/agon-mos/tree/main/src) of project [agon-mos](https://github.com/AgonConsole8/agon-mos).  The original Quark versions of this file can be found in the folder [src](https://github.com/breakintoprogram/agon-mos/tree/main/src) of project [agon-mos](https://github.com/breakintoprogram/agon-mos).
 
@@ -110,6 +111,13 @@ Example:
 ;
 text:	DB	"Hello World", 0
 ```
+
+### `RST 38h`: Outputs a crash report (Console8 MOS 2.3.0 or above)
+
+This command will output a crash report to the screen.  This report will show the current processor state, and the top of the stack.  This can be useful for debugging purposes.
+
+This command works in conjunction with the fact that as of Console8 MOS 2.3.0, on initial startup memory will be reset to contain `0xFF` bytes in every location, which equates to a `RST 38h` instruction.  This means that for many system crashes execution will end up at the `RST 38h` instruction, and a crash report will be displayed on the screen.
+
 
 ## The MOS API
 
@@ -764,7 +772,7 @@ fil:		DS	FIL_SIZE			; FIL buffer (defined in mos_api.inc)
 buffer:		DS	256				; Buffer containing data to write out
 ```
 
-### `0x84`: ffs_fseek
+### `0x84`: ffs_flseek
 
 Move the read/write pointer in a file (Requires MOS 1.03 or above)
 
@@ -775,6 +783,19 @@ Parameters:
 - `C`: Most significant byte of the offset (set to 0 for files < 16MB)
 
 Preserves: `HL(U)`, `DE(U)`, `BC(U)`
+
+### `0x85`: ffs_ftruncate
+
+Truncate a file to the current file pointer offset (Requires Console8 MOS 2.3.0 or above)
+
+To truncate to a specified size you will need to use ffs_flseek to move the file pointer to the desired location before calling ffs_ftruncate.
+
+Parameters:
+
+- `HL(U)`: Pointer to a FIL structure
+
+Preserves: `HL(U)`
+
 
 ### `0x8E`: ffs_feof
 
