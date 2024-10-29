@@ -127,6 +127,8 @@ Returns:
 
 - `A`: The keycode of the character pressed
 
+NB: This is a blocking function. This routine will wait and only return once a key is pressed.
+
 ### `0x01`: mos_load
 
 Load a file from SD card
@@ -485,6 +487,8 @@ Returns:
 
 - `A`: The character read
 - `F`: C if successful, NC if the UART is closed
+
+NB: If UART1 is open, this is a blocking function which means this routine will wait and only return once a character is received.
 
 ### `0x18`: mos_uputc
 
