@@ -163,11 +163,25 @@ This command specifies the X and Y positions in the Tile Map to start drawing th
 
 For example, a ```<xpos>``` value of 10 will start drawing the layer from column 10 of the Tile Map. An ```<xoffset>``` of 4 would start drawing from the 4th pixel of column 10. This has the effect of "pulling" the image from right to left.
 
-## Draw Tile Layer
+## Update Tile Layer
 
-```VDU 23, 0, &C2, 30, 0```
+```VDU 23, 0, &C2, 28, 0```
 
-This command will cause the Tile Engine to draw the Tile Layer to the display buffer.
+This command will cause the Tile Engine to update the Tile Layer internally based on the scroll parameters but will not draw anything to the screen.
 
 If the Tile Engine reaches the end of the Tile Map before completing the Tile Layer, the display will wrap to the start of the Tile Map.
 
+## Draw Tile Layer
+
+```VDU 23, 0, &C2, 29, 0```
+
+This command will cause the Tile Engine to draw the Tile Layer to the display buffer. It will draw what is currently in the layer buffer and will not update it first.
+
+This command is useful for drawing a static background to the screen as the contents of the layer do not need to be calculated.
+
+
+## Update and Draw Tile Layer
+
+```VDU 23, 0, &C2, 30, 0```
+
+This command will cause the Tile Engine to update and draw the Tile Layer to the display buffer. It is a combination of the previous two commands that can be called with a single command.
