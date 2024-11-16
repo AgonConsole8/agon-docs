@@ -75,13 +75,13 @@ MOS provides a simple line editor that allows you to edit the current command li
 
 The line editor allows you to move the cursor around the current line of text, insert and delete characters, and submit the line to the system.  Whilst much of the functionality on Agon is inspired by the BBC Micro, the line editor differs - there is no "copy" cursor system on the Agon.  This line editor is similar to those that you will find on modern operating systems like MacOS, Linux or Windows.
 
-The MOS CLI line editor will also provide some basic command history, keeping track of the last 10 commands the user has entered.  Pressing the `UP` arrow key when at the beginning of a line will replace the current line with the last entered command.  Similarly pressing the `DOWN` arrow key at the end of a line will cycle through the command history in the opposite direction.  The `HOME` and `END` keys will move the cursor to the start and end of the current line respectively.
+The MOS CLI line editor will also provide some basic command history, keeping track of the last 16 commands the user has entered.  Pressing the `UP` arrow key when at the beginning of a line will replace the current line with the last entered command.  Similarly pressing the `DOWN` arrow key at the end of a line will cycle through the command history in the opposite direction.  The `HOME` and `END` keys will move the cursor to the start and end of the current line respectively.
 
 The Console8 MOS 2.2.0 release also adds support for pressing the `PAGE UP` and `PAGE DOWN` keys to quickly step through the command history.
 
 Also added to the 2.2.0 release is "tab completion".  If you start typing a command and then press the `TAB` key, MOS will attempt to complete the command for you.  This includes both built-in commands, moslets found in the `mos` folder, programs found in the current directory, and programs found in the `bin` folder.
 
-There is also support for programmable function keys in the 2.2.0 release.  For more information on that see the HOTKEY command.
+There is also support for programmable function keys in the 2.2.0 release.  For more information on that see the `HOTKEY` command.
 
 ### The MOS command prompt
 
@@ -97,7 +97,7 @@ From the Console8 MOS 2.2.0 release onwards the prompt has been extended to incl
 
 ## MOS Commands
 
-MOS offers a number of commands that allow you to interact with the Agon file system and control your computer.  These commands are entered at the MOS command prompt, and are executed by pressing the `RETURN` key.  If you are inside BBC BASIC, you can also enter MOS commands by preceding them with an asterisk `*`.
+MOS offers a number of commands that allow you to interact with the Agon file system and control your computer.  These commands are entered at the MOS command prompt, and are executed by pressing the `RETURN` key.  If you are inside BBC BASIC, you can also enter MOS commands by preceding them with an asterisk `*`.  Because the default MOS prompt is a `*` and inside BASIC you need to prefix commands with a `*` they are often referred to as "star commands".
 
 MOS commands are case-insensitive, and can be abbreviated with a dot `.`.  For example, `DELETE myfile` and `DEL. myfile` are equivalent.  When you abbreviate a command, the first matching command is used, so whilst there are several commands that begin with `C`, `C.` will execute the `CAT`.  Commands that accept multiple parameters will expect those parameters to be space-delimited.  Numbers are in decimal, but can be prefixed with an ampersand `&` for hexadecimal.
 
@@ -145,7 +145,7 @@ Syntax: `*CLS`
 
 Clear the screen.
 
-(This command performs a VDU 12, which is the same as the `CLS` command in BBC BASIC.)
+(This command performs a `VDU 12`, which is the same as the `CLS` command in BBC BASIC.)
 
 ### `COPY`
 
@@ -180,6 +180,38 @@ Delete a file or folder (must be empty).
 Syntax: `*DIR [<path>]`
 
 This command is an alias for the `CAT` command.
+
+### `ECHO`
+
+Syntax: `*ECHO <text>`
+
+Prints the given text to the screen.  Before outputting the text is run through a transformation process which allows for the full use of the VDP's control codes.  Future versions of MOS will also allow access to system variables via this command.
+
+Text will be read one character at a time, and if a translation token is found then the text will be transformed accordingly.  The following tokens are supported:
+
+| Token | Replaced by |
+|-------|-------------|
+| `\|"`  | `"`        |
+| `\|<`  | `<`        |
+| `\|\|` | `\|`       |
+| `\|?`  | Character 127 (A deleting backspace)  |
+| `\|!`  | Forces top-bit of next character to be set   |
+| `\|char` | Ctrl (ASCII (uppercase(char)) - 64) |
+| `<num>`  | Converts num to character |
+
+The `|char` and `<num>` tokens provide a simple way to send "control codes" to the VDP.
+
+The `|char` token works with a single character, which will be replaced with the ASCII value of the uppercase character minus 64.  This means that a value of `|A` or `|a` will be replaced with character 1, `|B` or `|b` will be replaced with character 2, and so on, equivalent to performing a `VDU 1` or `VDU 2` respectively for `|a` and `|b`.  This provides a simple way to insert control codes into your text.  For example using `|M|J` will send characters 13 and 10, a carriage return and a line feed.  Using `|g` will send a "bell" character and make a beep sound.
+
+Similarly the `<num>` token will be replaced with the character represented by the number given.  For example using `|65` will send the character `A`, and `|13` will send a carriage return.  The number conversion however will support various formats of number.  You can specify a specific base to be used for a number, so `<2_111>` specifies using number 111 in base 2, which will equate to 7 in decimal, and thus be the same as `\g` and make a beeping sound.  Similarly `<3_21>` also produces a beep.  Bases up to 36 are supported, with "digits" in bases over 10 using letters - the most common base over 10 would be base 16, hexadecimal.  You can also specify a hexadecimal number using the `&` prefix, so `<&41>` will also send the character `A`.
+
+These options are essentially just VDU commands that are being sent to the VDP - you should refer to the VDP documentation for all the commands available.
+
+Incomplete tokens, such as ending a string with `|` or `|!` will result in a `Bad string` error.
+
+Please note that if you have an invalid number inside `<` and `>` characters then the token will be ignored.  In the future this will be a way to insert variables into the text.
+
+This command was added in Console8 MOS 2.3.0.
 
 ### `ERASE`
 
@@ -231,6 +263,12 @@ Syntax: `*LOAD <filename> [<address>]`
 
 Load a file from the SD card into the specified address in memory.  If no address parameters is specified, then the address will default to `&40000`.
 
+### `MEM`
+
+Syntax: `*MEM`
+
+Displays information on MOS memory usage.
+
 ### `MKDIR`
 
 Syntax: `*MKDIR <name>`
@@ -256,6 +294,25 @@ This command is an alias for the `RENAME` command.
 Syntax: `*MV <source> <destination>`
 
 This command is an alias for the `RENAME` command, and is only available from Console8 MOS 2.2.0 onwards.
+
+### `PRINTF`
+
+Syntax: `*PRINTF <string>`
+
+Prints the given string to the screen.  This command is similar to the `ECHO` command, but supports a subset of unix-style escape transformations for the string.
+
+The following escape sequences are supported:
+
+| Sequence | Replaced by |
+|----------|-------------|
+| `\f`     | Form feed |
+| `\n`     | New line |
+| `\r`     | Carriage return |
+| `\t`     | Horizontal tab |
+| `\\`     | Backslash |
+| `\xhh`   | Hexadecimal value |
+
+If an invalid escape sequence is found, it will be ignored/skipped.
 
 ### `RENAME`
 
