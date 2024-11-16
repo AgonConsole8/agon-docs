@@ -171,9 +171,11 @@ Outputs some credits and version numbers for third-party libraries used in the A
 
 ### `DELETE`
 
-Syntax: `*DELETE <filename>` (Aliases include `ERASE`)
+Syntax: `*DELETE [-f] <filename>` (Aliases include `ERASE`)
 
 Delete a file or folder (must be empty).
+
+As of Console8 VDP 2.2.0 this command supports wild-cards in the filename.  Additionally when deleting a file a confirmation step is required, but if the `-f` flag is provided then the command will not prompt for confirmation before deleting the file.
 
 ### `DIR`
 
@@ -191,12 +193,12 @@ Text will be read one character at a time, and if a translation token is found t
 
 | Token | Replaced by |
 |-------|-------------|
-| `\|"`  | `"`        |
-| `\|<`  | `<`        |
-| `\|\|` | `\|`       |
-| `\|?`  | Character 127 (A deleting backspace)  |
-| `\|!`  | Forces top-bit of next character to be set   |
-| `\|char` | Ctrl (ASCII (uppercase(char)) - 64) |
+| `|"`  | `"`        |
+| `|<`  | `<`        |
+| `||` | `|`       |
+| `|?`  | Character 127 (A deleting backspace)  |
+| `|!`  | Forces top-bit of next character to be set   |
+| `|char` | Ctrl (ASCII (uppercase(char)) - 64) |
 | `<num>`  | Converts num to character |
 
 The `|char` and `<num>` tokens provide a simple way to send "control codes" to the VDP.
