@@ -906,7 +906,7 @@ Returns:
 
 ## System Variables
 
-The MOS API command [mos_sysvars](#0x08-mos_sysvars) returns a pointer to the base of the MOS system variables area in IXU - `A` 24-bit pointer.
+The MOS API command [mos_sysvars](#0x08-mos_sysvars) returns a pointer to the base of the MOS system variables area in IXU as a 24-bit pointer. The MOS system variables are often simply referred to as sysvars.
 
 The following system variables are available in [mos_api.inc](#usage-from-z80-assembler):
 
