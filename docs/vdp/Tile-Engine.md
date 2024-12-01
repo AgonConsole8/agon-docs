@@ -146,12 +146,12 @@ The Tile Layer is the viewport into which the Tile Map is displayed.
 This command initalises or resets the Tile Layer. It should be configured to match the size of the required screen mode (this behaviour is not enforced, but the display may appear odd with the layer in only a part of it).
 
 
-| Tile Layer Mode | Tile Map Size | Notes             |
-|-----------------|---------------|-------------------|
-| 0               | 80x60         | For 640x480 modes |
-| 1               | 80x30         | For 640x240 modes |
-| 2               | 40x30         | For 320x240 modes |
-| 3               | 40x25         | For 320x200 modes |
+| Tile Layer Mode | Tile Layer Size | Notes             |
+|-----------------|-----------------|-------------------|
+| 0               | 80x60           | For 640x480 modes |
+| 1               | 80x30           | For 640x240 modes |
+| 2               | 40x30           | For 320x240 modes |
+| 3               | 40x25           | For 320x200 modes |
 
 
 
@@ -175,7 +175,7 @@ If the Tile Engine reaches the end of the Tile Map before completing the Tile La
 
 ```VDU 23, 0, &C2, 29, 0```
 
-This command will cause the Tile Engine to draw the Tile Layer to the display buffer. It will draw what is currently in the layer buffer and will not update it first.
+This command will cause the Tile Engine to draw the Tile Layer to the display buffer. It will draw what is currently in the layer buffer.
 
 This command is useful for drawing a static background to the screen as the contents of the layer do not need to be calculated.
 
