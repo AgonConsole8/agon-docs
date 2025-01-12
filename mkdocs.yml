@@ -50,8 +50,8 @@ theme:
       toggle:
         icon: material/toggle-switch
         name: switch to light mode
-        primary: deep purple
-        accent: lime
+      primary: deep purple
+      accent: lime
 
 extra_css:
   - stylesheets/extra.css
