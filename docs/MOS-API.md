@@ -575,7 +575,7 @@ Returns:
 ### `0x1D`: mos_setkbvector
 
 Allows user programs to access VDP keyboard packets without overriding the entire uart0 interrupt handler.
-The user program registered, will be called during the uart0 interrupt handler, being passed the address of the full VDP keyboard packet. Normal MOS key handling is disabled when a user program is registered.
+The user program registered, will be called during the uart0 interrupt handler, being passed the address of the full VDP keyboard packet.
 
 Parameters:
 
@@ -584,7 +584,9 @@ Parameters:
 
 Returns: Nothing upon registration. The user program can expect the full VDP packet address in DE(24-bit) upon entry.
 
-[example code](https://github.com/tomm/agon-mos/blob/main/bin/kbvector.asm) that registers a custom handler.
+Be sure to clear the kbvector before your program exits (call mos_setkbvector again with HL=0).
+
+[example code](https://github.com/tomm/toms-agon-experiments/blob/main/custom_kbvector_demo/custom_kbvector_demo.asm) that registers a custom handler.
 
 ### `0x1E`: mos_getkbmap
 
