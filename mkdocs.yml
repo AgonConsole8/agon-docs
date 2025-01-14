@@ -107,3 +107,8 @@ markdown_extensions:
           format: !!python/name:pymdownx.superfences.fence_code_format
   - pymdownx.mark
   - attr_list
+  - toc:
+      title: Table of Contents
+      toc_class: grid_cards
+      toc_depth: "2-5"
+  - md_in_html
