@@ -79,6 +79,7 @@ nav:
     - 'Buffered Commands API': vdp/Buffered-Commands-API.md
     - 'Context Management API': vdp/Context-Management-API.md
     - 'Font Management API': vdp/Font-API.md
+    - 'Tile Engine': vdp/Tile-Engine.md
 
   - 'BBC Basic': BBC-BASIC-for-Agon.md
   - 'GPIO': GPIO.md
