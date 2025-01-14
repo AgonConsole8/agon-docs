@@ -108,7 +108,8 @@ markdown_extensions:
   - pymdownx.mark
   - attr_list
   - toc:
-      title: Table of Contents
-      toc_class: grid_cards
       toc_depth: "2-5"
   - md_in_html
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg

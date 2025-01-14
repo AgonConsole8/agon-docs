@@ -26,10 +26,10 @@ As a minimum, you also need the following extra hardware:
 - A PS/2 compatible keyboard
 - A micro USB card
 
-NB:
+!!! note
 
-- The original Agon Light requires a PS/2 keyboard, or a USB keyboard that supports the PS/2 protocol with a USB to PS/2 adaptor.
-- The Agon Light 2 requires a USB keyboard that supports the PS/2 protocol, or a PS/2 keyboard with a PS/2 to USB adaptor.
+    - The original Agon Light requires a PS/2 keyboard, or a USB keyboard that supports the PS/2 protocol with a USB to PS/2 adaptor.
+    - The Agon Light 2 requires a USB keyboard that supports the PS/2 protocol, or a PS/2 keyboard with a PS/2 to USB adaptor.
 
 ## Does Agon support CP/M?
 
@@ -41,7 +41,7 @@ There is also available a [CP/M compatibility layer](https://github.com/nihirash
 
 Check out the Popup [MOS repository](https://github.com/tomm/popup-mos); click the green 'Code' icon and select 'Download ZIP' from the dropdown menu. Unzip the file and copy over everything from the 'popup-os-main' folder to an empty SD card. The card should have folders like demos/docs/games/mos/utils in the root of the card
 
-Another great distribution is [Agon Mite](https://agonmite.gluonspace.com/) which has a monthly release cycle.
+Another great distribution is [Agon Mite](https://www.agonmite.com) which aims to have a monthly release cycle.
 
 These repositories are a volunteer effort, periodically collecting the latest versions of software out there. If you need a more recent version of any package, because sometimes development goes pretty fast; please download it individually to your SD card.
 
@@ -71,7 +71,7 @@ It really depends on the current firmware versions on your Agon. The Agon contai
 
 If both VDP and MOS are currently still at 1.03, as most Olimex AgonLight2 boards are, follow [this detailed guide](./Updating-Firmware-from103.md) to upgrade it. This is only necessary once; from 1.04 onwards, all upgrades can be done with the flash tool.
 
-If you are running at least VDP and MOS 1.04, just install the [flash tool](https://github.com/envenomator/agon-flash), get the appropriate firmware files (see below for examples) and read the short documentation on the page to upgrade both VDP and MOS in one go. The latest version can be found under the [releases](https://github.com/envenomator/agon-flash/releases) tab. The page also has a link to help you upgrade, if you are running an even older version than 1.03.
+If you are running at least VDP and MOS 1.04, just install the [flash tool](https://github.com/envenomator/agon-flash), get the appropriate firmware files (see below for examples) and read the short documentation on the page to upgrade both VDP and MOS in one go. The latest version can be found under the [releases](https://github.com/envenomator/agon-flash/releases/latest) tab. The page also has a link to help you upgrade, if you are running an even older version than 1.03.
 
 [this flowchart](https://github.com/envenomator/agon-flash/blob/master/assets/update_process.png) provides an overview of the overall process, instructions for all version combinations of VDP and MOS and additional links to use, depending on your current version starting points.
 
@@ -79,8 +79,8 @@ If you are running at least VDP and MOS 1.04, just install the [flash tool](http
 
 I recommend using the Console8 firmware.
 
-- [Console8 MOS firmware](https://github.com/AgonConsole8/agon-mos)
-- [Console8 VDP firmware](https://github.com/AgonConsole8/agon-vdp/releases)
+- [Console8 MOS firmware](https://github.com/AgonConsole8/agon-mos/releases/latest)
+- [Console8 VDP firmware](https://github.com/AgonConsole8/agon-vdp/releases/latest)
 
 ## Which firmware do you currently recommend using on my Agon?
 
@@ -112,7 +112,7 @@ All Agon variants have a jumper to enable/disable the onboard buzzer, labeled 'B
 
 No, not unless you will be developing your own Agon MOS firmware AND need to be comfortably sure you can recover it under ALL circumstances. And even then you may very well get by using one of the community-provided options. People in the community owning SMART cables are seldomly using them nowadays.
 
-Again, for regular update purposes, the Zilog SMART cable is unnecessary and a waste of money. If it's bricking you're worried about; there is a [simple solution](https://github.com/envenomator/agon-vdpflash) requiring just a few dupont cables and a clear step-by-step plan to recover your Agon. In any case, you can at least buy a new Agon for the price of the Zilog SMART cable. Ease your worries.
+Again, for regular update purposes, the Zilog SMART cable is unnecessary and a waste of money. If it's bricking you're worried about; there is a [simple solution](https://github.com/envenomator/agon-recovery) requiring just a few dupont cables and a clear step-by-step plan to recover your Agon. In any case, you can at least buy a new Agon for the price of the Zilog SMART cable. Ease your worries.
 
 ## I still would like to buy a Zilog SMART cable. Which one should I get?
 
@@ -121,7 +121,9 @@ The Agon-compatible Zilog product numbers are:
 - ZUS**BSC**00100ZACG (discontinued)
 - ZUS**BAS**C0200ZACG (current; requires v5.3.5 or later of Zilog’s ZDS -II IDE)
 
-**ATTENTION:** the cable with product number ZUS**BES**C0200ZACG is **NOT** suitable for Agon!
+!!! danger "Attention"
+
+    The cable with product number ZUS**BES**C0200ZACG is **NOT** suitable for Agon!
 
 ## Can I go back to an earlier firmware version / downgrade?
 
@@ -173,7 +175,7 @@ You can use the following command from the MOS command line, from BBC BASIC (usi
     *SET KEYBOARD n
 
 The keyboard layout for UK = 0, US = 1
-Other available layouts are available from MOS 1.03+, [documented here](https://github.com/AgonConsole8/agon-docs/blob/main/MOS.md#keyboard-layout)
+Other available layouts are available from MOS 1.03+, [documented here](MOS.md#keyboard-layout)
 
 ## How do I exit to the MOS command line, from within BBC Basic?
 
@@ -199,7 +201,7 @@ We're listing a few here, though there will certainly be others:
 
 ## Is there an Emulator available?
 
-[Indeed there is](https://github.com/tomm/fab-agon-emulator)
+Indeed there is, the [Fab Agon Emulator](https://github.com/tomm/fab-agon-emulator). It is available for Windows, Linux and Mac (or you can [compile](https://github.com/tomm/fab-agon-emulator/blob/main/docs/compiling.md) your own).
 
 ## What is the difference between the Agon Light and the Olimex Agon Light 2?
 
@@ -262,9 +264,9 @@ A memory map can be found [here](https://github.com/envenomator/Agon/blob/master
 
 Buckle up!
 
-- [eZ80F92 datasheet](https://www.zilog.com/docs/ez80acclaim/ps0153.pdf) - details regarding the eZ80F92 microcontroller peripherals like I2C, SPI, Flash memory, debug interface, timers
-- [eZ80 CPU datasheet](https://www.zilog.com/docs/um0077.pdf) - details regarding the ez80 CPU itself, cpu architecture, registers, memory mode, interrupts and instruction set
-- [Application note AN033301-0711](https://www.zilog.com/docs/appnotes/an0333.pdf) - details of the ZDS Application Binary Interface (ABI), how to call C functions from Assembly and vice versa. Also applicable to the AgDev environment which is compliant to the ABI.
+- [eZ80F92 datasheet](https://www.zilog.com/docs/ez80acclaim/ps0153.pdf) :fontawesome-solid-file-pdf: - details regarding the eZ80F92 microcontroller peripherals like I2C, SPI, Flash memory, debug interface, timers
+- [eZ80 CPU datasheet](https://www.zilog.com/docs/um0077.pdf) :fontawesome-solid-file-pdf: - details regarding the ez80 CPU itself, cpu architecture, registers, memory mode, interrupts and instruction set
+- [Application note AN033301-0711](https://www.zilog.com/docs/appnotes/an0333.pdf) :fontawesome-solid-file-pdf: - details of the ZDS Application Binary Interface (ABI), how to call C functions from Assembly and vice versa. Also applicable to the AgDev environment which is compliant to the ABI.
 
 ## Can you code feature {x}?
 
