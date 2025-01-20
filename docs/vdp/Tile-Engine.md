@@ -22,7 +22,7 @@ This command will initialise or reset (clear) the tile bank. It must be executed
 
 ### Load Tile Into Bank
 
-```VDU 23, 0, &C2, 1, <tileid>, b1, b2 ... b64```
+```VDU 23, 0, &C2, 1, 0, <tileid>, b1, b2 ... b64```
 
 This command will load 64 bytes of data into the specified tile id.
 
