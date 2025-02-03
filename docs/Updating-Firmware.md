@@ -61,9 +61,9 @@ Once this has succeeded the Agon will not work properly until you upgrade VDP.
 2. Remove the SD card and return to your PC
 3. Copy bbcbasic.bin to the root directory, overwriting any existing file
 4. Copy the following folders to the root directory to update the examples (optional, but recommended)
-   - examples
-   - resources
-   - tests
+    - examples
+    - resources
+    - tests
 5. Eject the SD card and return it to the Agon
 
 #### 3. Update the VDP
