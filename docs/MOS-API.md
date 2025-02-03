@@ -22,9 +22,9 @@ NB:
 
 - Using the `RST.LIS` opcode in an eZ80 assembler will ensure the MOS RST instructions are called regardless of the eZ80s current addressing mode.
 - In the `mos_api.inc` file you will find:
-  - EQUs for all the MOS commands, data structures and system variables.
-  - An incomplete list of VDP control variables.  For a full list, see the [VDP documentation](VDP.md)
-  - A complete list FatFS APIs, however these are not yet all implemented in MOS.  Those that are implemented are documented below.
+    - EQUs for all the MOS commands, data structures and system variables.
+    - An incomplete list of VDP control variables.  For a full list, see the [VDP documentation](VDP.md)
+    - A complete list FatFS APIs, however these are not yet all implemented in MOS.  Those that are implemented are documented below.
 
 Further information on the `RST` handlers provided by MOS are as follows:
 

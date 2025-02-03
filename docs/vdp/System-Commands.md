@@ -115,7 +115,7 @@ Returns the screen dimensions to MOS.  Generally applications should not need to
 This command controls the Real Time Clock within the Agon VDP.
 
 - `VDU 23, 0, &87, 0`: Read the RTC
-  - a data packet will be sent to MOS with the current RTC data, and MOS system variables updated accordingly
+    - a data packet will be sent to MOS with the current RTC data, and MOS system variables updated accordingly
 
 - `VDU 23, 0, &87, 1, y, m, d, h, m, s`: Set the RTC
 
