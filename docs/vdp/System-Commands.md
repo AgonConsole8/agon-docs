@@ -14,6 +14,7 @@ Please note that not all versions of the VDP support the complete command set.  
  §§§§ Requires Console8 VDP 2.7.0 or above<br>
  §§§§§ Requires Console8 VDP 2.8.0 or above<br>
  §§§§§§ Requires Console8 VDP 2.9.0 or above<br>
+ §§§§§§§ Requires Console8 VDP X.X.X or above<br>
 
 Commands between &80 and &89 will return their data back to the eZ80 via the [serial protocol](#serial-protocol).
 
@@ -389,6 +390,13 @@ Turns legacy screen modes on and off, where 1=on and 0=off.
 By default, the original screen modes 0-4 are not available and are instead replaced by new modes that are more compatible with modern monitors.  For compatibility with older software, written for Agon systems running earlier versions of the VDP firmware, this command can be used to switch back to those original, legacy, screen modes.
 
 For more information, see the [Screen modes documentation](Screen-Modes.md).
+
+## `VDU 23, 0, &C2, <command>, [<args>]`: Tile Engine §§§§§§§
+
+Sends a command to the Tile Engine.
+
+For more information, see the [Tile Engine](Tile-Engine.md) documentation.
+
 
 ## `VDU 23, 0, &C3`: Swap the screen buffer and/or wait for VSYNC **
 
