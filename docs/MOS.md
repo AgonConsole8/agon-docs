@@ -111,17 +111,17 @@ The commands available in MOS are as follows:
 
 ### `.` (dot)
 
-Syntax: `*. [<path>]` (Alias for `CAT`)
+Syntax: `*. [-l] [<path>]` (Alias for `CAT`; other alises are `DIR` and `LS`)
 
-This command is an alias for the `CAT` command.  If a path is provided, it will list the contents of that directory, otherwise it will list the contents of the current directory.
+This command is an alias for the `CAT` command.  If a path is provided, it will list the contents of that directory, otherwise it will list the contents of the current directory. From Console8 MOS 2.2.0 onwards, the optional `-l` flag can be used to display the long form of the directory listing.
 
 ### `CAT`
 
-Syntax: `*CAT [-l] [<path>]` (Aliases include `DIR` and `.`)
+Syntax: `*CAT [-l] [<path>]` (Aliases are `.`. `DIR` and `LS`)
 
 The "Catalogue" command, which displays a directory listing of the current directory, or of the directory at the path given.
 
-From Console8 MOS 2.2.0 onwards, the `-l` flag can be used to display the long form of the directory listing, which includes the file size and date/time of last modification, otherwise a shorter form of the directory listing will be displayed.  Versions of MOS prior to 2.2.0 will always display the long form of the directory listing.
+From Console8 MOS 2.2.0 onwards, the optional `-l` flag can be used to display the long form of the directory listing, which includes the file size and date/time of last modification, otherwise a shorter form of the directory listing will be displayed.  Versions of MOS prior to 2.2.0 will always display the long form of the directory listing.
 
 ### `CD`
 
@@ -179,9 +179,10 @@ As of Console8 VDP 2.2.0 this command supports wild-cards in the filename.  Addi
 
 ### `DIR`
 
-Syntax: `*DIR [<path>]`
+Syntax: `*DIR [-l] [<path>]` (Alias for `CAT`; other alises are `.` and `LS`)
 
-This command is an alias for the `CAT` command.
+This command is an alias for the `CAT` command.  If a path is provided, it will list the contents of that directory, otherwise it will list the contents of the current directory. From Console8 MOS 2.2.0 onwards, the optional `-l` flag can be used to display the long form of the directory listing.
+
 
 ### `ECHO`
 
@@ -264,6 +265,14 @@ Jumps to the specified address in memory.  Using this command, you can jump to a
 Syntax: `*LOAD <filename> [<address>]`
 
 Load a file from the SD card into the specified address in memory.  If no address parameters is specified, then the address will default to `&40000`.
+
+### `LS`
+
+Syntax: `*LS [-l] [<path>]` (Alias for `CAT`; other alises are `.` and `DIR`)
+
+This command is an alias for the `CAT` command.  If a path is provided, it will list the contents of that directory, otherwise it will list the contents of the current directory. From Console8 MOS 2.2.0 onwards, the optional `-l` flag can be used to display the long form of the directory listing.
+
+The `LS` alias was added in Console8 MOS 2.2.0.
 
 ### `MEM`
 
