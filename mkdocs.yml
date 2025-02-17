@@ -79,6 +79,7 @@ nav:
     - 'Buffered Commands API': vdp/Buffered-Commands-API.md
     - 'Context Management API': vdp/Context-Management-API.md
     - 'Font Management API': vdp/Font-API.md
+    - 'VDP Variables': vdp/VDP-Variables.md
 
   - 'BBC Basic': BBC-BASIC-for-Agon.md
   - 'GPIO': GPIO.md

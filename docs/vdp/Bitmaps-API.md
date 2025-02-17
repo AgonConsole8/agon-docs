@@ -268,7 +268,7 @@ As of version 2.12.0 the feature is still considered experimental, so to use the
 
 Hardware sprites have different limitations placed on them when compared with software sprites, but also have some advantages.
 
-The main advantages that hardware sprites exhibit is that they will always be shown in full 64 colours, whatever the colour depth of screen mode you are in, and they operate as proper sprites in double-buffered screen modes.  Hardware sprites also do not flicker.  They appear above all other graphics on the screen, including software sprites.  When hardware sprites overlap, the sprite with the higher ID will be drawn on top of the sprite with the lower ID.
+The main advantages that hardware sprites exhibit is that they will always be shown in full 64 colours, whatever the colour depth of screen mode you are in, and they operate as proper sprites in double-buffered screen modes.  Hardware sprites also do not flicker, and changes made to them will immediately appear on-screen, with no need to send a "refresh sprites" command.  They appear above all other graphics on the screen, including software sprites.  When hardware sprites overlap, the sprite with the higher ID will be drawn on top of the sprite with the lower ID.
 
 The limitations of hardware sprites are that you can only use bitmaps in RGBA8888 or RGBA2222 format, and they will not support different GCOL paint modes - they will always be shown with a "set pixel" style of drawing operation.  There are also limitations on how many hardware sprites can be shown on-screen at once, and these limitations are complex and depend on many factors.
 
