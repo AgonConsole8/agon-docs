@@ -14,6 +14,7 @@ Please note that not all versions of the VDP support the complete command set.  
  §§§§ Requires Console8 VDP 2.7.0 or above<br>
  §§§§§ Requires Console8 VDP 2.8.0 or above<br>
  §§§§§§ Requires Console8 VDP 2.9.0 or above<br>
+ §§§§§§§ Requires Console8 VDP 2.12.0 or above<br>
 
 Commands between &80 and &89 will return their data back to the eZ80 via the [serial protocol](#serial-protocol).
 
@@ -399,6 +400,12 @@ This command will swap the screen buffer, if the current screen mode is double-b
 Waiting for VSYNC can be useful for ensuring smooth graphical animation, as it will prevent tearing of the screen.
 
 (In BASIC performing a `*FX 19` command will perform a similar wait for VSYNC, but on the eZ80 side of the system, but will not swap the screen buffer.)
+
+## `VDU 23, 0, &C4, command, [<args>]`: "Copper" functions §§§§§§§
+
+Send a command to the [VDP Copper API](Copper-API.md).  This allows for the creation of different palettes and for the palettes to be changed on the fly during the scanout of the screen.
+
+These functions were introduced in VDP 2.12.0.  At this time, to access these APIs a feature flag must be set using `VDU 23, 0, &F8, &310; 0;`.  The exact feature set provided may be subject to change in future versions of the VDP firmware.
 
 ## `VDU 23, 0, &C8, <command>, [<args>]`: Context management API §§§§§
 
