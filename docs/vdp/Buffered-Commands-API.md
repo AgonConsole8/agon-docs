@@ -1,7 +1,7 @@
 VDP Buffered Commands API
 =========================
 
-The VDP Buffered Commands API is a low-level API that allows for the creation of buffers on the VDP.  These buffers can be used for sequences of commands for later execution, storing data, capturing output from the VDP, as well as storing bitmaps and sound samples.
+The VDP Buffered Commands API is a low-level API that allows for the creation of buffers on the VDP.  These buffers can be used for sequences of commands for later execution, storing data, capturing output from the VDP, as well as storing bitmaps, sound samples and fonts.
 
 Through the use of the APIs, it is possible to both send commands to the VDP in a "packetised" form, as well as to have "functions" or "stored procedures" that can be saved on the VDP and executed later.
 
@@ -19,7 +19,7 @@ A single buffer can contain multiple blocks.  This approach allows for a buffer 
 
 Many of the commands accept an offset within a buffer.  An offset is typically a 16-bit value, however as buffers can be larger than 64kb an "advanced" offset mode is provided.  This advanced mode allows for offsets to be specified as 24-bit values, and also provides for a mechanism to refer to individual blocks within a buffer.  When this mode is used, the offset is sent as 3 bytes in little-endian order.  If the top bit of an advanced offset is set, this indicates that _following_ the offset value there will be a 16-bit block number, with the remaining 23-bit offset value to be applied as an offset within the indicated block.  Using block offsets can be useful for modifying commands within buffers, as using block offsets can make identifying where parameters are placed within commands much easier to work out.
 
-At this time the VDP Buffered Commands API does not send any messages back to MOS to indicate the status of a command.  This will likely change in the future, but that may require changes to agon-mos to support it.
+At this time the VDP Buffered Commands API does not send any messages back to MOS to indicate the status of a command, or support a mechanism for sending contents of buffers back to MOS.  This will likely change in the future, but that will require changes to agon-mos to support it.
 
 ## Command 0: Write block to a buffer
 
@@ -274,7 +274,7 @@ Take note of how the operand value is padded out with zeros to match the size of
 
 ## Command 6: Conditionally call a buffer
 
-`VDU 23, 0, &A0, bufferId; 6, operation, checkBufferId; checkOffset; [arguments]`
+`VDU 23, 0, &A0, bufferId; 6, operation, <checkBufferId; checkOffset; | vduVariableId;> [arguments]`
 
 This command will conditionally call a buffer if the condition operation passes.  This command works in a similar manner to the "Adjust buffer contents" command.
 
@@ -295,18 +295,30 @@ The basic set of condition operations are as follows:
 | 8 | AND |
 | 9 | OR |
 
-The value that is being checked is fetched from the specified check buffer ID and offset.  With the exception of "Exists" and "Not exists", each command requires an operand value to be specified to check against.
+The value that is being checked is fetched from the specified check buffer ID and offset, or from a [VDP Variable](VDP-Variables.md).  With the exception of "Exists" and "Not exists", each command requires an operand value argument to be specified to check against.
 
 The operation value used is an 8-bit value that can have bits set to modify the behaviour of the operation.  The following bits are defined:
 
 | Bit value | Description |
 | --- | ----------- |
 | &10 | Use advanced offsets |
-| &20 | Operand is a buffer-fetched value (buffer ID and an offset) |
+| &20 | Operand value argument is a buffer-fetched value (buffer ID and an offset) |
+| &40 | Value to be checked is a [VDP Variable](VDP-Variables.md) * |
+| &80 | Compare 16-bit values * |
+
+\* These flag bits are only supported from VDP 2.12.0 onwards.
 
 These modifiers can be combined together to modify the behaviour of the operation.
 
-At this time, unlike with the "adjust" command, multiple target values and multiple operand values are not supported.  All comparisons are therefore only conducted on single 8-bit values.  (If comparisons of 16-bit values are required, multiple calls can be combined.)  Support for them may be added in the future.
+When bit `&20` is set on the condition operation byte, the value to check against is fetched from a buffer, so the arguments provided must be a buffer ID and an offset (which can be an advanced offset, if the appropriate bit is set).
+
+Up to and including VDP 2.11.0, all comparisons would be conducted against 8-bit values only.  As of VDP 2.12.0 it is possible to specify that the values to compare are 16-bit values by setting bit `&80` in the operation byte, in which case the operand value argument must be a 16-bit value.
+
+Comparisons of values larger than 16-bit are not directly supported.  If you need to compare larger values, you will need to break them down into smaller values and compare them separately, splitting your comparisons across multiple buffers.
+
+If the value to be checked is a VDP Variable, then the check buffer ID argument and offset should be omitted and instead a 16-bit variable ID sent in their place.  The "exists" and "not exists" operations for variables are a true existance check, rather than checking the value against zero.  For all other operations, if the variable does not exist then the operation result will be treated as false.
+
+(When the value to be checked is _not_ a VDP variable, a `checkOffset;` argument must always be provided.  As with other commands, this can be an advanced offset.)
 
 The `AND` and `OR` operations are logical operations, and so the operand value is used as a boolean value.  Any non-zero value is considered to be true, and zero is considered to be false.  These operations therefore are most useful when used with buffer-fetched operand values (operations &28, &29, &38 and &39).
 
@@ -727,6 +739,27 @@ Once this example command has been executed, buffer 30 would contain the same se
 It should be noted that since it is only the coordinates that are transformed, the nature of the PLOT commands themselves will not be changed.  If the transform matrix was created with only "translate" or "scale" operations then the effect will work as expected for all PLOT commands (except for bitmap plots, which would not be drawn scaled as only the target coordinates woulld have changed), but if the transform included "rotate", "shear" or "skew" then results may differ.  PLOT commands that only draw lines, or fill triangles, will draw properly transformed versions of those shapes.  The effect on some other PLOT commands, such as those to fill a rectangle, or plot a circle/arc/sector will differ, as it is just the coordinates that are being transformed.  A rectangle may be drawn with a different size, but its sides will still be drawn aligned to the X and Y axis, and a circle will still be round.
 
 
+## Command 48: Read a VDP variable into a buffer
+
+`VDU 23, 0, &A0, bufferId; 48, options, offset; variableId; [default[;]]`
+
+This command will copy the current value read from a [VDP variable](VDP-Variables.md) with the given `variableId;` into a buffer at the given offset.  Support for this command was added in VDP 2.12.0.
+
+The `options` argument is an 8-bit value that can have bits set to modify the behaviour of this command.  The following bits are defined:
+
+| Bit value | Description |
+| --- | ----------- |
+| &10 | Use advanced offsets |
+| &40 | Use provided default value if no variable of the given ID is set |
+| &80 | Use 16-bit values |
+
+The value size for this command will, by default, be a single byte.  VDP Variables are however stored as 16-bit values, and so bit `&80` in the `options` byte can be set to indicate that the value should be read as a 16-bit value.  Such values are stored in little-endian order.
+
+If the variable does not exist, then the buffer will not be changed unless the `&40` bit has been set in the options byte, and a default value is provided.  The size of the default value sent must match the size of the value being read from the variable (as determined by bit `&80`).
+
+If the `bufferId` does not exist, or the offset is out of bounds, then the command will fail.
+
+
 ## Command 64: Compress a buffer
 
 `VDU 23, 0, &A0, targetBufferId; 64, sourceBufferId;`
@@ -774,6 +807,42 @@ If bit 3 has been set of the options byte, then following the `sourceBufferId` s
 The various different values that pixels will be mapped to should immediately follow in the command stream, with the number of bits per pixel given dictating how many mapping value bytes are sent (so 1 bits per pixel will have 2 values, 2 bits per pixel will have 4 values, and so on).  If bit 4 has been set of the options byte, then following the `width` parameter should be a 16-bit `mappingDataBufferId` parameter.  This buffer should contain the mapping data which will be used instead of values sent as part of the command stream..
 
 When a buffer is used for mapping data, that buffer must exist, and must contain a single block of at least the number of values required for the given number of bits per pixel.
+
+
+## Command 80: Set a buffer to be used for a callback
+
+`VDU 23, 0, &A0, bufferId; 80, type;`
+
+Sets a buffer to be used as a callback when a certain event is triggered in the VDP.
+
+Support for callbacks was added in VDP 2.12.0.
+
+The `type;` argument is a 16-bit value that specifies which type of callback the buffer is to be used for.  The following types are supported:
+
+| Type | Event |
+| ---- | ----------- |
+| 0 | VSYNC |
+| 1 | Mode change |
+
+When a callback is triggered, the buffer will be run as if a "buffer call" command has been performed.  A buffer can be set to be used for multiple types of callback, and a type can have multiple buffers set to be used for it.  Adding the same buffer to the same type of callback multiple times will have no effect, it will only be called once when the event happens.
+
+Any VSYNC callbacks that may have been set will be cleared after any mode change.  If you wish to automatically restore VSYNC callbacks after a mode change then you should set a mode change callback with commands to set up your VSYNC callback.
+
+A buffer will remain as a callback until it is removed or the buffer deleted.  If you wish to have a "one-shot" callback then you should remove the buffer from the callback after it has been triggered.
+
+Additional callback event types will be added in later versions of the VDP.  These are likely to include callbacks for audio system events.
+
+## Command 81: Remove buffer from a callback
+
+`VDU 23, 0, &A0, bufferId; 81, type;`
+
+Removes a buffer from being used as a callback for a certain event type.
+
+Support for callbacks was added in VDP 2.12.0.
+
+The types are as described for [command 80](#command-80), with the addition that sending a type of `65535` will remove the buffer from all callback types.
+
+Calling this command with a bufferId value of `65535` will clear all callbacks for the given type.  Therefore if you wish to clear all callbacks for all types then you can call this command with a bufferId of `65535` and a type of `65535`.
 
 
 ## Command 128: Debug info command
