@@ -28,6 +28,8 @@ The context management API also provides a way to select completely different co
 
 This can be useful if you want to have completely different sets of settings for different areas of your program, or applying to drawing different parts of the screen.
 
+As of VDP 2.12.0, the default context stack is context ID 0.  Changing screen mode will reset the currently selected context stack ID to 0.  In previous versions there was no default stack, which proved to be confusing.
+
 ## The API
 
 The API to manage contexts is relatively simple, and consists of the following commands:
@@ -38,7 +40,7 @@ This command will select a different context stack to use.
 
 If there is no context stack with the given `contextId`, a copy of the current context stack will be created and saved to the ID, and the new context stack will be selected.
 
-If you wish to explicitly save the current context stack to a `contextId` you should first delete the context stack and then use this command.
+If you wish for your new context ID to have an empty stack, then you should subsequently clear the stack with the "clear stack" command.
 
 Once you have selected a context stack by ID, all subsequent changes to your context stack will be saved against that ID.
 
@@ -47,6 +49,8 @@ Once you have selected a context stack by ID, all subsequent changes to your con
 This command will delete the context stack with the given `contextId`.
 
 Please note that deleting a stack from the store will not affect the current context stack, and will not affect the current context.
+
+As of VDP 2.12.0 you cannot delete your currently selected context stack.  Attempting to do so will have no effect.  This ensures that there will always be at least one context stack available.
 
 ### `VDU 23, 0, &C8, 2, flags`: Reset
 
@@ -85,7 +89,9 @@ Saves the current context to the context stack.  If there is a context stack sav
 
 If there is no context stack with the given `contextId`, then a copy of the current context will be saved to the stack, and you will be left with the current context.
 
-Please note that this does _not_ change the current context stack.
+This means that in both cases the context before you called this command is saved to the stack, and to revert to it you should call the "restore context" command.
+
+Please note that this does _not_ change the current active context stack, so the active context ID will remain the same.
 
 ### `VDU 23, 0, &C8, 6`: Restore all
 
