@@ -809,7 +809,7 @@ The various different values that pixels will be mapped to should immediately fo
 When a buffer is used for mapping data, that buffer must exist, and must contain a single block of at least the number of values required for the given number of bits per pixel.
 
 
-## Command 80: Set a buffer to be used for a callback
+<h2 id="command-80">Command 80: Set a buffer to be used for a callback</h2>
 
 `VDU 23, 0, &A0, bufferId; 80, type;`
 
@@ -840,7 +840,7 @@ Removes a buffer from being used as a callback for a certain event type.
 
 Support for callbacks was added in VDP 2.12.0.
 
-The types are as described for [command 80](#command-80), with the addition that sending a type of `65535` will remove the buffer from all callback types.
+The types are as described in [command 80](#command-80), with the addition that sending a type of `65535` will remove the buffer from all callback types.
 
 Calling this command with a bufferId value of `65535` will clear all callbacks for the given type.  Therefore if you wish to clear all callbacks for all types then you can call this command with a bufferId of `65535` and a type of `65535`.
 

@@ -57,7 +57,7 @@ This command is used to set the signal list.  The source list must be stored in 
 
 A signal list can be updated at any time, and the new signal list will take effect immediately.
 
-The [buffered commands API](Buffered-Commands.md) can be used to create a buffer and fill it with a signal list.
+The [buffered commands API](Buffered-Commands-API.md) can be used to create a buffer and fill it with a signal list.
 
 A source signal list is a set of pairs of 16-bit values stored in a buffer, where the first value is a count of rows, and the second value is the palette ID to use for those rows.  A single entry is therefore 4 bytes long.  The 16-byte values must be stored in the buffer in little-endian format.
 

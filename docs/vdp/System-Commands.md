@@ -253,17 +253,17 @@ This command will move the text cursor by the given number of pixels in the X an
 
 Normal cursor scrolling and wrapping behaviour will be obeyed, depending on the currently set cursor behaviour.
 
-## `VDU 23, 0, &90, n, b1, b2, b3, b4, b5, b6, b7, b8`: Redefine character n (0-255) with 8 bytes of data §
+<h2 id="vdu-23-0-90">`VDU 23, 0, &90, n, b1, b2, b3, b4, b5, b6, b7, b8`: Redefine character n (0-255) with 8 bytes of data §</h2>
 
 This command works identically to `VDU 23, n, b1, b2, b3, b4, b5, b6, b7, b8`, but allows characters 0-31 to also be redefined.
 
 NB from Console8 VDP 2.8.0 this command will only function if the currently selected font is the system font.
 
-## `VDU 23, 0, &91`: Reset all system font characters to original definition §
+<h2 id="vdu-23-0-91">`VDU 23, 0, &91`: Reset all system font characters to original definition §</h2>
 
 This command will reset all system font characters to their original definitions.
 
-## `VDU 23, 0, &92, char, bitmapId;`: Map character char to display bitmapId §§
+<h2 id="vdu-23-0-92">`VDU 23, 0, &92, char, bitmapId;`: Map character char to display bitmapId §§</h2>
 
 This command will map a character to a bitmap.  The bitmap ID given must be a valid bitmap in a 16 bit buffer ID.  The purpose of this command is to allow for fast and efficient drawing of bitmaps to the screen, by allowing them to be drawn as characters.
 
