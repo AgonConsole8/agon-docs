@@ -26,7 +26,7 @@ The commands to set and clear variables are documented in the [system commands](
 * `VDU 23, 0, &F8, variableId; value;`: Set a VDP Variable
 * `VDU 23, 0, &F9, variableId;`: Clear a VDP Variable
 
-The buffered command API is documented in the [buffered commands](Buffered-Commands.md) documentation.  The "conditional" commands there are now extended to allow for the use of variables, and an additional command to read the value of a variable and store it into a buffer has been added.
+The buffered command API is documented in the [buffered commands](Buffered-Commands-API.md) documentation.  The "conditional" commands there are now extended to allow for the use of variables, and an additional command to read the value of a variable and store it into a buffer has been added.
 
 
 ## Variable ID ranges
