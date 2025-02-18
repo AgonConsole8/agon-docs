@@ -25,6 +25,7 @@ Storing bitmaps in buffers allows for their data to be manipulated using the buf
 
 \* Commands marked with an asterisk are only available in VDP 2.2.0 or later.
 \** Commands marked with a double asterisk are only available in VDP 2.6.0 or later.
+\*** Commands marked with a triple asterisk are only available in VDP 2.12.0 or later.
 
 The commands to manage bitmaps are as follows:
 
@@ -125,60 +126,173 @@ Support for this command was added in VDP 2.2.0.
 
 ## Sprites
 
-The Sprites system on the Agon VDP is an extension to the bitmap system.  They are not true "hardware sprites" as one might find on some 8-bit machines or consoles.  They are best thought of as "automatically drawn bitmaps".
+The Sprites system on the Agon VDP is an extension to the bitmap system.  For all versions of the VDP up to and including 2.11.0, they are not true "hardware sprites" as one might find on some 8-bit machines or consoles.  Instead they are best thought of as "automatically drawn bitmaps".  This brings with it some limitations, and some performance considerations.
 
-Technically the VDP can support up to 256 sprites.  They must be defined contiguously, and so the first sprite is sprite 0.  (In contrast, bitmaps can have any ID from 0 to 65534.)  Once a selection of sprites have been defined, you can activate them using the `VDU 23, 27, 7, n` command, where `n` is the number of sprites to activate.  This will activate the first `n` sprites, starting with sprite 0.  All sprites from 0 to n-1 must be defined.
+From VDP 2.12.0 onwards the VDP does support the option to mark some sprites as being "hardware sprites".  These have some different limitations and performance considerations.  For clarity when we need to differentiate between the two types of sprites, we will refer to the original sprites as "software sprites", and the new sprites as "hardware sprites".  In the VDP 2.12.0 release the hardware sprites feature is not enabled by default, and a test flag must be set to enable them using `VDU 23, 0, &F8, 2; 1;`.
+
+For compatibility with existing software, all sprites are by default set to be software sprites.
+
+Technically the VDP can support up to 256 sprites.  They must be defined contiguously, and so the first sprite is sprite 0.  (In contrast, bitmaps can have any ID from 0 to 65534.)  Once a selection of sprites have been defined, you can activate them using the `VDU 23, 27, 7, n` command, where `n` is the number of sprites to activate.  This will activate the first `n` sprites, starting with sprite 0.  All sprites from 0 to n-1 must be defined.  You can, however, set sprites within the "active" range to be hidden, so they will not be drawn.
 
 A single sprite can have multiple "frames", referring to different bitmaps.  (These bitmaps do not need to be the same size.)  This allows a sprite to include an animation sequence, which can be stepped through one frame at a time, or picked in any order.
 
-Any format of bitmap can be used as a sprite frame.  It should be noted however that "native" format bitmaps are not recommended for use as sprite frames, as they cannot get erased from the screen.  (As noted above, the "native" bitmap format is not really intended for general use.)  This is part of why from Agon Console8 VDP 2.6.0 bitmaps captured from the screen are now stored in RGBA2222 format.
+With software sprites, any format of bitmap can be used as a sprite frame.  It should be noted however that "native" format bitmaps are not recommended for use as sprite frames, as they cannot get erased from the screen.  (As noted above, the "native" bitmap format is not really intended for general use.)  This is part of why from Agon Console8 VDP 2.6.0 bitmaps captured from the screen are now stored in RGBA2222 format.
 
-An "active" sprite can be hidden, so it will stop being drawn, and then later shown again.
+Hardware sprites are limited to using bitmaps in RGBA8888 or RGBA2222 format.
 
-Moving sprites around the screen is done by changing the position of the sprite.  This can be done either by setting the absolute position of the sprite, or by moving the sprite by a given number of pixels.  (Sprites are positioned using pixel coordinates, and not by the logical OS coordinate system.)  In the current sprite system, sprites will not update their position on-screen until either another drawing operation is performed or an explicit `VDU 23, 27, 15` command is performed.
+Moving sprites around the screen is done by changing the position of the sprite.  This can be done either by setting the absolute position of the sprite, or by moving the sprite by a given number of pixels.  (Sprites are positioned using pixel coordinates, and not by the logical OS coordinate system.)  Software sprites will not update their position on-screen until either another drawing operation is performed or an explicit `VDU 23, 27, 15` command is performed.
 
 Here are the sprite commands:
 
-- `VDU 23, 27, 4, n`: Select sprite n
-- `VDU 23, 27, 5`: Clear frames in current sprite
-- `VDU 23, 27, 6, n`: Add bitmap n as a frame to current sprite (where bitmap's buffer ID is 64000+`n`)
-- `VDU 23, 27, 7, n`: Activate n sprites
-- `VDU 23, 27, 8`: Select next frame of current sprite
-- `VDU 23, 27, 9`: Select previous frame of current sprite
-- `VDU 23, 27, 10, n`: Select the nth frame of current sprite
-- `VDU 23, 27, 11`: Show current sprite
-- `VDU 23, 27, 12`: Hide current sprite
-- `VDU 23, 27, 13, x; y;`: Move current sprite to pixel position x, y
-- `VDU 23, 27, 14, x; y;`: Move current sprite by x, y pixels
-- `VDU 23, 27, 15`: Update the sprites in the GPU
-- `VDU 23, 27, 16`: Reset bitmaps and sprites and clear all data
-- `VDU 23, 27, 17`: Reset sprites (only) and clear all data
-- `VDU 23, 27, 18, n`: Set the current sprite GCOL paint mode to n **
-- `VDU 23, 27, &26, n;`: Add bitmap n as a frame to current sprite using a 16-bit buffer ID
+### `VDU 23, 27, 4, n`: Select sprite n
 
-### Notes on sprites
+This selects the sprite with the given 8-bit ID as being the currently "active" sprite for subsequent sprite commands.
 
-This advice is valid up to and including the Agon Console8 VDP 2.6.0 release.  In the future this may change.
+### `VDU 23, 27, 5`: Clear frames in current sprite
 
-The nature of how sprites are currently supported in the Agon VDP means that performance is not as good as it could be, and so they should be used sparingly.  If you have too many sprites on-screen then you may notice that some sprites may flicker, especially if they are positioned closer to the top of the screen.  Sprites are currently always drawn in order, so those with lower IDs will flicker less than those with higher IDs.
+This command clears all frames from the current sprite.  The sprite will be left with no frames, and so will not be drawn on-screen.
 
-Performance of the Agon emulator differs significantly from real hardware, owing to how the VDP system is emulated.  You will be able to have more sprites on-screen on the emulator than you will on real hardware.
+### `VDU 23, 27, 6, n`: Add bitmap n as a frame to current sprite (where bitmap's buffer ID is 64000+`n`)
 
-Technically, sprites are implemented as "automatically drawn bitmaps".  When a sprite is drawn on-screen, a copy of the area of screen that it covers is made, and then the sprite bitmap is drawn over that screen area.  (Sprite bitmaps can be transparent, and the background will show through.)  When a sprite is hidden, the area of screen that it covered is copied back onto the screen.  When you have a lot of sprites, this can mean that a lot of screen data is being copied around.
+This command adds a bitmap as a frame to the current sprite.  The bitmap must already be set up and available for use.  Attempting to assign a bitmap has not yet been defined to a frame will be ignored.
 
-Owing to inefficiencies in how sprites have been implemented, _any_ operation that draws something to the screen will cause _all_ sprites to be hidden, the drawing operation performed, and then all sprites are redrawn.  (This includes, for example, the flashing of the text cursor.)  Sprites are redrawn in order by their ID at the beginning of the screen being drawn to the VGA port.  This means that if there are a lot of active sprites, those later in the list get drawn to the screen buffer later, possibly after that part of the screen has been sent out of the VGA port.  This, essentially, is the cause of the flickering.
+### `VDU 23, 27, 7, n`: Activate n sprites
 
-One way to reduce flickering is to try to avoid using sprites near the top of the screen.  This gives more opportunity for the sprites to be redrawn.
+This command activates the first `n` sprites, starting with sprite 0.  Any sprites within that range that have been set to be hidden, or do not have any frames set, will not be drawn.
 
-Owing to how sprites work, it is hard to offer definitive advice on how many sprites you can use.  The size of sprites you are using will also be a factor.  It is best to experiment and see what works for you.
+### `VDU 23, 27, 8`: Select next frame of current sprite
 
-Sprites also behave differently on double-buffered screen modes.  On those modes sprites are never "hidden" and are instead drawn to screen before a buffer swap.  This means they tend not to flicker, but care needs to be taken to ensure that the screen is properly redrawn.
+This command selects the next frame of the currently selected sprite.  If the current frame is the last frame of the sprite, then the first frame will be selected.
 
-Up to and including the Console8 VDP 2.5.0 release, sprites using bitmaps captured from screen would not work properly, and would not be erased from the screen.  This is because the bitmaps were stored in "native" format, and the VDP did not have the ability to erase them.  This has been fixed in the Console8 VDP 2.6.0 release, and bitmaps captured from the screen are now stored in RGBA2222 format, and so can be erased from the screen.
+### `VDU 23, 27, 9`: Select previous frame of current sprite
 
-Console8 VDP 2.6.0 also introduces the ability to set the GCOL paint mode for sprites.  This can allow for more sophisticated drawing operations to be performed with sprites, and some interesting effects.
+This command selects the previous frame of the currently selected sprite.  If the current frame is the first frame of the sprite, then the last frame will be selected.
 
-For completely optimal graphical performance, it is usually best to avoid using sprites, and instead use the bitmap system directly.  Using a small number of sprites can be a reasonable compromise.
+### `VDU 23, 27, 10, n`: Select the nth frame of current sprite
+
+This command selects the nth frame of the currently selected sprite, with frames numbered from zero.  If the frame number is out of range, then the command will be ignored.
+
+### `VDU 23, 27, 11`: Show current sprite
+
+This command reverses a previous "hide" command, and will cause the current sprite to be drawn on-screen, if it is within the range of active sprites.
+
+### `VDU 23, 27, 12`: Hide current sprite
+
+This command will cause the current sprite to be hidden, and not drawn on-screen.  The sprite will still be active, and can be shown again using the "show" command.
+
+### `VDU 23, 27, 13, x; y;`: Move current sprite to pixel position x, y
+
+This command moves the current sprite to the given pixel position on the screen.  The sprite will be drawn at the top left corner of the sprite bitmap, and so the position given is the top left corner of the sprite.
+
+### `VDU 23, 27, 14, x; y;`: Move current sprite by x, y pixels
+
+This command moves the current screen location of the currently selected sprite by the given number of pixels.
+
+### `VDU 23, 27, 15`: Update the sprites in the GPU
+
+This command will cause the sprites to be redrawn on-screen.  This is necessary if you have moved a sprite and want to see the change on-screen.  It is also necessary if you have changed the frame of a sprite, or if you have shown or hidden a sprite.
+
+### `VDU 23, 27, 16`: Reset bitmaps and sprites
+
+This command will clear all bitmap and sprite definitions.  All sprites will be deactivated, and have all their frames cleared, and the current active sprite ID will be set to zero.  All bitmap definitions will be cleared too, and the current active bitmap set to zero (or `64000` when using 16-bit IDs).  The bitmap data stored in buffers related to the bitmaps will remain, the buffer will just no longer be marked as a bitmap, so should you wish to clear the buffers too that needs to be done separately.  Any uses of bitmaps will also be reset, such as mapping a character to a bitmap, or using a bitmap as the mouse cursor.  This command will also clear the screen.
+
+Any sprites that were set to be hardware sprites will be reset to be software sprites, unless the test flag to enable hardware sprites has been set and also the feature flag to use hardware sprites by default has also been set.
+
+### `VDU 23, 27, 17`: Reset sprites (only)
+
+This command will clear all sprite definitions.  All sprites will be deactivated, and have all their frames cleared, and set the current active sprite ID to zero.  As with `VDU 23, 27, 16` sprites will be reset to be software sprites unless the appropriate flags are set.
+
+This command will not affect any bitmap definitions.
+
+### `VDU 23, 27, 18, n`: Set the current sprite GCOL paint mode to n **
+
+This command sets the paint mode for the current sprite.  Please see the documentation on the `GCOL` command for more information on the paint modes.  This command is only supported for software sprites.
+
+### `VDU 23, 27, 19`: Set sprite to be a hardware sprite ***
+
+This command sets the currently selected sprite to be drawn a hardware sprite.  This command is only supported on VDP 2.12.0 or later.
+
+Please note that at this time to use hardware sprites you need to enable the corresponding test flag for them.  This can be done using `VDU 23, 0, &F8, 2; 1;`.  Until this flag is set, this command will be ignored.
+
+### `VDU 23, 27, 20`: Set sprite to be a software sprite ***
+
+This command reverses the effect of the `VDU 23, 27, 19` command, and sets the current sprite to be drawn as a software sprite.  This command is only supported on VDP 2.12.0 or later.
+
+### `VDU 23, 27, 21, n`; Replace currently frame of current sprite with bitmap n ***
+
+This command replaces the currently selected frame of the current sprite with the bitmap with the given 8-bit ID.  The bitmap must already be set up and available for use.  Attempting to assign a bitmap has not yet been defined to a frame will be ignored.  This command is only supported in VDP 2.12.0 or later.
+
+### `VDU 23, 27, &26, n;`: Add bitmap n as a frame to current sprite using a 16-bit buffer ID
+
+This command is identical to `VDU 23, 27, 6, n`, but uses a 16-bit buffer ID instead of an 8-bit bitmap ID.
+
+### `VDU 23, 27, &35, n;`: Replace currently frame of current sprite with bitmap n using a 16-bit buffer ID ***
+
+This command replaces the currently selected frame of the current sprite with the bitmap with the given 16-bit buffer ID.  The bitmap must already be set up and available for use.  Attempting to assign a bitmap has not yet been defined to a frame will be ignored.  This command is only supported in VDP 2.12.0 or later.
+
+ 
+## Notes on sprites
+
+The sprite system on the Agon, up to and including the 2.11.0 release, implemented exclusively software sprites.  These carry with them some significant limitations and performance considerations.  They should be used sparingly, and with care.
+
+From the VDP 2.12.0 release the VDP will also support hardware sprites, which bring with them a different set of limitations and considerations for use.
+
+The use of software sprites and hardware sprites can be combined to take advantage of the strengths of each system with both visible on screen simultaneously.
+
+The following notes are intended to help you understand the limitations of software sprites, and the differences between software and hardware sprites.
+
+
+### Software sprite limitations
+
+Software sprites are best thought of as "automatically drawn bitmaps", as that is, essentially, how they are implemented inside the VDP.
+
+In single buffer screen modes, performing a drawing operation will cause all sprites to be hidden, the drawing operation performed, and then all sprites are redrawn.  When a sprite is drawn on-screen, a copy of the area of screen that ist covers is made, and then the sprite is drawn over that screen area.  When a sprite is hidden, the area of screen that it covered is copied back onto the screen.  This means that if you have a lot of active sprites, a lot of screen data is being copied around.
+
+In single-buffered screen modes, owing to inefficiencies in how software spriates have been implemented, _any_ operation that draws something to the screen will cause _all_ sprites to be hidden, the drawing operation performed, and then all sprites are redrawn.  (This includes, for example, the flashing of the text cursor.)  Sprites are redrawn in order by their ID at the beginning of the screen being drawn to the VGA port.  This means that if there are a lot of active sprites, those later in the list get drawn to the screen buffer later, possibly after that part of the screen has been sent out of the VGA port.  This, essentially, is the cause of the flickering.
+
+If you have too many software sprites on-screen then you may notice that some sprites may flicker, especially if they are positioned closer to the top of the screen.  Sprites are always drawn in order, so those with lower IDs will flicker less than those with higher IDs.
+
+One way to reduce flickering is to try to avoid using sprites near the top of the screen.  This gives more opportunity for the sprites to be redrawn before the row they occupy is scanned out of the VGA port.
+
+Owing to how software sprites work, it is hard to offer definitive advice on how many sprites you can use.  The size of sprites you are using will also be a factor.  It is best to experiment and see what works for you.
+
+Software sprites also behave differently on double-buffered screen modes.  In those modes sprites are never "hidden" and are instead drawn to screen before a buffer swap.  This means they tend not to flicker, but care needs to be taken to ensure that the screen is properly redrawn.
+
+In double-buffered screen modes software sprites are not hidden at all, and instead work exactly as if they were plain automatically drawn bitmaps.  This means that they will not flicker, but care needs to be taken to ensure that the screen is properly redrawn.
+
+Performance of the Agon emulator differs significantly from real hardware, owing to how the VDP system is emulated.  You will be able to have more software sprites on-screen on the emulator than you will on real hardware.
+
+Up to and including the Console8 VDP 2.5.0 release, sprites using bitmaps captured from screen would not work properly, and would not be erased from the screen.  This is because the bitmaps were stored in "native" format, and the VDP did not have the ability to erase them.  This was fixed in the Console8 VDP 2.6.0 release, and bitmaps captured from the screen are now stored in RGBA2222 format, and so can be erased from the screen.
+
+Console8 VDP 2.6.0 also introduces the ability to set the GCOL paint mode for software sprites.  This can allow for more sophisticated drawing operations to be performed with sprites, and some interesting effects.
+
+On versions of the VDP that only support software sprites, for completely optimal graphical performance, it is usually best to avoid using sprites, and instead use the bitmap system directly.  Using a small number of sprites can be a reasonable compromise.
+
+### Hardware sprite limitations
+
+Hardware sprites are a new feature in the VDP 2.12.0 release.
+
+As of version 2.12.0 the feature is still considered experimental, so to use the command to mark as sprite as being a "hardware sprite" you need to set a test flag.  This can be done using `VDU 23, 0, &F8, 2; 1;`.
+
+Hardware sprites have different limitations placed on them when compared with software sprites, but also have some advantages.
+
+The main advantages that hardware sprites exhibit is that they will always be shown in full 64 colours, whatever the colour depth of screen mode you are in, and they operate as proper sprites in double-buffered screen modes.  Hardware sprites also do not flicker, and changes made to them will immediately appear on-screen, with no need to send a "refresh sprites" command.  They appear above all other graphics on the screen, including software sprites.  When hardware sprites overlap, the sprite with the higher ID will be drawn on top of the sprite with the lower ID.
+
+The limitations of hardware sprites are that you can only use bitmaps in RGBA8888 or RGBA2222 format, and they will not support different GCOL paint modes - they will always be shown with a "set pixel" style of drawing operation.  There are also limitations on how many hardware sprites can be shown on-screen at once, and these limitations are complex and depend on many factors.
+
+Technically the way that hardware sprites work is that the VDP only draws the sprites out during the VGA signal generation.  As they are not drawn into the framebuffer, this means that hardware sprites do not need to be hidden and redrawn in the same way that software sprites do, and so will not flicker.
+
+The exact limitations of how many hardware sprites can be displayed at once are complex, depending on the sizes of the sprites, their data format, the resolution, frequency, and colour depth of the screen mode, and the position of the sprites on-screen.  The limitations are, essentially, around how many pixels need to get drawn onto a single scanline of the VGA signal and the time available to generate that signal.  The VDP will try to draw all of the hardware sprites that are active, but if there are too many then this can take too long and cause issues with the VGA signal generation.  If you have too many sprite pixels active on a row then the signal generation can fail, and the VGA signal may break down and not display correctly.  You may see jittery output, or the screen may not display at all.
+
+In general, you will be able to use less hardware sprites on a single scanline in higher resolution screen modes, and more in lower resolution modes.  You will be able to show more RGBA2222 format sprites than RGBA8888 format ones.  The colour depth of the screen mode does not have much of an impact on the number of sprites that can be shown, but the resolution does.
+
+By way of an example, the BASIC `sprites_5.bas` test program from the `agon-bbc-basic` repository is written to show 32 ghost sprites, which are all 16x16 pixels in size, in RGBA8888 format, and run in mode 8 (64 colours, 320x240 resolution).  This demo generally shows quite a lot of flickering, with some of the sprites turning completely invisible towards the top of the screen.  When converted to use hardware sprites, all 32 ghosts will always be visible, and do not flicker at all.  You can increase the number of sprites to 64, and they will still be stable.  Going up to 90 sprites will often still be stable, although you might see some occasional glitchiness in the display output.  The higher you go with the number of active hardware sprites, the more likely you are to see issues with the VGA signal generation.  If you go too far, which experimentation shows happens in the region of around 140+ sprites, then the VDP can end up in a state where it is unable to display anything at all, and you will need to press the reset button on your Agon to recover, or the VDP might crash.
+
+In contrast, when adjusting the same demo to run in any of modes 0, 1 or 2, which are 640x480 resolution modes with 16, 4 and 2 colours respectively, the number of sprites that can be shown on-screen at once is significantly reduced.  The original count of 32 sprites will generally be fairly glitchy, and some occasional glitchiness may still be observed with just 20 hardware sprites showing.
+
+Wider sprites can also cause issues if used as hardware sprites.  The exact limitations will depend on the resolution of the screen mode, but in general it is best to avoid using wide sprites as hardware sprites.  Tall sprites are less of an issue, so long as they are narrow.
+
+As these limtiations are complex with many factors, the VDP does not set any explicit limits on the number of sprites a user can set as hardware sprites.  To do so would place additional burdens on the output system, and further restrict the number of hardware sprites that could be displayed.  It is up to you to experiment and see what works for you.
 
 
 ## Mouse cursor

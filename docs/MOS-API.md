@@ -142,6 +142,7 @@ NB: This is a blocking function. This routine will wait and only return once a k
 Load a file from SD card
 
 Parameters:
+
 - `HL(U)`: Address of filename (zero terminated)
 - `DE(U)`: Address at which to load
 - `BC(U)`: Maximum allowed size (bytes)
@@ -340,7 +341,9 @@ Parameters:
 
 Preserves: `HL(U)`, `BC(U)`, `DE(U)`, `IX(U)`, `IY(U)`
 
-Returns: None
+Returns:
+
+None
 
 ### `0x0E`: mos_feof
 
@@ -368,7 +371,9 @@ Parameters:
 
 Preserves: `DE(U)`, `HL(U)`, `BC(U)`
 
-Returns: None
+Returns:
+
+None
 
 ### `0x10`: mos_oscli
 
@@ -436,7 +441,9 @@ Parameters:
 
 Preserves: `HL(U)`
 
-Returns: None
+Returns:
+
+None
 
 ### `0x14`: mos_setintvector
 

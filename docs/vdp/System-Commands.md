@@ -14,6 +14,7 @@ Please note that not all versions of the VDP support the complete command set.  
  §§§§ Requires Console8 VDP 2.7.0 or above<br>
  §§§§§ Requires Console8 VDP 2.8.0 or above<br>
  §§§§§§ Requires Console8 VDP 2.9.0 or above<br>
+ §§§§§§§ Requires Console8 VDP 2.12.0 or above<br>
 
 Commands between &80 and &89 will return their data back to the eZ80 via the [serial protocol](#serial-protocol).
 
@@ -400,6 +401,12 @@ Waiting for VSYNC can be useful for ensuring smooth graphical animation, as it w
 
 (In BASIC performing a `*FX 19` command will perform a similar wait for VSYNC, but on the eZ80 side of the system, but will not swap the screen buffer.)
 
+## `VDU 23, 0, &C4, command, [<args>]`: "Copper" functions §§§§§§§
+
+Send a command to the [VDP Copper API](Copper-API.md).  This allows for the creation of different palettes and for the palettes to be changed on the fly during the scanout of the screen.
+
+These functions were introduced in VDP 2.12.0.  At this time, to access these APIs a feature flag must be set using `VDU 23, 0, &F8, &310; 0;`.  The exact feature set provided may be subject to change in future versions of the VDP firmware.
+
 ## `VDU 23, 0, &C8, <command>, [<args>]`: Context management API §§§§§
 
 Send a command to the [Context Management API](Context-Management-API.md).  This allows management of the current graphics context, which includes the current font, text and graphics colours, and the current GCOL paint mode.
@@ -422,23 +429,19 @@ The line pattern can be set using `VDU 23, 6, n1, n2, n3, n4, n5, n6, n7, n8`, w
 
 Support for this command was added in Console8 VDP 2.7.0.
 
-## `VDU 23, 0, &F8, flagId; value;`: Set a test flag §§§§§§
+## `VDU 23, 0, &F8, variableId; value;`: Set a VDP Variable §§§§§§
 
-This command is used to set a test flag.  Test flags are used to enable new and experimental features in the VDP that may not be quite ready for general use, and/or have an API that may change in the future.  They are intended for use by developers and testers.
+This command is used to set a [VDP variable](VDP-Variables.md).  VDP variables are used to control various features of the VDP, including enabling new functionality that may not quite be ready for general use and/or have an API that may change in the future.  They may also allow for changing various aspects of the VDP's behaviour.
 
-The `flagId` is the ID of the flag to set, and the `value` is the value to set the flag to.  The meaning of the `value` that any particular flag is set to will be specific to the flag being set.  A value must always be provided, even if the flag does not require a value to be set.
+The `variableId` is the ID of the variable to set, and the `value` is the value to set it to.  The meaning of the `value` that any particular variable is set to will be specific to the flag being set.  A value must always be provided, even if the variable does not require a value to be set.
 
-As of Console8 VDP 2.9.0 the following test flags are supported:
+For details on the variables that can be set, see the [VDP Variables documentation](VDP-Variables.md).
 
-| Flag ID | Value | Description |
-| ------- | ----- | ----------- |
-| 1 | 0 (N/A) | Enable the Affine Transforms feature |
+## `VDU 23, 0, &F9, variableId;`: Clear a VDP Variable §§§§§§
 
-If a flag is set that is not recognised then it will have no effect.  This means that if a feature graduates from being a test feature then so long as the API for the feature remains the same, then software that set the flag to enable the feature will still work.
+This command is used to clear a VDP variable, removing them from the variable store, when possible.
 
-## `VDU 23, 0, &F9, flagId;`: Clear a test flag §§§§§§
-
-This command is used to clear a test flag.
+Most VDP variables that reflect the system state information cannot be cleared, and this command will ignored attempts to clear them.
 
 ## `VDU 23, 0, &FE, n`: Console mode **
 
