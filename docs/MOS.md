@@ -38,9 +38,13 @@ If you have attempted to use a command that was not built into MOS, and was not 
 
 NB there is currently no way to control the memory address that a program in the `bin` folder will be loaded to, so if you have a program that needs to be loaded at a specific address, you will need to use the `LOAD` command to load it manually.  Additionally there is no way to control the manner in which MOS searches for commands, so if you have a program in the `bin` folder that you want to run, you will need to ensure that there is no built-in command or "moslet" with the same name.  These limitations may be changed in the future.
 
-### The `autoexec.txt` file
+### Automatically running a script on boot
 
-If, at boot-up time, MOS detects an `autoexec.txt` file in the root folder of the SD card, it will read the file in, and execute the MOS commands in the file sequentially from top to bottom.
+MOS has the ability to automatically run a script file on boot.  Quite what this script does is up to you, but it could be used to set up your Agon in a particular way, or to run a program automatically.
+
+The exact file that will be run, and the manner in which the file is run varies depending on which version of MOS you are using.
+
+Quark 1.04, and Console8 MOS 2.0.0 to 2.3.x will all at boot-up time look for a file named `autoexec.txt` in the root folder of the SD card.  If it finds one, it will read the file in, and execute the MOS commands in the file sequentially from top to bottom.
 
 For example, to set keyboard to US, load BBC BASIC from the root folder, change to the test folder, then run BASIC
 
@@ -51,9 +55,11 @@ CD test
 RUN
 ```
 
-The manner in which this file is executed differs slightly between Quark 1.04 and the Console8 releases.  Quark will blindly execute the commands and silently carry on if there is an error, whereas Console8 will stop execution if there is an error in the file, report the error as well as which line the error occurred on.
+The manner in which this file is executed differs slightly between Quark 1.04 and the Console8 releases.  Quark will blindly execute the commands and silently carry on if there is an error, whereas Console8 releases will stop execution if there is an error in the file, report the error as well as which line the error occurred on.  MOS 2.x uses the [`Exec` command](mos/Star-Commands.md#exec) to run the file, whereas Quark uses a different method.
 
 As of Console8 MOS 2.2.0 the autoexec.txt file will run on every boot.  Previous versions of MOS (including Quark 1.04) would only run the autoexec.txt file on a "hard reset" (i.e. a power cycle, or press of the reset button) and not on a soft reset (i.e. a `CTRL+ALT+DEL`).
+
+As of Console8 MOS 3.0, at boot time the system will look for a file named `!boot.obey` in the root folder of the SD card, and run that file using the [`Obey` command](mos/Star-Commands.md#obey).  If that file is not found, it will look for a file named `autoexec.obey`.  If that is also not found it will fall back to looking for `autoexec.txt` and running that using the `Exec` command.
 
 ## Soft Boot
 

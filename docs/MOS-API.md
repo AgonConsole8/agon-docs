@@ -408,6 +408,8 @@ Returns:
 
 NB: Requires MOS 1.03 or greater
 
+TODO: Document how filename support works in MOS 3.0
+
 ### `0x12`: mos_getrtc
 
 Get a time string from the RTC (Requires MOS 1.03 or above)
@@ -669,7 +671,360 @@ Returns:
 	- `4`: Bus arbitration lost
 	- `8`: Bus error
 
-***
+### `0x23`: mos_unpackrtc
+
+Unpack the RTC data into a buffer (Requires MOS 3.0 or above)
+
+Parameters:
+
+- `HL(U)`: Pointer to a buffer to copy the RTC data to
+
+### `0x28-0x2C`: String functions
+
+API calls in this range are string manipulation functions, added in MOS 3.0.
+
+### `0x28`: mos_pmatch
+
+Pattern matching function, with support for various flags to control how the comparison is made.
+
+This exposes the pattern matching function that MOS 3.0 uses internally for matching commands and filenames.
+
+Parameters:
+
+- `HL(U)`: Address of pattern (zero terminated)
+- `DE(U)`: Address at string to compare against pattern (zero terminated)
+- `C`: Flags
+
+The flags are a bit-field to enable various different pattern matching options
+
+| Bit | Description |
+| --- | ----------- |
+| 0   | Case insensitive |
+| 1   | Disable star (`*`) wildcard matching |
+| 2   | Disable hash (`#`) wildcard matching |
+| 3   | "Dot as star" mode (treats `.` at the end of pattern as a star, used in MOS for matching abbreviated commands) |
+| 4   | "Begins with" mode (only matches if the string starts with the pattern) |
+| 5   | "Up to space" mode (only matches up to the first space in the pattern) |
+
+Preserves: `HL(U)`, `DE(U)` and `BC(U)`
+
+Returns:
+
+- `A`: Status
+    - `0` if pattern matches
+	- Positive number if string does not match, and is logically sorted after the pattern
+	- Negative number if string does not match, and is logically sorted before the pattern
+
+### `0x29`: mos_getargument
+
+Extract a (numbered) argument from a string
+
+Parameters:
+
+- `HL(U)`: Pointer to source string
+- `BC(U)`: Argument number
+
+Returns:
+
+- `HL(U)`: Address of the argument or zero if not found
+
+TODO the implementation feels wrong, and the args/return don't feel correct either
+there should be a pair of addresses returned, one for the start of the argument and one for the end
+
+### `0x2A`: mos_extractstring
+
+Extract a string, using a given divider.
+
+Parameters:
+
+- `HL(U)`: Pointer to source string to extract from
+- `DE(U)`: Pointer to string for divider matching, or `0` for default (space)
+- `A`: Flags. Depending on flags, the result string will be zero terminated or not
+
+The flags are a bit-field to enable various different options
+
+| Bit | Description |
+| --- | ----------- |
+| 0   | Zero terminate the result string |
+| 1   | Omit skipping of divider characters at beginning of source string |
+| 2   | Disable matching of double-quotes |
+| 3   | Include double-quotes in results string |
+
+If string extraction is matching double-quotes and an end quote is not found, a status code of `25` (Bad string) will be returned.
+
+Returns:
+
+- `A`: status code
+- `HL(U)`: Address of the result string
+- `DE(U)`: Address of next character after end of result string
+
+### `0x2B`: mos_extractnumber
+
+Extract a number, using given divider.  Various number formats are supported - for more information see notes on numbers interpreted by the [MOS CLI](mos/Star-Commands.md)
+
+Parameters:
+
+- `HL(U)`: Pointer to source string to extract from
+- `DE(U)`: Pointer to string for divider matching, or 0 for default (space)
+- `A`: Flags
+
+The flags are a bit-field to enable various different options
+
+| Bit | Description |
+| --- | ----------- |
+| 0   | Decimal numbers only |
+| 1   | Positive numbers only |
+| 2   | Allow `h` suffix to indicate hexadecimal numbers |
+
+Returns:
+
+- `A`: status code
+- `HL(U)`: Number extracted
+- `DE(U)`: Address of next character after end of number
+
+### `0x2C`: mos_escapestring
+
+"Escape" a string for display, converting control characters to be pipe-prefixed
+
+Parameters:
+
+- `HL(U)`: Pointer to source string
+- `DE(U)`: Pointer to destination buffer (optional)
+- `BC(U)`: Length of destination buffer
+
+If no destination buffer is provided (i.e. `DE` is zero), the function will return the length of the escaped string.
+
+If the destination buffer is too short then a status code of `22` (Out of memory) will be returned, and as much of the source string that could be converted will be copied to the destination buffer.
+
+Returns:
+
+- `A`: Status code
+- `BC(U)`: Length of escaped string
+
+
+### `0x30-0x37`: System variables and string translations
+
+API calls in this range are used for setting and reading system variables, and for performing string translations.
+
+### `0x30`: mos_setvarval
+
+Set, update, replace or remove a [System Variable](mos/System-Variables.md)
+
+Parameters:
+
+- `HL(U)`: Pointer to variable name (can include wildcards)
+- `DE(U)`: Variable value (number, or pointer to string)
+- `IX(U)`: Pointer to variable name (0 for first call)
+- `A`: Variable type, or -1 (255) to delete the variable
+
+If the name used includes a wildcard, then the first matching variable will be set.  Subsequent calls can be made to set the next variable that matches the pattern, so long as you preserve `IX(U)` between calls.
+
+Variable types supported are:
+
+| Type | Description |
+| ---- | ----------- |
+| 0    | String (Will be run through GSTrans before storing) |
+| 1    | Number (a 24-bit integer value) |
+| 2    | Macro (A string that will be GSTrans'd each time it is used) |
+| 3	   | "Expanded" (Expression that will be evaluated before stored) |
+| 4    | Literal string (GSTrans will not be called before storage) |
+
+NB at the time of writing the expression engine has yet to be written in MOS 3 so type 3 support is limited to either a number or a string to indicate a variable name to copy as a string type.
+
+If either a type of 3 or 4 is used then the variable type used for storage of the variable will be either a string or a number.
+
+Internally MOS also supports "Code" type variables.  You can call the "set" functions of these variables by using the String type with a matching name.  You cannot remove a "Code" type variable using this function.
+
+Returns:
+
+- `A`: Status code
+- `D`: Actual variable type
+- `IX(U)`: Pointer to actual variable name (for next call)
+
+### `0x31`: mos_readvarval
+
+Read a variable value
+
+Parameters:
+
+- `HL(U)`: Pointer to variable name (can include wildcards)
+- `DE(U)`: Pointer to buffer to store the value (null/0 to read length only)
+- `BC(U)`: Length of buffer
+- `IX(U)`: Pointer to variable name (0 for first call)
+- `A`: Flags (3 = expand value into string)
+
+If the name includes a wildcard then the first matching variable will be read.  Subsequent calls can be made to read the next value that matches the pattern, so long as you preserve `IX(U)` between calls.
+
+Returns:
+
+- `A`: Status code
+- `D`: Actual variable type
+- `BC(U)`: Length of variable value
+- `IX(U)`: Pointer to variable name (for next call)
+
+### `0x32`: mos_gsinit
+
+Initialises a GSTrans operation.
+
+GSTrans is a process of taking a source string and translating it, replacing any variables referenced, and converting any control codes into raw control bytes.  The `echo` command in MOS is an example of a command that uses the GSTrans process.
+
+The process of translating a string is a two-step process.  The first step is to call `mos_gsinit` to initialise the process, and the second step is to repeatedly call `mos_gsread` to actually perform the translation, fetching one character at a time until the whole string has been translated.
+
+Parameters:
+
+- `HL(U)`: Pointer to source buffer to translate
+- `DE(U)`: Address of pointer used to store trans info
+- `A`: Flags
+
+`DE(U)` must point to an address that will be used to store a pointer to an information block used by the GSTrans process.  Failing to complete the GSTrans process will result in a memory leak.
+
+Returns:
+
+- `A`: Status code
+
+### `0x33`: mos_gsread
+
+Perform a GSTrans "read" operation.
+
+When the final character of the translated string has been read, this function will return a null character (`0`) to indicate the end of the string.
+
+Parameters:
+
+- `HL(U)`: Pointer to a char (byte) to store the result
+- `DE(U)`: Address of pointer used to store trans info (same pointer as used with gsInit)
+
+Returns:
+- `A`: Status code (`0` = Success, various other values may indicate an invalid GSTrans string)
+
+### `0x34`: mos_gstrans
+
+Perform a complete GSTrans operation from source into dest buffer
+
+Parameters:
+
+- `HL(U)`: Pointer to source buffer
+- `DE(U)`: Pointer to destination buffer (can be null to just count size)
+- `BC(U)`: Length of destination buffer
+- `A`: Flags
+
+Returns:
+- `A`: Status code
+- `BC(U)`: Calculated total length of destination string
+
+### `0x35`: mos_substituteargs
+
+Substitute arguments into a string from template
+
+Parameters:
+
+- `HL(U)`: Pointer to template string
+- `DE(U)`: Pointer to arguments string
+- `BC(U)`: Length of destination buffer
+- `IX(U)`: Pointer to destination buffer (can be null to just count size)
+- `A`: Flags
+
+The only flag currently supported is bit 0, which indicates that the "rest" arguments (i.e. those not explicitly used in the template) should be omitted from the destination string.  When this bit is clear they will be automatically appended.
+
+Returns:
+
+- `BC(U)`: Calculated length of destination string
+
+### `0x36`: mos_evaluateexpression
+
+As of MOS 3.0alpha2 this function has not yet been implemented
+
+### `0x38-0x3C`: File path functions
+
+Functions in this range were added in MOS 3.0 to provide a set of functions for working with and manipulating file paths.
+
+### `0x38`: mos_resolvepath
+
+Resolves a path, replacing prefixes and leafnames with actual values.
+
+Parameters:
+
+- `HL(U)`: Pointer to the path to resolve
+- `DE(U)`: Pointer to the resolved path (optional - omit for count only)
+- `BC(U)`: Length of the resolved path buffer
+- `IX(U)`: Pointer to the index (integer) of the resolved path (optional)
+- `IY(U)`: Pointer to a directory object to persist between calls (optional)
+
+A prefix in a file path is a string followed by a colon character, such as `Library:`.  The string must match up with a corresponding system variable, in this example the variable would be named `Library$Path`.  Such path prefixes can contain multiple values separated by commas.  The `index` argument (in `IX(U)`) is used to work out which path to use when there are multiple values.  The value pointed to by the index should be zero on a first call.  If no index pointer is provided then only the first match will be able to be resolved.
+
+When a directory object is passed in (in `IY(U)`) then it will be used to find the next match.
+
+Returns:
+
+- `A`: Status code (`0` = Success, `22` = Out of memory, `5` = No path, `4` = No file)
+- `BC(U)`: Length of the resolved path
+- Index pointed to at `IXU`, if set, will be updated to the next path index
+
+A result of `5` indicates that no matching directory could be found in the filing system.  A result of `4` indicates that a matching directory was found, but no matching file for that directory.
+
+A result of `22` indicates that either the resolved path was too long for the buffer provided, or that there was an error allocating memory whilst searching for a matching path.
+
+### `0x39`: mos_getdirforpath
+
+Get the directory for a given path
+This function works with strings only - it resolves path prefixes for the given index
+
+Parameters:
+
+- `HL(U)`: Pointer to the path to get the directory for
+- `DE(U)`: Pointer to the buffer to store the directory in (optional - omit for count only)
+- `BC(U)`: Length of the buffer
+- `A`: Search index
+
+Returns:
+
+- `A`: Status code
+- `BC(U)`: Length of the directory path
+
+### `0x3A`: mos_getleafname
+
+Get the leafname for a given path
+
+Parameters:
+
+- HLU: Pointer to the path to get the leafname for
+
+Returns:
+
+- HLU: Pointer to the leafname
+
+### `0x3B`: mos_isdirectory
+
+Checks if a given path points to a directory
+
+NB this call does not do path prefix resolution, so you may need to use `mos_getdirforpath` first.
+
+Parameters:
+
+- `HL(U)`: Pointer to the path to check
+
+Returns:
+
+- `A`: Status code (`0` = Success, `5` = No path)
+
+
+### `0x3C`: mos_getabsolutepath
+
+Get the absolute version of a (relative) path
+
+(NB currently as of MOS 3.0a2 unlike similar functions above this API call does not support being called with a null pointer to count the length of the resolved path, and does not return the length.)
+
+Parameters:
+
+- `HL(U)`: Pointer to the path to get the absolute version of
+- `DE(U)`: Pointer to the buffer to store the absolute path in
+- `BC(U)`: Length of the buffer
+
+Returns:
+
+- `A`: Status code
+
+If the buffer is too short for the resolved path then a status code of `22` (Out of memory) will be returned.  Path resolution problems may result in status codes of `5` (No path) or `4` (No file).
+
 
 ## FatFS commands
 
