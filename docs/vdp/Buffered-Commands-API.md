@@ -149,7 +149,11 @@ A `bufferId` of -1 (65535) and 0 will be ignored, as these values have special m
 
 `VDU 23, 0 &A0, bufferId; 4`
 
+NB as of VDP 2.12.0, with the introduction of [VDP Variables](VDP-Variables.md), the primary use case of this command is arguably obsolete, as that provides different mechanisms for buffered command sequences to determine the VDP state.  You are therefore strongly advised to use VDP Variables instead of this command.
+
 Sets then current output stream to the buffer with the given ID.  With two exceptions, noted below, this needs to be a writable buffer created with command 3.  If the buffer does not exist, or the first block within the buffer is not writable, then this command will do nothing.
+
+By capturing responses to commands, a buffered command sequence can interogate the state of the VDP, using the same commands that programs running on MOS can use, and make decisions based on that state.
 
 Following this command, any subsequent VDU commands that send response packets will have those packets written to the specified output buffer.  This allows the user to capture the response packets from a command sent to the VDP.
 

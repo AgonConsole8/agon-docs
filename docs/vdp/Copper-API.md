@@ -4,18 +4,21 @@ As of VDP 2.12.0 the VDP supports a set of functionality inspired by "Copper" ef
 
 These effects work on screen modes that use a palette for generating their video output, i.e. 2, 4 and 16 color modes.  They are not supported in 64 color modes, as those modes have a fixed output palette.
 
-On palette-based screen modes, the screen framebuffer is converted on the fly whilst the VGA scanout is in progress, one row at a time, into the VGA output signal.  Up to and including VDP 2.11.0 only a single palette would be used for the signal output.  As of VDP 2.12.0, the Copper API allows for multiple palettes to be defined, and a "signal list" set to define which palettes should be used for scanout for different rows of the screen.
-
 Through the use of this API, it is possible to potentially show all 64 colours that the Agon is capable of outputting on a single screen when in a 2, 4 or 16 colour mode.
+
+At the simplest level, this API allows for different areas of the screen to be shown in different colours.  This technique can allow for higher resolution screen modes that would otherwise be limited to showing only a few colours to show a wider range of colours.  A version of this technique was first used on machines like the BBC Micro in games such as Revs and Elite.  Revs, for instance, used this to allow the dashboard of the racing car to use a different selection of colours to the road, and the road to use a different selection of colours to the sky.  In total Revs shows 7 different colours on the screen at once, despite the screen mode it used only supporting 4 colours.
+
+When combined with the newly introduced VSYNC callback mechanism, it is possible to automatically change the signal list on a per-frame basis, allowing for a wide range of effects to be achieved.  This can be done completely on the VDP without your main program needing to send any additional commands once it has set things up.  For example, this can be used to add support for flashing colours (similar to the BBC Micro's mode 2), or animated palette effects that were popular on the Amiga.
+
+## How it works
+
+On palette-based screen modes, the screen framebuffer is converted on the fly whilst the VGA scanout is in progress, one row at a time, into the VGA output signal.  Up to and including VDP 2.11.0 only a single palette would be used for the signal output.  As of VDP 2.12.0, the Copper API allows for multiple palettes to be defined, and a "signal list" set to define which palettes should be used for scanout for different rows of the screen.
 
 Essentially, all drawing operations in palette-based screen modes are performed using the primary palette, palette ID 0.  The existing palette changing operations will only affect the primary palette.
 
 The Copper API supports 16-bit palette IDs, so in principle up to 65536 palettes could be defined.  However in practice you should never define that many.  These palettes are allocated in internal memory on the VDP, so there are practical limits to how many palettes can be defined.
 
 On changing screen mode, the signal list is reset and all palettes are cleared, leaving only the default palette.
-
-When combined with the newly introduced VSYNC callback mechanism, it is possible to automatically change the signal list on a per-frame basis, allowing for a wide range of effects to be achieved.  This can be done completely on the VDP without your main program needing to send any additional commands once it has set things up.
-
 
 ## Copper API Commands
 
