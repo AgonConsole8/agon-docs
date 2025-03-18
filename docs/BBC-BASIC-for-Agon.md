@@ -1,10 +1,12 @@
 # What is BBC BASIC for Agon?
 
-The original version of BBC Basic was written by Sophie Wilson at Acorn in 1981 for the BBC Micro range of computers, and was designed to support the UK Computer Literacy Project. R.T.Russell was involved in the specification of BBC Basic, and wrote his own Z80 version that was subsequently ported to a number of Z80 based machines. [I highly recommend reading his account of this on his website for more details](http://www.bbcbasic.co.uk/bbcbasic/history.html).
+The original version of BBC BASIC was written by Sophie Wilson at Acorn in 1981 for the BBC Micro range of computers, and was designed to support the UK Computer Literacy Project. R.T.Russell was involved in the specification of BBC Basic, and wrote his own Z80 version that was subsequently ported to a number of Z80 based machines. [I highly recommend reading his account of this on his website for more details](http://www.bbcbasic.co.uk/bbcbasic/history.html).
 
 As an aside, R.T.Russell still supports BBC Basic, and has ported it for a number of modern platforms, including Android, Windows, and SDL, which are [available from his website here](https://www.bbcbasic.co.uk/index.html).
 
 BBC BASIC for Agon is a port of his BBC BASIC for Z80, which is now open source, with a number of modifications to make it run on Agon.
+
+Please note that the information in this file is currently out of date.  The original version of BASIC described here is based on Dean Belfield's Agon port of R.T.Russell's original Z80 BBC BASIC.  This version is broadly the same as Acorn's BBC BASIC version 4 for the BBC Master series of computers, but includes an inbuilt Z80 Assembler instead of 6502.  Since that time, Dean Belfield made a new version based on that work which makes use of the Agon's eZ80 processor, allowing access to all 512KB of RAM, compared to the 64KB of the original Z80 version, and extending the Assembler to support the new eZ80 opcodes.  Richard Russell also revisited his original Z80 version of BASIC and extended it to support most features of Acorn's BBC BASIC V, and Dean Belfield has since ported this to the Agon as well.  The BASIC V for Agon currently only supports Z80 mode.
 
 # Implementation on the Agon Light
 
@@ -12,14 +14,16 @@ BBC BASIC for Z80 runs in Z80 mode, that is within a 64K segment. The interprete
 
 If you are not familiar with the BASIC programming language, or need a refresher on BBC BASIC, please refer to the [official BBC BASIC for Agon documentation here](https://oldpatientsea.github.io/agon-bbc-basic-manual/0.1/index.html).
 
-To run, load into memory and run as follows:
+(Please note that this documentation is also slightly outdated and contains some inaccuracies.  For example it has incorrect information about PLOT commands.  At some point we may merge the Agon BBC BASIC documentation in with the community documentation site.)
+
+To run, load into memory and run as follows from the MOS command prompt:
 
 ```
 LOAD bbcbasic.bin
 RUN
 ```
 
-It is possible to automatically CHAIN (load and run) a BBC BASIC program by passing the filename as a parameter:
+It is possible to automatically `CHAIN` (load and run) a BBC BASIC program by passing the filename as a parameter:
 ```
 LOAD bbcbasic.bin
 RUN . /path/to/file.bas
@@ -28,6 +32,22 @@ RUN . /path/to/file.bas
 Note that passing a . as the first parameter of RUN is informing MOS to use the default value there (&40000)
 
 BBC BASIC needs a full 64K segment, so cannot be run from the MOS folder as a star command.
+
+
+If you are running MOS 2.2.0 you can load and run BBC BASIC from the MOS command prompt using:
+
+```
+bbcbasic
+```
+
+This assumes that your copy of BASIC is called `bbcbasic.bin` and is either in the root of the SD card, or in the `bin` folder.
+
+Automatically "chaining" a BBC BASIC program can be done by passing the filename as a parameter:
+
+```
+bbcbasic /path/to/file.bas
+```
+
 
 # Summary of Agon Light Specific Changes
 

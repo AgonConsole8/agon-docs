@@ -1,0 +1,124 @@
+# System Variables
+
+System variables are global variables that store various settings relating to different parts of the current operating system environment.  MOS support a few different types of system variables, and they are used by the system in several different ways.
+
+Applications/programs are welcome to use system variables for their own needs.  MOS provides two API calls to allow for variables to be read and written by application code, and the command line also has several commands that will make use of system variables.
+
+System variables are a new feature added to MOS 3.0.
+
+
+## Type of System Variables
+
+There are a few different data types that system variables can be.  The following are the types of system variables that are supported by MOS:
+
+| Type | Description | How to set | How to remove |
+|------|-------------|------------|--------------|
+| String | A string of characters | `*Set` | `*Unset` |
+| Integer | Three-byte integers | `*SetEval` | `*Unset` |
+| Macros | Macros are strings that can be expanded, passed through the GSTrans mechanism, when they are read | `*SetMacro` | `*Unset` |
+| Code | A machine code routine will be called when the variable is read or set. This allows the OS to provide some more sophisticated behaviour, such as access to real-time clock data | n/a | n/a |
+
+The GSTrans mechanism is used by the command line in various ways.  For instance, when setting a system variable using the `*set` command, the string value in the command line will first be passed through the GSTrans mechanism, allowing for variables to be expanded in the string before the variable is set.  The `*echo` command also uses the GSTrans mechanism, allowing for variables to be expanded in the string that is echoed to the screen.
+
+
+## Naming of system variables
+
+Users are free to name their system variables as they wish, but there are some limitations to bear in mind.
+
+- Using wholly numeric names is not recommended, as this can cause difficulties with GSTrans operations when looking up a variable.  For instance, GSTrans will always interpret `<123>` to mean the ASCII character with the value 123, rather than looking up the name as a variable.
+- When setting a variable, the case of a name is preserved, however variable lookup is not case-sensitive.  This means that `MyVar` and `myvar` are considered to be the same variable.
+- Names can contain essentially any non-space, or non-control character
+- When looking up variables, wildcard characters `#` and `*` can be used.  `#` will match any single character, and `*` will match any number of characters.
+
+By default, MOS's system variables follow a naming convention where the variable is named loosely in the format `Class$VariableName`.  You do not have to follow this convention, but following it can help to keep your variables organised.
+
+
+## Path variables
+
+Variables that are named in the format `Name$Path` are considered to be path variables.  When loading or running a file, MOS will supports prefixing filenames with a path and a colon.  Let's say we have a variable named `Foo$Path`, which is set to `/home/foo/`.  If you try to load a file named `Foo:Bar`, the system will look for the file `/home/foo/Bar`.
+
+Path variables can contain multiple paths to search, separated by commas.  For instance, if `Foo$Path` is set to `/home/foo/,/home/bar/`, the system will look for `Foo:Bar` in `/home/foo/Bar` and `/home/bar/Bar`, opening the first it finds.  If the file is not found in any of the paths and the file was opened for creation/update, the system will create the file in the first path in the list.
+
+
+### System Path variables
+
+The MOS system makes use of two path variables, which it will set to default values on startup.  These are `Run$Path` and `Moslet$Path`.
+
+The `Moslet$Path` variable is used to identify the directory where "moslet" programs are located.  By default this will be set to `/mos/`.  Moslets differ from normal programs in that they are written to be loaded and run from a different memory location, which should usually allow them to be used whilst a different program is running.  Their purpose is essentially to allow for new star commands to be added to MOS.  When you run a program, the system will use this variable to check to see whether the program you are trying to run is a moslet, and if it is, it will load the moslet and run it in the moslet memory space.
+
+The `Run$Path` variable used to identify directories in which the command line should search when trying to run a program.  By default it is a macro variable set to `<Moslet$Path>, ./, /bin/`, which provides the same default search path for running programs as MOS 2.
+
+These variables can be redefined to allow you to change where the system looks for moslets and programs to run.
+
+
+## Application variables
+
+By convention, application variables are named in the format `App$VariableName` where `App` is the name of the application that the variable is associated with.  This helps prevent clashes between variables that serve similar purposes for different applications.
+
+If an application is started up using an `obey` file, then often the obey file will set a variable named in the format `App$Dir` or `App$Path` to represent the directory the program is located in, which may be used by the program to locate its resources.  Typically this is achieved with a command such as `set App$Dir <Obey$Dir>`.
+
+
+## Command aliases
+
+If you set up a system variable in the format `Alias$Name` then this will set up a new command alias that can be used from the command line with the given name.  For example, one could add a new `mode` command using `*set Alias$Mode vdu 22 %0`.
+
+Aliases support [argument substitution](Argument-Substitution.md).  Any unused arguments (beyond the last used argument) will be automatically appended to the end of the resultant command.
+
+In MOS 3.0 an alias can be only a single command and cannot be a sequence of commands.  If you wish to create a sequence of commands you can use an obey file, potentially using an alias to run the obey file.  Support for multiple commands in an alias may be added in a future version of MOS.
+
+
+## File type variables
+
+System variables are used to define how certain files should be loaded or run when using either the `LoadFile` or `RunFile` commands.
+
+These aliases are named in the format `Alias$@LoadType_extension` or `Alias$@RunType_extension`, where the `extension` matches the filing system extension for that file type.  Load and run aliases also support [argument substitution](Argument-Substitution.md).  The system defines a few such aliases, for instance `Alias$@RunType_obey` is set to `Obey %*0`.
+
+Attempting to load or run a file with an extension that does not have a corresponding alias will result in the system (using `LoadFile` or `RunFile`) will result in an `Invalid command` error.
+
+The system will set a variable named either `LastFile$Run` or `LastFile$Load` to the alias expansion that was used to run or load the file.
+
+
+## CLI
+
+The command prompt that the MOS CLI displays is defined using the variable named `CLI$Prompt`.  By default this is a macro set to `<Current$Dir> *` to match the default prompt from MOS 2.2 onwards.  The prompt can be changed to anything you like, and if it is set as a macro it can include variables that will be expanded when the prompt is displayed.
+
+If you unset the `CLI$Prompt` variable, the system will revert to displaying the default prompt which is `*`.
+
+
+## Obey files
+
+When an obey file is run with the `obey` command, the system will set the variable `Obey$Dir` to the directory that the obey file is located in.  This can be used by the obey file to locate resources that it needs to run.
+
+
+## Time and date
+
+MOS provides three system variables that expose the current real-time clock information.  These are `Sys$Date`, `Sys$Time` and `Sys$Year`.  The date variable is in the format of `Day, n Mon`.  It is possible to set these variables, and the real-time clock should update accordingly.  The exception to that is setting `Sys$Date` if the value cannot be interpreted as a valid date.
+
+The real-time clock information can also be displayed and updated using the `*time` command
+
+
+## Hotkeys
+
+Hotkey definitions are stored as system variables in the format `Hotkey$n` where `n` is a number from 1-12 equating to the F1-F12 keys on your keyboard.  Hotkeys can also be defined using the `*hotkey` command.
+
+Hotkey definitions support [argument substitution](Argument-Substitution.md).  Any unused arguments are discarded.
+
+If a hotkey definition is set as a macro variable (using `SetMacro`), then the system will expand the macro when the hotkey is pressed.
+
+In MOS 3.0 a hotkey can be only a single command and cannot be a sequence of commands.  If you wish to create a sequence of commands you can use an obey file, potentially using a hotkey to run the obey file.  Support for multiple commands in a hotkey may be added in a future version of MOS.
+
+
+## System
+
+As noted above, there are several "system" variables that MOS provides to give access to system information and control how MOS behaves.
+
+Another two system variables are the `Console` variable and `Keyboard`.  These are two special write-only variables that will turn on or disable "console mode", and set the current keyboard layout respectively.  These variables are named to be compatible with earlier versions of MOS.
+
+
+## Return codes
+
+When a command or program finishes running MOS will set a numeric variable `Sys$ReturnCode` to indicate the success or failure of the program.  This variable is set to 0 if the program ran successfully, and to a non-zero value if the program reported an error.
+
+The `Try` command can also be used to run a command and set a system variable `Try$ReturnCode` to the return code of that command.  If an error occurred then a variable `Try$Error` will also be set to the error message.  This can be useful in script files to check for errors and take appropriate action.  Running commands without using the `Try` command inside a script file (executed using either `exec` or `obey`) that fail will cause the script to stop running.  You can then use the `if` command to check the return code and take appropriate action.
+
+

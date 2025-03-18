@@ -66,8 +66,11 @@ nav:
     - 'FAQ': FAQ.md
     - 'Theory of operation': Theory-of-operation.md
   - 'MOS':
-      - 'Command line': MOS.md
+      - 'Overview': MOS.md
+      - 'Command line': mos/Star-Commands.md
       - 'API': MOS-API.md
+      - 'System Variables': mos/System-Variables.md
+      - 'Argument Substitution': mos/Argument-Substitution.md
   - 'VDP':
     - 'Overview': VDP.md
     - 'Main Commands': vdp/VDU-Commands.md

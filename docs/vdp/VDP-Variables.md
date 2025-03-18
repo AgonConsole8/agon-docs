@@ -86,7 +86,7 @@ As of Console8 VDP 2.12.0 the following system variables are supported:
 
 | Variable ID | Value | Read-only | Clearable | Description |
 | ------- | ----- | --- | --- | ----------- |
-| &0101 | 0/1 | | X | Full duplex UART hardware flow control flag. This is intended for internal use by MOS. NB setting this flag will break communications with MOS unless a suitable version of MOS that supports full duplex flow control.  The first version of MOS to support this will be MOS 3.0 alpha 3 |
+| &0101 | 0/1 | | X | Full duplex UART hardware flow control flag. This is intended for internal use by MOS. NB setting this flag will break communications with MOS unless a suitable version of MOS that supports full duplex flow control.  The first version of MOS to support this is MOS 3.0 alpha 3 |
 | &0102 | n/a | | X | Reserved for future use (Buffer size on MOS for VDP protocol packets) |
 | &0110 | 0/1 | | X | Reserved for future use (Echo back received data, for redirect/spool, with a suitable version of MOS that supports this feature) |
 | &0200 | 0-999 | | | Real-time clock year |
