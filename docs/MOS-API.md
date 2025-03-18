@@ -915,11 +915,11 @@ Returns:
 
 Initialises a GSTrans operation.
 
-GSTrans is a process of taking a source string and translating it, replacing any variables referenced, and converting any control codes into raw control bytes.  The [`echo` command](mos/Star-Commands#echo) in MOS is an example of a command that uses the GSTrans process, and the documentation for that command contains a more complete description of how the source string will be interpreted.
+GSTrans is a process of taking a source string and translating it, replacing any variables referenced, and converting any control codes into raw control bytes.  The [`echo` command](mos/Star-Commands.md#echo) in MOS is an example of a command that uses the GSTrans process, and the documentation for that command contains a more complete description of how the source string will be interpreted.
 
 The process of translating a string is a two-step process.  The first step is to call `mos_gsinit` to initialise the process, and the second step is to repeatedly call `mos_gsread` to actually perform the translation, fetching one character at a time until the whole string has been translated, and a zero character is read.
 
-Various options are available to control how the translation process operates, and these are set using the flags parameter.  By default, the translation process will continue until the end of the source string is reached.  It is possible to instead translate only up to the first space.  The process also supports detecting double-quotes to surround a string, in which case a request to terminate at a space will be ignored if the space is inside the double-quotes.  (It should be noted that the `echo` command sets this flag.)  Finally by default the process will translate characters preceeded by a `|` character as control codes, as explained in the documentation for the [`echo` command](mos/Star-Commands#echo).  If you wish to disable this behaviour then you can set the "no pipe" flag.
+Various options are available to control how the translation process operates, and these are set using the flags parameter.  By default, the translation process will continue until the end of the source string is reached.  It is possible to instead translate only up to the first space.  The process also supports detecting double-quotes to surround a string, in which case a request to terminate at a space will be ignored if the space is inside the double-quotes.  (It should be noted that the `echo` command sets this flag.)  Finally by default the process will translate characters preceeded by a `|` character as control codes, as explained in the documentation for the [`echo` command](mos/Star-Commands.md#echo).  If you wish to disable this behaviour then you can set the "no pipe" flag.
 
 Parameters:
 

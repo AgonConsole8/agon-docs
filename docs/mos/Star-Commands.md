@@ -480,7 +480,7 @@ Unsets a system variable matching the given variable name.  This will work for a
 
 Syntax: `*VDU <char1> <char2> ... <charN>`
 
-Write a stream of character bytes to the VDP.  This can be used to perform various control functions, such as clearing the screen, changing the screen mode, setting the cursor position, or changing the text colour.  More information on VDU commands can be found in the [VDP documentation](VDP.md).
+Write a stream of character bytes to the VDP.  This can be used to perform various control functions, such as clearing the screen, changing the screen mode, setting the cursor position, or changing the text colour.  More information on VDU commands can be found in the [VDP documentation](../VDP.md).
 
 This command is similar to the `VDU` command in BBC BASIC, but instead of separating arguments with commas you must instead separate them with spaces.
 
