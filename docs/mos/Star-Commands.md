@@ -10,7 +10,9 @@ Commands that expect a number will, by default, expect that number to be given i
 
 MOS 3 extends the number format support of MOS 2, allowing numbers to be provided in various other formats.  Hexadecimal numbers can be specified with a `0x` prefix, or an `h` suffix.  Numbers in any numeric base from 2 to 36 can also be used by prefixing the number with the base (in decimal) followed by an underscore and then the number.  For instance, `2_111` indicates the binary number `111` (7 in decimal), `16_41` is hexadecimal number `41` (65 in decimal), and `8_72` is octal `72` (58 in decimal).
 
-To aid users coming from other systems, several commands have aliases built in, for example `DELETE` and `ERASE` are equivalent.  The aliases are listed in the command descriptions below.  As of MOS 3.0, MOS will also support [user-defined aliases](System-Variables.md#command-aliases) - for compatibility the existing aliases supported in MOS 2 are maintained.
+To aid users coming from other systems, several commands have aliases built in, for example `DELETE` and `ERASE` are equivalent.  The aliases are listed in the command descriptions below.
+
+As of MOS 3.0, MOS also supports [user-defined aliases](System-Variables.md#command-aliases).  For compatibility the existing aliases supported in MOS 2 are maintained.  MOS 3.0 also allows the use of [system variables](System-Variables.md) in the command line.  For information on how variables are interpreted and expanded in commands, see the [`echo` command](#echo).  Support for [custom files paths](System-Variables.md#path-variables) in commands, which can be used for any command that requires a file or directory name, is also now included.
 
 The various commands MOS supports are described below.  Commands parameters are described with angle brackets `<param>` and optional parameters are indicated with square brackets `[<param>]` or `[-flag]`, and alternative parameters are shown either side of a `|` character.
 
@@ -70,9 +72,7 @@ Syntax: `*Copy <source> <destination>`
 
 Create a copy of a file.
 
-From Console8 MOS 2.2.0 onwards, the `Copy` command will also support the use of wildcards in the source file name, such as `*.txt`, and can support the destination being a directory.
-
-TODO: Copy improved in MOS 3.0
+From Console8 MOS 2.2.0 onwards, the `Copy` command will also support the use of wildcards in the source file name, such as `*.txt`, and can support the destination being a directory.  It should be noted that the destination path cannot include wildcards.
 
 ## `CP`
 
@@ -193,7 +193,9 @@ Syntax: `*If <expression> Then <command> [Else <command>]`
 
 Conditionally execute another command depending on the value of an expression.
 
-At the time of writing, `<expression>` can only be a variable name.  The expression will evaluate as true if the variable exists and is either non-zero (for numeric variables) or not an empty string.
+At the time of writing, `<expression>` can only be a variable name or a number, as there is not yet a full expression engine available.  The expression will evaluate as true if the variable exists and is either non-zero (for numeric variables) or not an empty string.
+
+The absence of a full expression engine in MOS means that it is not currently possible to check only for the non-existence of a variable as you must always include a `then` command.  There are a few ways to work around this limitation.  One example would be `*if MyVar then try invalid-command else echo MyVar does not exist`, although this would set Try related system variables.  An alternative approach would be `*if MyVar then set MyVar <MyVar> else echo MyVar does not exist`, which would just set MyVar to its current value if it already existed.
 
 Support for this command was added in Console8 MOS 3.0.
 
@@ -312,7 +314,7 @@ Rename a file and move to a different folder (the destination folder must exist)
 
 From Console8 MOS 2.2.0 onwards, the `Rename` command also supports allowing the destination to specify a directory.  If the destination is a directory, the source file will be moved to that directory and keep the same filename.  Additionally if the destination is a directory then the source file specified can include a wildcard, such as `*.txt`.
 
-TODO: Check changes in MOS 3
+As of MOS 3.0, the `Rename` command supports the use of [system variables](System-Variables.md) and [custom file paths](System-Variables.md#path-variables) inside both the source and destination file names.
 
 ## `RM`
 
