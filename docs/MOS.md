@@ -4,7 +4,7 @@ The MOS is a command line Machine Operating System, similar to CP/M or DOS, that
 
 It also provides the [MOS API](MOS-API.md) for programmers to use that provides some basic facilities for file I/O and other common operations for BBC BASIC and other third-party applications.
 
-This documentation explains the general features of MOS, as well as commands it offers and how to use them.  It covers the Quark 1.04 version of MOS, and the later Console8 MOS versions up to and including 3.0 Alpha 2.  Versions of MOS prior to Quark 1.04 may be missing some features described below.
+This documentation explains the general features of MOS, as well as commands it offers and how to use them.  It covers the Quark 1.04 version of MOS, and the later Console8 MOS versions up to and including 3.0 Alpha 3.  Versions of MOS prior to Quark 1.04 may be missing some features described below.
 
 ## System Requirements
 

@@ -121,7 +121,11 @@ This command works in conjunction with the fact that as of Console8 MOS 2.3.0, o
 
 ## The MOS API
 
-MOS API calls can be executed from a classic 64K Z80 segment or whilst the eZ80 is running in 24-bit ADL mode. For classic mode, 16 bit registers are passed as pointers to the MOS commands; these are automatically promoted to 24 bit by adding the MB register to bits 16-23 of the register. When running in ADL mode, a 24-bit register will be passed, but MB must be set to 0.
+MOS API calls can be executed from a classic 64K Z80 segment or whilst the eZ80 is running in 24-bit ADL mode. For classic mode, 16 bit registers are passed as pointers to the MOS commands; these are automatically promoted to 24 bit by adding the MB register to bits 16-23 of the register. When running in ADL mode, a 24-bit register will be passed, but MB must be set to `0`.
+
+Many, but not all, of the MOS API calls will return a [status code](#status-codes) in the `A` register.  This status code will indicate the success or failure of the operation.  If the operation was successful, the status code will be `0`.  If the operation failed, the status code will be non-zero, and will indicate the nature of the failure.  Some API calls, such as those for I2C communications or string comparisons, use different sets of status codes, which will be documented in the API call's description.
+
+As of MOS 3.0, all API calls that accept an kind of filepath string as a parameter, whether that is to a filename or a directory, will support the use of [system variables](mos/System-Variables.md) and [custom file paths](mos/System-Variables.md#path-variables) within the string.  These will automatically be handled by the API.  This allows for more flexible and powerful file handling in your applications.
 
 The following MOS commands are supported:
 
@@ -151,7 +155,7 @@ Preserves: `HL(U)`, `DE(U)`, `BC(U)`
 
 Returns:
 
-- `A`: File error, or 0 if OK
+- `A`: Status code
 - `F`: Carry reset if no room for file, otherwise set
 
 ### `0x02`: mos_save
@@ -168,7 +172,7 @@ Preserves: `HL(U)`, `DE(U)`, `BC(U)`
 
 Returns:
 
-- `A`: File error, or 0 if OK
+- `A`: Status code
 - `F`: Carry set
 
 ### `0x03`: mos_cd
@@ -177,13 +181,13 @@ Change current directory on the SD card
 
 Parameters:
 
-- `HL(U)`: Address of path (zero terminated)
+- `HL(U)`: Address of directory path (zero terminated)
 
 Preserves: `HL(U)`
 
 Returns:
 
-- `A`: File error, or 0 if OK
+- `A`: Status code
 
 ### `0x04`: mos_dir
 
@@ -193,13 +197,13 @@ This is a simple directory listing command that will list the contents of the cu
 
 Parameters:
 
-- `HL(U)`: Address of path (zero terminated)
+- `HL(U)`: Address of directory path (zero terminated)
 
 Preserves: `HL(U)`
 
 Returns:
 
-- `A`: File error, or 0 if OK
+- `A`: Status code
 
 ### `0x05`: mos_del
 
@@ -207,13 +211,13 @@ Delete a file or folder from the SD card
 
 Parameters:
 
-- `HL(U)`: Address of path (zero terminated)
+- `HL(U)`: Address of filepath (zero terminated)
 
 Preserves: `HL(U)`
 
 Returns:
 
-- `A`: File error, or 0 if OK
+- `A`: Status code
 
 ### `0x06`: mos_ren
 
@@ -221,14 +225,16 @@ Rename a file on the SD card
 
 Parameters:
 
-- `HL(U)`: Address of filename1 (zero terminated)
-- `DE(U)`: Address of filename2 (zero terminated)
+- `HL(U)`: Address of source filepath string (zero terminated)
+- `DE(U)`: Address of destination filepath string (zero terminated)
 
 Preserves: `HL(U)`, `DE(U)`
 
 Returns:
 
-- `A`: File error, or 0 if OK
+- `A`: Status code
+
+As of MOS 3.0 the `mos_ren` API can support the use of wildcards in the source filepath leaf name.  This allows you to rename multiple files at once.  The destination filepath must point to a directory in this case.  Destination paths cannot include wildcards.
 
 ### `0x07`: mos_mkdir
 
@@ -242,7 +248,7 @@ Preserves: `HL(U)`
 
 Returns:
 
-- `A`: File error, or 0 if OK
+- `A`: Status code
 
 ### `0x08`: mos_sysvars
 
@@ -361,11 +367,11 @@ Returns:
 
 ### `0x0F`: mos_getError
 
-Copy an error string to a buffer
+Translates a status code into a human-readable message.
 
 Parameters:
 
-- `E`: The error code
+- `E`: The status code
 - `HL(U)`: Address of buffer to copy message into
 - `BC(U)`: Size of buffer
 
@@ -387,7 +393,7 @@ Preserves: `HL(U)`
 
 Returns:
 
-- `A`: MOS error code
+- `A`: Status code
 
 NB previously documentation for this command was incorrect, as it documented additional parameters in `DE(U)` and `BC(U)`.  These registers are not currently used.
 
@@ -397,18 +403,20 @@ Copy a file on the SD card
 
 Parameters:
 
-- `HL(U)`: Address of filename1 (zero terminated)
-- `DE(U)`: Address of filename2 (zero terminated)
+- `HL(U)`: Address of source filepath string (zero terminated)
+- `DE(U)`: Address of destination filepath string (zero terminated)
 
 Preserves: `HL(U)`, `BC(U)`, `DE(U)`, `IX(U)`, `IY(U)`
 
 Returns:
 
-- `A`: File error, or 0 if OK
+- `A`: Status code
 
 NB: Requires MOS 1.03 or greater
 
-TODO: Document how filename support works in MOS 3.0
+Please note that this API only supports copying files; it does not support copying directories.
+
+As of MOS 3.0, the `mos_copy` API supports the use of wildcards in the source filepath leaf name.  This allows you to copy multiple files at once.  The destination filepath must point to a directory in this case.  Destination paths cannot include wildcards.
 
 ### `0x12`: mos_getrtc
 
@@ -588,7 +596,7 @@ The user program registered, will be called during the uart0 interrupt handler, 
 
 Parameters:
 
-- `C`: Address length in HL (0 = 24bit, 1 = 16bit). If 1 then set the top byte of HLU(callback address) to MB (for ADL=0 callers)
+- `C`: Address length in HL (0 = 24bit, 1 = 16bit). If 1 then set the top byte of HLU (callback address) to MB (for ADL=0 callers)
 - `HL(U)`: Callback address of user program to register, or 0 to clear any previously registered vector
 
 Returns: Nothing upon registration. The user program can expect the full VDP packet address in DE(24-bit) upon entry.
@@ -673,11 +681,42 @@ Returns:
 
 ### `0x23`: mos_unpackrtc
 
-Unpack the RTC data into a buffer (Requires MOS 3.0 or above)
+Unpack the RTC (Real-Time Clock) data into a buffer (Requires MOS 3.0 or above)
 
 Parameters:
 
 - `HL(U)`: Pointer to a buffer to copy the RTC data to
+- `C`: Flags
+
+The buffer should be at least 10 bytes long.
+
+Flags are a bit-field to enable various different options.  Currently the following bits are supported:
+
+- bit 0 = refresh RTC sysvar before unpacking
+- bit 1 = refresh RTC sysvar after unpacking
+
+The RTC data sysvar is updated by sending a command to the VDP to request the current time, and MOS will store the response in the RTC system variable area.  If you set bit 0, this API call will send the command to the VDP to request updated RTC data and wait for the response before unpacking the data.  When you set bit 1, the command will be sent after the data has been unpacked, and the API will return without waiting for the response.
+
+If you do not want to refresh the RTC data stored in MOS, set the flags to 0.  You should note that if you do this the data may be stale or, if no request has been sent to the VDP at all for RTC information, be invalid.
+
+NB you should not set either refresh flag if you are in the middle of sending a command to the VDP, as that will both cause the update command to not be understood by the VDP, and will cause your command to fail or produce unexpected results.
+
+Preserves: `HL(U)`, `BC(U)`
+
+Returns:
+
+Data returned in the buffer at `HL(U)` will be in the following order, with 16-bit values stored in little-endian order:
+
+```
+	UINT16 year;
+	UINT8  month;
+	UINT8  day;
+	UINT8  dayOfWeek;
+	UINT16 dayOfYear;
+	UINT8  hour;
+	UINT8  minute;
+	UINT8  second;
+```
 
 ### `0x28-0x2C`: String functions
 
@@ -727,9 +766,9 @@ Parameters:
 Returns:
 
 - `HL(U)`: Address of the argument or zero if not found
+- `DE(U)`: Address of the argument end (next character after the argument)
 
-TODO the implementation feels wrong, and the args/return don't feel correct either
-there should be a pair of addresses returned, one for the start of the argument and one for the end
+Preserves: `BC(U)`
 
 ### `0x2A`: mos_extractstring
 
@@ -737,9 +776,9 @@ Extract a string, using a given divider.
 
 Parameters:
 
-- `HL(U)`: Pointer to source string to extract from
+- `HL(U)`: Pointer to a zero-terminated source string to extract from
 - `DE(U)`: Pointer to string for divider matching, or `0` for default (space)
-- `A`: Flags. Depending on flags, the result string will be zero terminated or not
+- `C`: Flags. Depending on flags, the result string will be zero terminated or not
 
 The flags are a bit-field to enable various different options
 
@@ -750,13 +789,15 @@ The flags are a bit-field to enable various different options
 | 2   | Disable matching of double-quotes |
 | 3   | Include double-quotes in results string |
 
-If string extraction is matching double-quotes and an end quote is not found, a status code of `25` (Bad string) will be returned.
+If string extraction is matching double-quotes and an end quote is not found, a status code of `25` (Bad string) will be returned.  If it is not possible to extract a result, a status code of `19` (Invalid parameter) will be returned.
 
 Returns:
 
-- `A`: status code
+- `A`: status code (`0` = OK, `19` = Invalid parameter, `25` = Bad string)
 - `HL(U)`: Address of the result string
 - `DE(U)`: Address of next character after end of result string
+
+Preserves: `BC(U)`
 
 ### `0x2B`: mos_extractnumber
 
@@ -764,9 +805,9 @@ Extract a number, using given divider.  Various number formats are supported - f
 
 Parameters:
 
-- `HL(U)`: Pointer to source string to extract from
+- `HL(U)`: Pointer to a zero-terminated source string to extract from
 - `DE(U)`: Pointer to string for divider matching, or 0 for default (space)
-- `A`: Flags
+- `C`: Flags
 
 The flags are a bit-field to enable various different options
 
@@ -776,11 +817,15 @@ The flags are a bit-field to enable various different options
 | 1   | Positive numbers only |
 | 2   | Allow `h` suffix to indicate hexadecimal numbers |
 
+If the source string does not contain a valid number, in accordance with the flags, a status code of `19` (Invalid parameter) will be returned.
+
 Returns:
 
-- `A`: status code
+- `A`: status code (`0` = OK, `19` = Invalid parameter)
 - `HL(U)`: Number extracted
 - `DE(U)`: Address of next character after end of number
+
+Preserves: `BC(U)`
 
 ### `0x2C`: mos_escapestring
 
@@ -812,12 +857,12 @@ Set, update, replace or remove a [System Variable](mos/System-Variables.md)
 
 Parameters:
 
-- `HL(U)`: Pointer to variable name (can include wildcards)
-- `DE(U)`: Variable value (number, or pointer to string)
-- `IX(U)`: Pointer to variable name (0 for first call)
-- `A`: Variable type, or -1 (255) to delete the variable
+- `HL(U)`: Pointer to variable name (zero-terminated string, can include wildcards)
+- `IX(U)`: Variable value (number, or pointer to zero-terminated string)
+- `IY(U)`: Pointer to variable name (0 for first call)
+- `C`: Variable type, or -1 (255) to delete the variable
 
-If the name used includes a wildcard, then the first matching variable will be set.  Subsequent calls can be made to set the next variable that matches the pattern, so long as you preserve `IX(U)` between calls.
+If the name used includes a wildcard, then the first matching variable will be set.  Subsequent calls can be made to set the next variable that matches the pattern, so long as you preserve `IY(U)` between calls.
 
 Variable types supported are:
 
@@ -833,13 +878,15 @@ NB at the time of writing the expression engine has yet to be written in MOS 3 s
 
 If either a type of 3 or 4 is used then the variable type used for storage of the variable will be either a string or a number.
 
-Internally MOS also supports "Code" type variables.  You can call the "set" functions of these variables by using the String type with a matching name.  You cannot remove a "Code" type variable using this function.
+Internally MOS also supports "Code" type variables, which are used for several things, such as exposing date/time information.  If such a variable variable supports being set then you can call the "set" functions of these variables by using the String type with a matching name.  You cannot remove a "Code" type variable using this function.
 
 Returns:
 
 - `A`: Status code
-- `D`: Actual variable type
-- `IX(U)`: Pointer to actual variable name (for next call)
+- `C`: Actual variable type
+- `IY(U)`: Pointer to actual variable name (for next call)
+
+Other registers will be preserved.
 
 ### `0x31`: mos_readvarval
 
@@ -848,35 +895,53 @@ Read a variable value
 Parameters:
 
 - `HL(U)`: Pointer to variable name (can include wildcards)
-- `DE(U)`: Pointer to buffer to store the value (null/0 to read length only)
-- `BC(U)`: Length of buffer
-- `IX(U)`: Pointer to variable name (0 for first call)
-- `A`: Flags (3 = expand value into string)
+- `DE(U)`: Length of buffer to store the value
+- `IX(U)`: Pointer to buffer to store the value (null/0 to read length only)
+- `IY(U)`: Pointer to variable name (0 for first call)
+- `C`: Flags (3 = expand value into string - other values will be ignored)
 
-If the name includes a wildcard then the first matching variable will be read.  Subsequent calls can be made to read the next value that matches the pattern, so long as you preserve `IX(U)` between calls.
+If the name includes a wildcard then the first matching variable will be read.  Subsequent calls can be made to read the next value that matches the pattern, so long as you preserve `IY(U)` between calls.
+
+NB Whilst numeric variables are set by providing their value directly in a register, when reading a numeric variable the value will be returned in the buffer pointed to by `IX(U)`.  That buffer must be at least 3 bytes long, unless the "flag" value is set to `3`, in which case it must be large enough to contain a string representation of the number in decimal.
 
 Returns:
 
 - `A`: Status code
-- `D`: Actual variable type
-- `BC(U)`: Length of variable value
-- `IX(U)`: Pointer to variable name (for next call)
+- `C`: Actual variable type
+- `DE(U)`: Length of variable value
+- `IY(U)`: Pointer to variable name (for next call)
 
 ### `0x32`: mos_gsinit
 
 Initialises a GSTrans operation.
 
-GSTrans is a process of taking a source string and translating it, replacing any variables referenced, and converting any control codes into raw control bytes.  The `echo` command in MOS is an example of a command that uses the GSTrans process.
+GSTrans is a process of taking a source string and translating it, replacing any variables referenced, and converting any control codes into raw control bytes.  The [`echo` command](mos/Star-Commands#echo) in MOS is an example of a command that uses the GSTrans process, and the documentation for that command contains a more complete description of how the source string will be interpreted.
 
-The process of translating a string is a two-step process.  The first step is to call `mos_gsinit` to initialise the process, and the second step is to repeatedly call `mos_gsread` to actually perform the translation, fetching one character at a time until the whole string has been translated.
+The process of translating a string is a two-step process.  The first step is to call `mos_gsinit` to initialise the process, and the second step is to repeatedly call `mos_gsread` to actually perform the translation, fetching one character at a time until the whole string has been translated, and a zero character is read.
+
+Various options are available to control how the translation process operates, and these are set using the flags parameter.  By default, the translation process will continue until the end of the source string is reached.  It is possible to instead translate only up to the first space.  The process also supports detecting double-quotes to surround a string, in which case a request to terminate at a space will be ignored if the space is inside the double-quotes.  (It should be noted that the `echo` command sets this flag.)  Finally by default the process will translate characters preceeded by a `|` character as control codes, as explained in the documentation for the [`echo` command](mos/Star-Commands#echo).  If you wish to disable this behaviour then you can set the "no pipe" flag.
 
 Parameters:
 
 - `HL(U)`: Pointer to source buffer to translate
 - `DE(U)`: Address of pointer used to store trans info
-- `A`: Flags
+- `C`: Flags
 
-`DE(U)` must point to an address that will be used to store a pointer to an information block used by the GSTrans process.  Failing to complete the GSTrans process will result in a memory leak.
+`DE(U)` must point to an address that will be used to store a (3-byte) pointer to an information block used by the GSTrans process.  It should be noted that failing to complete the GSTrans process can result in a memory leak.
+
+The flags are a bit-field with options to control how the translation process operates.  Their meanings are as follows:
+
+| Bit | Description |
+| --- | ----------- |
+| 0   | Terminate at first space character in source buffer |
+| 1   | No pipe (do not treat `|` as a control code) |
+| 2   | Do not treat double-quotes `"` as markers surrounding a string |
+| 3-6 | Reserved for future use (for future compatibility, ensure these are set to zero) |
+| 7   | No tracking (do not automatically track memory used by GSTrans) |
+
+It should be noted that failing to complete translation of a string will result in some memory inside MOS remaining set aside to store the GSTrans process information.  This memory will either be freed when the GSTrans process is completed, or a new call to `mos_gsinit` is made.  If the "No tracking" flag is set however then MOS will not track the memory being used, and it will not be freed on a subsequent call to `mos_gsinit` - you must complete the process of reading through the string to free the memory, or you will cause a memory leak inside MOS.
+
+In general you should not use the "No tracking" flag unless you have a need to perform two or more gstrans operations simultaneously.
 
 Returns:
 
@@ -890,11 +955,12 @@ When the final character of the translated string has been read, this function w
 
 Parameters:
 
-- `HL(U)`: Pointer to a char (byte) to store the result
 - `DE(U)`: Address of pointer used to store trans info (same pointer as used with gsInit)
 
 Returns:
+
 - `A`: Status code (`0` = Success, various other values may indicate an invalid GSTrans string)
+- `C`: Character read.  This will be `0` if the end of the string has been reached.
 
 ### `0x34`: mos_gstrans
 
@@ -903,13 +969,18 @@ Perform a complete GSTrans operation from source into dest buffer
 Parameters:
 
 - `HL(U)`: Pointer to source buffer
-- `DE(U)`: Pointer to destination buffer (can be null to just count size)
-- `BC(U)`: Length of destination buffer
-- `A`: Flags
+- `IX(U)`: Pointer to destination buffer (can be null to just count size)
+- `DE(U)`: Length of destination buffer
+- `C`: Flags
+
+If the destination buffer given for this command is less than the size required for the translated string, then the API call will succeed, but the translated string will be truncated to fit in the buffer.
+
+The flags here are identical those used with `mos_gsinit`, with the exception that the "No tracking" flag will be ignored.
 
 Returns:
+
 - `A`: Status code
-- `BC(U)`: Calculated total length of destination string
+- `BC(U)`: Calculated total length of translated string
 
 ### `0x35`: mos_substituteargs
 
@@ -918,12 +989,12 @@ Substitute arguments into a string from template
 Parameters:
 
 - `HL(U)`: Pointer to template string
-- `DE(U)`: Pointer to arguments string
-- `BC(U)`: Length of destination buffer
-- `IX(U)`: Pointer to destination buffer (can be null to just count size)
-- `A`: Flags
+- `IX(U)`: Pointer to arguments string
+- `DE(U)`: Length of destination buffer
+- `IY(U)`: Pointer to destination buffer (can be null to just count size)
+- `C`: Flags
 
-The only flag currently supported is bit 0, which indicates that the "rest" arguments (i.e. those not explicitly used in the template) should be omitted from the destination string.  When this bit is clear they will be automatically appended.
+The only flag currently supported is bit 0, which when set indicates that the "rest" arguments (i.e. those not explicitly used in the template) should be omitted from the destination string.  When this bit is clear they will be automatically appended.
 
 Returns:
 
@@ -931,7 +1002,7 @@ Returns:
 
 ### `0x36`: mos_evaluateexpression
 
-As of MOS 3.0alpha2 this function has not yet been implemented
+As of MOS 3.0alpha3 this function has not yet been implemented
 
 ### `0x38-0x3C`: File path functions
 
@@ -939,25 +1010,27 @@ Functions in this range were added in MOS 3.0 to provide a set of functions for 
 
 ### `0x38`: mos_resolvepath
 
-Resolves a path, replacing prefixes and leafnames with actual values.
+Resolves a path, creating a new resolved path string that replaces prefixes and leafnames with actual values.
+
+If the leafname contains wildcards then the first matching file will be returned.  Subsequent calls can be made to find the next matching file, so long as you provide a pointer to an empty directory object to persist between calls, and preserve the `C` register between calls too.
 
 Parameters:
 
 - `HL(U)`: Pointer to the path to resolve
-- `DE(U)`: Pointer to the resolved path (optional - omit for count only)
-- `BC(U)`: Length of the resolved path buffer
-- `IX(U)`: Pointer to the index (integer) of the resolved path (optional)
-- `IY(U)`: Pointer to a directory object to persist between calls (optional)
+- `IX(U)`: Pointer to destination buffer to store the resolved path (optional - set to zero for length count only)
+- `DE(U)`: Length of the destination buffer
+- `IY(U)`: Pointer to a directory object to persist between calls (optional, set to zero to omit)
+- `C`: Index of the resolved path (zero for first call)
 
-A prefix in a file path is a string followed by a colon character, such as `Library:`.  The string must match up with a corresponding system variable, in this example the variable would be named `Library$Path`.  Such path prefixes can contain multiple values separated by commas.  The `index` argument (in `IX(U)`) is used to work out which path to use when there are multiple values.  The value pointed to by the index should be zero on a first call.  If no index pointer is provided then only the first match will be able to be resolved.
+Path resolution will resolve prefixes in files paths, which are a string followed by a colon character, such as `Library:`.  The string must match up with a corresponding system variable, in this example the variable would be named `Library$Path`.  Such path variables can contain multiple values separated by commas.  The "index" argument in the `C` register is used to work out which prefix to use when there are multiple matches, and must be set to zero on a first call.
 
-When a directory object is passed in (in `IY(U)`) then it will be used to find the next match.
+If the leafname in your path contains wildcards then the first matching file will be returned.  If you wish to find the next matching file then you should provide a pointer to an empty directory object in `IY(U)` with your first call, and use the same object with subsequent calls (also using the same `C` register value).  If you do not include a pointer to a directory object then only the first matching file within a single directory will be returned.
 
 Returns:
 
 - `A`: Status code (`0` = Success, `22` = Out of memory, `5` = No path, `4` = No file)
-- `BC(U)`: Length of the resolved path
-- Index pointed to at `IXU`, if set, will be updated to the next path index
+- `C`: Index of the resolved path (for next call)
+- `DE(U)`: Length of the resolved path
 
 A result of `5` indicates that no matching directory could be found in the filing system.  A result of `4` indicates that a matching directory was found, but no matching file for that directory.
 
@@ -966,19 +1039,19 @@ A result of `22` indicates that either the resolved path was too long for the bu
 ### `0x39`: mos_getdirforpath
 
 Get the directory for a given path
-This function works with strings only - it resolves path prefixes for the given index
+This function works with strings only - it resolves path prefixes for the given index, but does not check whether the path actually points to a valid file or directory.  The index is used which prefix to use when the path prefix variable contains multiple options.
 
 Parameters:
 
 - `HL(U)`: Pointer to the path to get the directory for
-- `DE(U)`: Pointer to the buffer to store the directory in (optional - omit for count only)
-- `BC(U)`: Length of the buffer
-- `A`: Search index
+- `IX(U)`: Pointer to the buffer to store the directory in (optional - omit for count only)
+- `DE(U)`: Length of the buffer
+- `C`: Search index
 
 Returns:
 
 - `A`: Status code
-- `BC(U)`: Length of the directory path
+- `DE(U)`: Length of the directory path
 
 ### `0x3A`: mos_getleafname
 
@@ -986,11 +1059,11 @@ Get the leafname for a given path
 
 Parameters:
 
-- HLU: Pointer to the path to get the leafname for
+- `HL(U)`: Pointer to the path to get the leafname from
 
 Returns:
 
-- HLU: Pointer to the leafname
+- `HL(U)`: Pointer to the leafname
 
 ### `0x3B`: mos_isdirectory
 
@@ -1016,8 +1089,8 @@ Get the absolute version of a (relative) path
 Parameters:
 
 - `HL(U)`: Pointer to the path to get the absolute version of
-- `DE(U)`: Pointer to the buffer to store the absolute path in
-- `BC(U)`: Length of the buffer
+- `IX(U)`: Pointer to the buffer to store the absolute path in
+- `DE(U)`: Length of the buffer
 
 Returns:
 
@@ -1268,6 +1341,48 @@ Returns:
 
 ***
 
+## Status Codes
+
+Many MOS API calls will return a status code in the `A` register.  In general these follow a consistent set of result values, with a few exceptions which are documented against the individual API calls.  Programs and commands will also return a status code when they complete.  If you are using MOS 3, the status code value can be captured in a system variable if the command or program is run using the [`try` command](mos/Star-Commands.md#try).
+
+API calls that are documented above as returning an `FRESULT` value are returning a status code from the FatFS library.  These directly equate to status codes 0-19 in the table below.
+
+Status codes can be translated into a human-readable string using the [`mos_getError`](#0x0f-mos_geterror) API call.
+
+The possible status codes are as follows:
+
+| Code | Error message | Description |
+| ---- | ------------------- | ----------- |
+| 0    | OK | Call succeeded (NB this will not be displayed when running a program or star command) |
+| 1	   | Error accessing SD card | An error has occurred when trying to access the SD card |
+| 2    | Internal error | An internal error has occurred.  Generally, if possible, a more specific error will be used |
+| 3    | SD card failure | The SD card has failed |
+| 4    | Could not find file | The file could not be found |
+| 5    | Could not find path | The path could not be found |
+| 6    | Invalid path name | The path name is invalid |
+| 7    | Access denied or directory full | A file could not be saved to a directory either because of an access error or too many files in the directory |
+| 8    | Access denied | A file or directory cannot be accessed because it is not readable |
+| 9    | Invalid file/directory object | This is an internal filing system error |
+| 10   | SD card is write protected | The SD card cannot be written to as it is write protected |
+| 11   | Logical drive number is invalid | This is an internal filing system error, which should not occur |
+| 12   | Volume has no work area | This is an internal filing system error |
+| 13   | No valid FAT volume | The SD card does not contain a FAT format volume your Agon can understand |
+| 14   | Error occurred during mkfs | This is an internal filing system error |
+| 15   | Volume timeout | A problem has occured attempting to access your SD card |
+| 16   | Volume locked | The FAT volume cannot be written to |
+| 17   | LFN working buffer could not be allocated | This is an internal filing system error |
+| 18   | Too many open files | Occurs when too many separate files have been opened |
+| 19   | Invalid parameter | A parameter for the command or API is incorrect |
+| 20   | Invalid command | The command was not recognised or found on disc |
+| 21   | Invalid executable | An executable program does not have a valid header |
+| 22   | Out of memory | Either MOS has run out of internal memory, or a buffer provided to an API was not large enough |
+| 23   | Not implemented | The API call is not implemented in this version of MOS |
+| 24   | Load overlaps system area | File load prevented to stop overlapping system memory |
+| 25   | Bad string | A bad or incomplete string has been encountered |
+| 26   | Too deep | Too many nested commands have been detected (usually caused by a faulty [alias](mos/System-Variables.md#command-aliases) definition) |
+
+Please note that Quark MOS 1.04 will only return status codes 0-21.  The Console8 MOS 2.x release series added status codes 22-25, and MOS 3.0 added status code 26.  
+
 ## System Variables
 
 The MOS API command [mos_sysvars](#0x08-mos_sysvars) returns a pointer to the base of the MOS system variables area in IXU as a 24-bit pointer. The MOS system variables are often simply referred to as sysvars.
@@ -1310,13 +1425,33 @@ sysvar_mouseWheel:		EQU 2Eh ; 1: Mouse wheel delta
 sysvar_mouseXDelta:		EQU 2Fh ; 2: Mouse X delta
 sysvar_mouseYDelta:		EQU 31h ; 2: Mouse Y delta
 ```
+
 Example: Reading a virtual keycode in ADL mode (24-bit):
 ```
 		MOSCALL	mos_getkey
 		LD	A, (IX + sysvar_vkeycode)	; Load A with the virtual keycode from FabGL
 ```
+
 Example: Reading a virtual keycode in Z80 mode (16-bit):
 ```
 		MOSCALL	mos_getkey
 		LD.LIL	A, (IX + sysvar_vkeycode)	; Load A with the virtual keycode from FabGL
 ```
+
+For efficiency, the real-time clock data in the sysvars is stored in a packed format, using subsets of bits within the 8 bytes of the `sysvar_rtc` data.  An API is provided from MOS 3 onwards to allow for this to be unpacked [mos_unpackrtc](#0x23-mos_unpackrtc) into a buffer in a friendlier, more easy to use format.  MOS uses the following C function to unpack the RTC data into a `vdp_time_t` object:
+```c
+void rtc_unpack(UINT8 * sysvar_rtc, vdp_time_t * t) {
+	UINT32	d = *(UINT32 *)sysvar_rtc;
+
+	t->month =		(d & 0x0000000F);		// uint32_t month : 4; 		00000000 00000000 00000000 0000xxxx : 00 00 00 0F >> 0
+	t->day =		(d & 0x000001F0) >> 4;	// uint32_t day : 5;		00000000 00000000 0000000x xxxx0000 : 00 00 01 F0 >> 4
+	t->dayOfWeek = 	(d & 0x00000E00) >> 9;	// uint32_t dayOfWeek : 3;	00000000 00000000 0000xxx0 00000000 : 00 00 0E 00 >> 9
+	t->dayOfYear = 	(d & 0x001FF000) >> 12;	// uint32_t dayOfYear : 9;	00000000 000xxxxx xxxx0000 00000000 : 00 1F F0 00 >> 12
+	t->hour = 		(d & 0x03E00000) >> 21;	// uint32_t hour : 5;		000000xx xxx00000 00000000 00000000 : 03 E0 00 00 >> 21
+	t->minute =		(d & 0xFC000000) >> 26;	// uint32_t minute : 6;		xxxxxx00 00000000 00000000 00000000 : FC 00 00 00 >> 26
+
+	t->second = sysvar_rtc[4];
+	t->year = (char)sysvar_rtc[5] + 1980;
+}
+```
+
