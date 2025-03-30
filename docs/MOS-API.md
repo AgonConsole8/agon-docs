@@ -125,7 +125,7 @@ MOS API calls can be executed from a classic 64K Z80 segment or whilst the eZ80 
 
 Many, but not all, of the MOS API calls will return a [status code](#status-codes) in the `A` register.  This status code will indicate the success or failure of the operation.  If the operation was successful, the status code will be `0`.  If the operation failed, the status code will be non-zero, and will indicate the nature of the failure.  Some API calls, such as those for I2C communications or string comparisons, use different sets of status codes, which will be documented in the API call's description.
 
-As of MOS 3.0, all API calls that accept an kind of filepath string as a parameter, whether that is to a filename or a directory, will support the use of [system variables](mos/System-Variables.md) and [custom file paths](mos/System-Variables.md#path-variables) within the string.  These will automatically be handled by the API.  This allows for more flexible and powerful file handling in your applications.
+As of MOS 3.0, all API calls that accept an kind of filepath string as a parameter, whether that is to a filename or a directory, will support the use of [system variables](mos/System-Variables.md) and [custom file paths](mos/System-Variables.md#path-variables) within the string.  These will automatically be handled in native MOS file handling API calls.  This allows for more flexible and powerful file handling in your applications.  Please note that they are _not_ supported in the fatfs API calls (which named with an `ffs_` prefix).  There is an API to [resolve the path](#0x38-mos_resolvepath) which can be used to convert a path with system variables into a path suitable for use with the fatfs APIs.
 
 The following MOS commands are supported:
 
@@ -305,7 +305,7 @@ Returns:
 
 Mode can be one of: fa_read, fa_write, fa_open_existing, fa_create_new, fa_create_always, fa_open_always or fa_open_append
 
-NB: If you open the file using mos_fopen, you must close it using mos_fclose, not ffs_api_fclose
+NB: If you open the file using `mos_fopen`, you must close it using `mos_fclose`, not `ffs_api_fclose`
 
 ### `0x0B`: mos_fclose
 
@@ -529,7 +529,9 @@ Returns:
 
 ### `0x19`: mos_getfil
 
-Get a pointer to a FIL structure in MOS (Requires MOS 1.03 or above)
+Get a pointer to a `FIL` structure in MOS (Requires MOS 1.03 or above)
+
+This call is useful if you wish to use the FatFS API directly, but need to pass a `FIL` structure to a FatFS API call.
 
 Parameters:
 
@@ -539,7 +541,7 @@ Preserves: `BC(U)`
 
 Returns:
 
-- `HLU`: 24-bit pointer to a FIL structure (in MOS RAM)
+- `HLU`: 24-bit pointer to a `FIL` structure (in MOS RAM)
 
 ### `0x1A`: mos_fread
 
@@ -587,7 +589,7 @@ Preserves: `HL(U)`, `BC(U)`, `DE(U)`
 
 Returns:
 
-- `A`: FRESULT
+- `A`: Status code
 
 ### `0x1D`: mos_setkbvector
 
@@ -718,6 +720,8 @@ Data returned in the buffer at `HL(U)` will be in the following order, with 16-b
 	UINT8  second;
 ```
 
+***
+
 ### `0x28-0x2C`: String functions
 
 API calls in this range are string manipulation functions, added in MOS 3.0.
@@ -846,6 +850,7 @@ Returns:
 - `A`: Status code
 - `BC(U)`: Length of escaped string
 
+***
 
 ### `0x30-0x37`: System variables and string translations
 
@@ -1004,6 +1009,8 @@ Returns:
 
 As of MOS 3.0alpha3 this function has not yet been implemented
 
+***
+
 ### `0x38-0x3C`: File path functions
 
 Functions in this range were added in MOS 3.0 to provide a set of functions for working with and manipulating file paths.
@@ -1013,6 +1020,8 @@ Functions in this range were added in MOS 3.0 to provide a set of functions for 
 Resolves a path, creating a new resolved path string that replaces prefixes and leafnames with actual values.
 
 If the leafname contains wildcards then the first matching file will be returned.  Subsequent calls can be made to find the next matching file, so long as you provide a pointer to an empty directory object to persist between calls, and preserve the `C` register between calls too.
+
+Generally you should not need to use this API call unless you wish to use [fatfs API calls](#fatfs-commands), as all of the MOS-native API calls that accept file paths will automatically resolve paths for you.  Attempting to use an unresolved path with a fatfs API call may either fail or produce unexpected results.
 
 Parameters:
 
@@ -1098,12 +1107,15 @@ Returns:
 
 If the buffer is too short for the resolved path then a status code of `22` (Out of memory) will be returned.  Path resolution problems may result in status codes of `5` (No path) or `4` (No file).
 
+***
 
 ## FatFS commands
 
 MOS makes use of FatFS to access the SD card.  Some of FatFS's functionality is exposed via the MOS API.  The exact API calls listed here may be expanded in later versions of MOS.
 
-For more information on FatFS data structures and functions, see the [FatFS documentation](http://elm-chan.org/fsw/ff/00index_e.html).
+Please note that the FatFS API calls documented below expect file paths to be fully resolved, i.e. they should not include [path prefixes](mos/System-Variables.md#path-variables) or [system variables](mos/System-Variables.md).  This means programs running on MOS 3 should use the [`mos_resolvepath` API call](#0x38-mos_resolvepath) to resolve any paths before using them with a FatFS API call.  If you do not resolve the path then the FatFS API call may fail or produce unexpected results.  For many API calls you can instead open the file using the MOS API call [`mos_fopen`](#0x0a-mos_fopen) and then use [`mos_getfil`](#0x19-mos_getfil) to get a pointer to a `FIL` structure that many FatFS API calls require.
+
+For more information on FatFS data structures (the `FIL`, `DIR` and `FILINFO` objects), functions, and info on which bits to set in fields such as "File open mode" please see the [FatFS documentation](http://elm-chan.org/fsw/ff/00index_e.html).
 
 ### `0x80`: ffs_fopen
 
@@ -1111,7 +1123,7 @@ Open a file (Requires MOS 1.03 or above)
 
 Parameters:
 
-- `HL(U)`: Pointer to an empty FIL structure
+- `HL(U)`: Pointer to an empty `FIL` structure
 - `DE(U)`: Pointer to a C (zero-terminated) filename string
 - `C`: File open mode
 
@@ -1119,7 +1131,7 @@ Preserves: `HL(U)`, `DE(U)`, `C`
 
 Returns:
 
-- `A`: FRESULT
+- `A`: `FRESULT`
 
 Example:
 
@@ -1148,15 +1160,17 @@ Close a file (Requires MOS 1.03 or above)
 
 Parameters:
 
-- `HL(U)`: Pointer to a FIL structure
+- `HL(U)`: Pointer to a `FIL` structure
 
 Preserves: `HL(U)`
 
 Returns:
 
-- `A`: FRESULT
+- `A`: `FRESULT`
 
-See ffs_fopen for an example
+See [`ffs_fopen`](#0x80-ffs_fopen) for an example.
+
+NB: you should not use this call to close a file that had been opened using [`mos_fopen`](#0x0a-mos_fopen), as doing so will mean that MOS will be reserving an file handle for a file that has been closed.
 
 ### `0x82`: ffs_fread
 
@@ -1164,7 +1178,7 @@ Read from a file (Requires MOS 1.03 or above)
 
 Parameters:
 
-- `HL(U)`: Pointer to a FIL structure
+- `HL(U)`: Pointer to a `FIL` structure
 - `DE(U)`: Pointer to a buffer to store the data in
 - `BC(U)`: Number of bytes to read (typically the size of the buffer)
 
@@ -1173,7 +1187,7 @@ Preserves: `HL(U)`, `DE(U)`
 Returns:
 
 - `BC(U)`: Number of bytes read
-- `A`: FRESULT
+- `A`: `FRESULT`
 
 See ffs_fopen for an example
 
@@ -1183,7 +1197,7 @@ Write to a file (Requires MOS 1.03 or above)
 
 Parameters:
 
-- `HL(U)`: Pointer to a FIL structure
+- `HL(U)`: Pointer to a `FIL` structure
 - `DE(U)`: Pointer to a buffer to read the data from
 - `BC(U)`: Number of bytes to write (typically the size of the buffer)
 
@@ -1192,7 +1206,7 @@ Preserves: `HL(U)`, `DE(U)`
 Returns:
 
 - `BC(U)`: Number of bytes written
-- `A`: FRESULT
+- `A`: `FRESULT`
 
 Example:
 
@@ -1219,7 +1233,7 @@ Move the read/write pointer in a file (Requires MOS 1.03 or above)
 
 Parameters:
 
-- `HL(U)`: Pointer to a FIL structure
+- `HL(U)`: Pointer to a `FIL` structure
 - `DE(U)`: Least significant 3 bytes of the offset from the start of the file
 - `C`: Most significant byte of the offset (set to 0 for files < 16MB)
 
@@ -1233,7 +1247,7 @@ To truncate to a specified size you will need to use ffs_flseek to move the file
 
 Parameters:
 
-- `HL(U)`: Pointer to a FIL structure
+- `HL(U)`: Pointer to a `FIL` structure
 
 Preserves: `HL(U)`
 
@@ -1244,7 +1258,7 @@ Detect end of file (Requires MOS 1.03 or above)
 
 Parameters:
 
-- `HL(U)`: Pointer to a FIL structure
+- `HL(U)`: Pointer to a `FIL` structure
 
 Preserves: `HL(U)`
 
@@ -1258,14 +1272,14 @@ Open a directory (Requires Console8 MOS 2.2.0 or above)
 
 Parameters:
 
-- `HL(U)`: Pointer to a blank DIR structure
+- `HL(U)`: Pointer to a blank `DIR` structure
 - `DE(U)`: Pointer to a C (zero-terminated) directory path string
 
 Preserves: `HL(U)`, `DE(U)`
 
 Returns:
 
-- `A`: FRESULT
+- `A`: `FRESULT`
 
 ### `0x92`: ffs_dclose
 
@@ -1273,28 +1287,28 @@ Close a directory (Requires Console8 MOS 2.2.0 or above)
 
 Parameters:
 
-- `HL(U)`: Pointer to a DIR structure
+- `HL(U)`: Pointer to a `DIR` structure
 
 Preserves: `HL(U)`
 
 Returns:
 
-- `A`: FRESULT
+- `A`: `FRESULT`
 
 ### `0x93`: ffs_dread
 
-Read next directory entry into a FILINFO data structure (Requires Console8 MOS 2.2.0 or above)
+Read next directory entry into a `FILINFO` data structure (Requires Console8 MOS 2.2.0 or above)
 
 Parameters:
 
-- `HL(U)`: Pointer to a DIR structure
-- `DE(U)`: Pointer to a FILINFO structure
+- `HL(U)`: Pointer to a `DIR` structure
+- `DE(U)`: Pointer to a `FILINFO` structure
 
 Preserves: `HL(U)`, `DE(U)`
 
 Returns:
 
-- `A`: FRESULT
+- `A`: `FRESULT`
 
 ### `0x96`: ffs_stat
 
@@ -1302,14 +1316,14 @@ Get file information (Requires MOS 1.03 or above)
 
 Parameters:
 
-- `HL(U)`: Pointer to a FILINFO structure
+- `HL(U)`: Pointer to a `FILINFO` structure
 - `DE(U)`: Pointer to a C (zero-terminated) filename string
 
 Preserves: `HL(U)`, `DE(U)`
 
 Returns:
 
-- `A`: FRESULT
+- `A`: `FRESULT`
 
 Example:
 
@@ -1337,7 +1351,7 @@ Preserves: `HL(U)`, `BC(U)`
 
 Returns:
 
-- `A`: FRESULT
+- `A`: `FRESULT`
 
 ***
 
