@@ -125,7 +125,13 @@ MOS API calls can be executed from a classic 64K Z80 segment or whilst the eZ80 
 
 Many, but not all, of the MOS API calls will return a [status code](#status-codes) in the `A` register.  This status code will indicate the success or failure of the operation.  If the operation was successful, the status code will be `0`.  If the operation failed, the status code will be non-zero, and will indicate the nature of the failure.  Some API calls, such as those for I2C communications or string comparisons, use different sets of status codes, which will be documented in the API call's description.
 
-As of MOS 3.0, all API calls that accept an kind of filepath string as a parameter, whether that is to a filename or a directory, will support the use of [system variables](mos/System-Variables.md) and [custom file paths](mos/System-Variables.md#path-variables) within the string.  These will automatically be handled in native MOS file handling API calls.  This allows for more flexible and powerful file handling in your applications.  Please note that they are _not_ supported in the fatfs API calls (which named with an `ffs_` prefix).  There is an API to [resolve the path](#0x38-mos_resolvepath) which can be used to convert a path with system variables into a path suitable for use with the fatfs APIs.
+As of MOS 3.0, all the MOS API calls that accept any kind of filepath string as a parameter, whether that is to a filename or a directory, will support the use of [system variables](mos/System-Variables.md) and [custom file paths](mos/System-Variables.md#path-variables) within the string.  These will automatically be handled in native MOS file handling API calls.  This allows for more flexible and powerful file handling in your applications.
+
+Please note that the FatFS API calls (which named with an `ffs_` prefix) do _not_ support this behaviour, and will only work with fully resolved file paths.  There is an API to [resolve the path](#0x38-mos_resolvepath) which can be used to convert a path with system variables into a path suitable for use with the fatfs APIs.
+
+In general, to read and/or write files files, it is recommended to use the MOS file APIs as these will automatically handle system variables and file paths.  MOS file APIs use a "file handle" to reference an open file, whereas the FatFS APIs expect a pointer to a `FIL` structure.  You can get a `FIL` structure for a MOS file handle by using the [`mos_getfil` API](#0x19-mos_getfil).  This will allow you to use the FatFS APIs directly if you need to, but in most cases it is recommended to use the MOS file APIs.
+
+(NB at the time of writing, just after the release of MOS 3 Alpha 4, the [`mos_resolvepath` API](#0x38-mos_resolvepath) does not expand system variables and therefore, by itself, will not fully resolve a path in the same way that the MOS APIs that accept file paths do.  This can be worked around by first expanding out any system variables in your path using the [`mos_gstrans` API](#0x34-mos_gstrans).  The final release of MOS 3.0 will add support to automatically expand system variables to the `mos_resolvepath` API.)
 
 The following MOS commands are supported:
 
@@ -295,7 +301,7 @@ Get a file handle
 Parameters:
 
 - `HL(U)`: Address of filename (zero terminated)
-- `C`: Mode
+- `C`: File open mode
 
 Preserves: `HL(U)`, `BC(U)`, `DE(U)`, `IX(U)`, `IY(U)`
 
@@ -303,7 +309,21 @@ Returns:
 
 - `A`: File handle, or 0 if couldn't open
 
-Mode can be one of: fa_read, fa_write, fa_open_existing, fa_create_new, fa_create_always, fa_open_always or fa_open_append
+#### File open modes 
+
+The mode is a number that indicates rules as to how the file will be opened.  Several different modes are available, and these values can be combined using a bitwise OR operation.  The values supported are inherited from FatFS, and are as follows:
+
+| Mode | FatFS constant | Description |
+| ---- | -------------- | ----------- |
+| 0x01 | `FA_READ`	| Open file for reading |
+| 0x02 | `FA_WRITE`	| Open file for writing.  Combine with `FA_READ` for read/write access |
+| 0x00 | `FA_OPEN_EXISTING`	| Open file if it exists, fail if it doesn't |
+| 0x04 | `FA_CREATE_NEW`	| Create a new file, fail if it already exists |
+| 0x08 | `FA_CREATE_ALWAYS`	| Create a new file.  If the file already exists it will be truncated and overwritten |
+| 0x10 | `FA_OPEN_ALWAYS`	| Open file if it exists, create it if it doesn't |
+| 0x30 | `FA_OPEN_APPEND`	| Same as `FA_OPEN_ALWAYS`, except the read/write pointer will be set to the end of the file |
+
+You may note that the "open existing" mode has a value of zero.  Setting either, or both, of the "create" options will override this.
 
 NB: If you open the file using `mos_fopen`, you must close it using `mos_fclose`, not `ffs_api_fclose`
 
@@ -1017,11 +1037,11 @@ Functions in this range were added in MOS 3.0 to provide a set of functions for 
 
 ### `0x38`: mos_resolvepath
 
-Resolves a path, creating a new resolved path string that replaces prefixes and leafnames with actual values.
+Resolves a path, creating a new resolved path string that expands system variables, and also replaces prefixes and leafnames with actual values.  System variables will be expanded first, and then the prefix and leafname will be resolved.  The result is a fully resolved path that can be used with the FatFS API calls.
 
-If the leafname contains wildcards then the first matching file will be returned.  Subsequent calls can be made to find the next matching file, so long as you provide a pointer to an empty directory object to persist between calls, and preserve the `C` register between calls too.
+If the leafname contains wildcards then the first matching file will be returned.  Please note that this will be the first match found in a directory, and owing to how directories are managed this may not be the first alphabetical match.  Subsequent calls can be made to find the next matching file, so long as you provide a pointer to an empty directory object to persist between calls, and preserve the `C` register between calls too.
 
-Generally you should not need to use this API call unless you wish to use [fatfs API calls](#fatfs-commands), as all of the MOS-native API calls that accept file paths will automatically resolve paths for you.  Attempting to use an unresolved path with a fatfs API call may either fail or produce unexpected results.
+NB the version of this API in MOS 3 Alpha 4 does not yet include support for expanding system variables.  This will be added in a later version.
 
 Parameters:
 
@@ -1029,11 +1049,39 @@ Parameters:
 - `IX(U)`: Pointer to destination buffer to store the resolved path (optional - set to zero for length count only)
 - `DE(U)`: Length of the destination buffer
 - `IY(U)`: Pointer to a directory object to persist between calls (optional, set to zero to omit)
+- `B`: Flags
 - `C`: Index of the resolved path (zero for first call)
 
-Path resolution will resolve prefixes in files paths, which are a string followed by a colon character, such as `Library:`.  The string must match up with a corresponding system variable, in this example the variable would be named `Library$Path`.  Such path variables can contain multiple values separated by commas.  The "index" argument in the `C` register is used to work out which prefix to use when there are multiple matches, and must be set to zero on a first call.
+Path resolution will resolve prefixes in files paths, which are a string followed by a colon character, such as `Library:`.  The string must match up with a corresponding system variable, in this example the variable would be named `Library$Path`.  Prefixes are not case-sensitive, so `library:`, `Library:` and `LIBRARY:` would all match in this example.  Such path variables can contain multiple values separated by commas.  The "index" argument in the `C` register is used to work out which prefix to use when there are multiple matches, and must be set to zero on a first call.
+
+If you are resolving for a file that does not exist, the path will be resolved to the first matching directory, returning a "no file" (`4` status code).  If no matching directory can be found the path will not be resolved, and a "no path" (`5` status code) will be returned, and the returned path will be empty.  If the path is resolved successfully to an existing file the status code will be `0`.
+
+The `flags` argument is a bit-field used to indicate which files are valid to be returned.  These bits are used to filter the results based on the file attributes, which are inherited from the file system (FatFS).  If you wish to always return all results you should set the flags to `0`.  The bits are as follows:
+
+| Bit | FatFS constant | Description |
+| --- | -------------- | ----------- |
+| 0 | `AM_RDO` | Read only |
+| 1 | `AM_HID` | Hidden |
+| 2 | `AM_SYS` | System |
+| 3 | n/a | Reserved/Unused - set to zero |
+| 4 | `AM_DIR` | Directory |
+| 5 | `AM_ARC` | Archive |
+| 6 | n/a | Set to disable system variable expansion |
+| 7 | n/a | Include/exclude in results |
+
+System variable expansion passes the source path through the [GSTrans](#0x34-mos_gstrans) process, replacing any system variables used in the path with their values.  If you have already performed this step then you can set bit 6 to disable the expansion.  (NB as of MOS 3.0 Alpha 4 this step is not yet implemented, so this bit is not currently used.)
+
+Bit 7 is used to indicate how to apply the attributes to filter results.  When it is set, any result must include _all_ of the attributes set.  When it is clear, the result will not include any of the attributes set.  This can be used, for example, to filter out hidden or system files, or alternatively to only include results that are directories.
+
+NB any attributes that are not set in the `flags` argument will be ignored, so if you perform a search with a flags value of `0x06`, which will filter out hidden and system files, your results may include items that have their directory, read-only, and/or archive bits set.  Similarly a search with a flags value of `0x90` will only include directories, but those directories could have any of the other attributes set.
+
+If you wish to further filter results you should pass in a `DIR` object in `IY(U)` to persist between calls, and use the [`ffs_stat`](#0x96-ffs_stat) API call to get a `FILINFO` object where you can check the full attributes of the the returned result (stored in the `fattrib` field).  If the results do not match your requirements you can then call `mos_resolvepath` again to find the next matching file.
 
 If the leafname in your path contains wildcards then the first matching file will be returned.  If you wish to find the next matching file then you should provide a pointer to an empty directory object in `IY(U)` with your first call, and use the same object with subsequent calls (also using the same `C` register value).  If you do not include a pointer to a directory object then only the first matching file within a single directory will be returned.
+
+Besides finding filecard matches, the other main use for this API is to resolve a path so that it can be used with [FatFS API calls](#fatfs-commands).  This step is needed to ensure that the path is fully resolved, as the FatFS API calls do not support using path prefixes or system variables.  Attempting to use an unresolved path with a fatfs API call may either fail or produce unexpected results.
+
+It is not necessary to use this API call to resolve paths for use with the MOS-native API calls, as those will all automatically resolve paths for you.
 
 Returns:
 
@@ -1041,14 +1089,19 @@ Returns:
 - `C`: Index of the resolved path (for next call)
 - `DE(U)`: Length of the resolved path
 
+If this is called with a null pointer in `IX(U)` then the maximum possible length of of all possible resolved paths will be returned in `DE(U)`.  This is useful if you wish to allocate a buffer for the resolved path, but do not know how long it will be.
+
 A result of `5` indicates that no matching directory could be found in the filing system.  A result of `4` indicates that a matching directory was found, but no matching file for that directory.
 
 A result of `22` indicates that either the resolved path was too long for the buffer provided, or that there was an error allocating memory whilst searching for a matching path.
 
 ### `0x39`: mos_getdirforpath
 
-Get the directory for a given path
+Get the directory for a given path.
+
 This function works with strings only - it resolves path prefixes for the given index, but does not check whether the path actually points to a valid file or directory.  The index is used which prefix to use when the path prefix variable contains multiple options.
+
+The returned path will be the directory part of the path, and will not include the leafname.
 
 Parameters:
 
@@ -1064,7 +1117,11 @@ Returns:
 
 ### `0x3A`: mos_getleafname
 
-Get the leafname for a given path
+Get the leafname for a given path.
+
+This is a utility function that will scan a file path string and return a pointer within that string to the leafname.  The leafname is the last part of a file path, and may refer to a file or a directory.  This call does not check whether the path actually points to a valid file or directory, and it does not resolve any path prefixes.  It should be noted that a leafname may be empty if the path is empty or ends with a `/` or `:` character.
+
+If the path does not contain a valid leafname then the function will return a pointer to the end of the string.
 
 Parameters:
 
@@ -1078,7 +1135,7 @@ Returns:
 
 Checks if a given path points to a directory
 
-NB this call does not do path prefix resolution, so you may need to use `mos_getdirforpath` first.
+NB this call only works with fully resolved paths, and as such does not perform path prefix resolution.  You may therefore need to use [`mos_getdirforpath`](#0x39-mos_getdirforpath) or [`mos_resolvepath`](#0x38-mos_resolvepath) first.
 
 Parameters:
 
@@ -1127,11 +1184,13 @@ Parameters:
 - `DE(U)`: Pointer to a C (zero-terminated) filename string
 - `C`: File open mode
 
-Preserves: `HL(U)`, `DE(U)`, `C`
+The file open mode on this API is a bit-field that is identical to the [mode used](#file-open-modes) in the [`mos_fopen`](#0x0a-mos_fopen) API call.
 
 Returns:
 
 - `A`: `FRESULT`
+
+Preserves: `HL(U)`, `DE(U)`, `C`
 
 Example:
 
@@ -1328,7 +1387,7 @@ Returns:
 Example:
 
 ```
-			LD	HL, filinfo			; FILINFO buffer
+			LD	HL, filinfo				; FILINFO buffer
 			LD	DE, filename			; Filename (0 terminated)
 			MOSCALL	ffs_stat
 			RET
