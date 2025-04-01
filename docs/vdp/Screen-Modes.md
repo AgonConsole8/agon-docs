@@ -91,6 +91,13 @@ Modes over 128 are double-buffered
 | § 21 |  512 |  384 |   16 |    60hz |
 | § 22 |  512 |  384 |    4 |    60hz |
 | § 23 |  512 |  384 |    2 |    60hz |
+| §§ 24 | 640 |  512 |   16 |    60hz |
+| §§ 25 | 640 |  512 |    4 |    60hz |
+| §§ 26 | 640 |  512 |    2 |    60hz |
+| §§ 27 | 640 |  256 |   64 |    60hz |
+| §§ 28 | 640 |  256 |   16 |    60hz |
+| §§ 29 | 640 |  256 |    4 |    60hz |
+| §§ 30 | 640 |  256 |    2 |    60hz |
 |  129 |  640 |  480 |    4 |    60hz |
 |  130 |  640 |  480 |    2 |    60hz |
 |  132 |  640 |  240 |   16 |    60hz |
@@ -109,6 +116,11 @@ Modes over 128 are double-buffered
 | § 149 |  512 |  384 |   16 |    60hz |
 | § 150 |  512 |  384 |    4 |    60hz |
 | § 151 |  512 |  384 |    2 |    60hz |
+| §§ 153 | 640 |  512 |    4 |    60hz |
+| §§ 154 | 640 |  512 |    2 |    60hz |
+| §§ 156 | 640 |  256 |   16 |    60hz |
+| §§ 157 | 640 |  256 |    4 |    60hz |
+| §§ 158 | 640 |  256 |    2 |    60hz |
 
 \* Mode 1 is the "default" mode, and is the mode that the system will use on startup.  It is also the mode that the system will fall back to use if it was not possible to change to the requested mode.
 
@@ -117,6 +129,7 @@ Modes over 128 are double-buffered
 \*** As of Console8 VDP 2.8.0, mode 0 is now the mode that the VDP will use on startup.  The fallback mode when a requested mode is not available remains mode 1.
 
 § Support for screen modes 19-23, 145-146 and 149-151 was added in Console8 VDP 2.10.0
+§§ Support for screen modes 24-30, and 153-158 was added in Console8 VDP 2.13.0
 
 ### Legacy modes (prior to 1.04)
 

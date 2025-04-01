@@ -175,7 +175,7 @@ You can use the following command from the MOS command line, from BBC BASIC (usi
     *SET KEYBOARD n
 
 The keyboard layout for UK = 0, US = 1
-Other available layouts are available from MOS 1.03+, [documented here](MOS.md#keyboard-layout)
+Other available layouts are available from MOS 1.03+, [documented here](mos/Star-Commands.md#keyboard-layout)
 
 ## How do I exit to the MOS command line, from within BBC Basic?
 
