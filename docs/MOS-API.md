@@ -22,7 +22,7 @@ NB:
 
 - Using the `RST.LIS` opcode in an eZ80 assembler will ensure the MOS RST instructions are called regardless of the eZ80s current addressing mode.
 - In the `mos_api.inc` file you will find:
-    - EQUs for all the MOS commands, data structures and system variables.
+    - EQUs for all the MOS commands, data structures and [system state variables (sysvars)](#sysvars).
     - An incomplete list of VDP control variables.  For a full list, see the [VDP documentation](VDP.md)
     - A complete list FatFS APIs, however these are not yet all implemented in MOS.  Those that are implemented are documented below.
 
@@ -125,13 +125,13 @@ MOS API calls can be executed from a classic 64K Z80 segment or whilst the eZ80 
 
 Many, but not all, of the MOS API calls will return a [status code](#status-codes) in the `A` register.  This status code will indicate the success or failure of the operation.  If the operation was successful, the status code will be `0`.  If the operation failed, the status code will be non-zero, and will indicate the nature of the failure.  Some API calls, such as those for I2C communications or string comparisons, use different sets of status codes, which will be documented in the API call's description.
 
+The APIs available from MOS have changed over time, and some of the APIs described are only available in later versions of MOS.  If you attempt to call an API that is not available in the version of MOS you are using the API will return the status value `23` in the `A` register to indicate it is not supported.  Please note that Console8 MOS 2.1.0 and earlier, including Quark MOS 1.04, do support detecting unknown/unsupported API calls and will produce unexpected results if you attempt to call an API that is not supported.  This is a known issue with these versions of MOS, and it is recommended to upgrade to a later version of MOS if you are using these versions.
+
 As of MOS 3.0, all the MOS API calls that accept any kind of filepath string as a parameter, whether that is to a filename or a directory, will support the use of [system variables](mos/System-Variables.md) and [custom file paths](mos/System-Variables.md#path-variables) within the string.  These will automatically be handled in native MOS file handling API calls.  This allows for more flexible and powerful file handling in your applications.
 
 Please note that the FatFS API calls (which named with an `ffs_` prefix) do _not_ support this behaviour, and will only work with fully resolved file paths.  There is an API to [resolve the path](#0x38-mos_resolvepath) which can be used to convert a path with system variables into a path suitable for use with the fatfs APIs.
 
-In general, to read and/or write files files, it is recommended to use the MOS file APIs as these will automatically handle system variables and file paths.  MOS file APIs use a "file handle" to reference an open file, whereas the FatFS APIs expect a pointer to a `FIL` structure.  You can get a `FIL` structure for a MOS file handle by using the [`mos_getfil` API](#0x19-mos_getfil).  This will allow you to use the FatFS APIs directly if you need to, but in most cases it is recommended to use the MOS file APIs.
-
-(NB at the time of writing, just after the release of MOS 3 Alpha 4, the [`mos_resolvepath` API](#0x38-mos_resolvepath) does not expand system variables and therefore, by itself, will not fully resolve a path in the same way that the MOS APIs that accept file paths do.  This can be worked around by first expanding out any system variables in your path using the [`mos_gstrans` API](#0x34-mos_gstrans).  The final release of MOS 3.0 will add support to automatically expand system variables to the `mos_resolvepath` API.)
+In general, to read and/or write files files, it is recommended to use the MOS file APIs as these will automatically handle system variables and file paths.  MOS file APIs use a "file handle" to reference an open file, whereas the FatFS APIs expect a pointer to a `FIL` structure.  You can get a `FIL` structure for a MOS file handle by using the [`mos_getfil` API](#0x19-mos_getfil).  This will allow you to use the FatFS APIs directly if you need to, but in most cases it is recommended to use the MOS file APIs.  It is planned that future versions of MOS (beyond 3.0) will support using the MOS file APIs to open data streams other than files, such as the serial UART, I2C devices, and the VDP connection.  This will allow you to use the same APIs to read/write data across different all data streams.
 
 The following MOS commands are supported:
 
@@ -258,13 +258,13 @@ Returns:
 
 ### `0x08`: mos_sysvars
 
-Fetch a pointer to the [system variables](#system-variables)
+Fetch a pointer to the [system state variables](#sysvars)
 
 Parameters: None
 
 Returns:
 
-- `IXU`: Pointer to the MOS system variable area (this is always 24 bit)
+- `IXU`: Pointer to the MOS SysVars area (this is always 24 bit)
 
 ### `0x09`: mos_editline
 
@@ -598,6 +598,8 @@ Returns:
 ### `0x1C`: mos_flseek
 
 Move the read/write pointer in a file (Requires MOS 1.03 or above)
+
+This API can be used to expand the size of a file, although you should note that the file data in the expanded part will be undefined.
 
 Parameters:
 
@@ -1027,7 +1029,7 @@ Returns:
 
 ### `0x36`: mos_evaluateexpression
 
-As of MOS 3.0alpha3 this function has not yet been implemented
+As of MOS 3.0 this function has not yet been implemented.  Support for this function is planned for a future release.
 
 ***
 
@@ -1037,11 +1039,11 @@ Functions in this range were added in MOS 3.0 to provide a set of functions for 
 
 ### `0x38`: mos_resolvepath
 
-Resolves a path, creating a new resolved path string that expands system variables, and also replaces prefixes and leafnames with actual values.  System variables will be expanded first, and then the prefix and leafname will be resolved.  The result is a fully resolved path that can be used with the FatFS API calls.
+Resolves a path, creating a new resolved path string that expands [system variables](mos/System-Variables.md), and also replaces [prefixes](mos/System-Variables.md#path-variables) and leafnames with actual values.  System variables will be expanded first, and then the prefix and leafname will be resolved.  The result is a fully resolved path that can be used with the FatFS API calls.
 
 If the leafname contains wildcards then the first matching file will be returned.  Please note that this will be the first match found in a directory, and owing to how directories are managed this may not be the first alphabetical match.  Subsequent calls can be made to find the next matching file, so long as you provide a pointer to an empty directory object to persist between calls, and preserve the `C` register between calls too.
 
-NB the version of this API in MOS 3 Alpha 4 does not yet include support for expanding system variables.  This will be added in a later version.
+NB path resolution does not support resolving paths that contain wildcards in the directory part of the path.  If you need to do this then you should gradually build the path up by calling `mos_resolvepath` multiple times to resolve the path up to each wildcard, using flags to filter for results that are a directory matching the wildcard until the directory part of the path is fully resolved.  You can then call `mos_resolvepath` again with different flags to resolve the leafname part of the path.
 
 Parameters:
 
@@ -1069,7 +1071,7 @@ The `flags` argument is a bit-field used to indicate which files are valid to be
 | 6 | n/a | Set to disable system variable expansion |
 | 7 | n/a | Include/exclude in results |
 
-System variable expansion passes the source path through the [GSTrans](#0x34-mos_gstrans) process, replacing any system variables used in the path with their values.  If you have already performed this step then you can set bit 6 to disable the expansion.  (NB as of MOS 3.0 Alpha 4 this step is not yet implemented, so this bit is not currently used.)
+System variable expansion passes the source path through the [GSTrans](#0x34-mos_gstrans) process, replacing any system variables used in the path with their values.  If you have already performed this step then you can set bit 6 to disable the expansion.
 
 Bit 7 is used to indicate how to apply the attributes to filter results.  When it is set, any result must include _all_ of the attributes set.  When it is clear, the result will not include any of the attributes set.  This can be used, for example, to filter out hidden or system files, or alternatively to only include results that are directories.
 
@@ -1168,11 +1170,15 @@ If the buffer is too short for the resolved path then a status code of `22` (Out
 
 ## FatFS commands
 
-MOS makes use of FatFS to access the SD card.  Some of FatFS's functionality is exposed via the MOS API.  The exact API calls listed here may be expanded in later versions of MOS.
+MOS makes use of the [FatFS library](http://elm-chan.org/fsw/ff/00index_e.html) to access the SD card.  Some of FatFS's functionality is exposed as APIs in MOS.  These APIs are essentially provide a way to call the underlying FatFS functions that MOS uses to perform file operations.  The API calls are prefixed with `ffs_` to indicate that they are FatFS functions, and the `mos_` prefix is used for the native MOS API calls.
+
+Our naming convention for FatFS APIs in MOS is to remove the `f_` prefix from the FatFS function name, and replace it with `ffs_`, plus an optionally `f` or `d` prefix.  For example, the API that exposes the `f_open` FatFS function is named `ffs_fopen`.
+
+The variety of FatFS APIs supported in the MOS 1.x and MOS 2.x releases was limited to a restricted subset of functionality.  MOS 3.0 includes support for all of the FatFS API calls that our current FatFS configuration supports.  The documentation below describes all potential FatFS API calls, including those not supported by our configuration - those APIs that are not supported will a status value of `23` (Not implemented) in the A register.  Future versions of MOS may include support for additional API calls, and the documentation will be updated to reflect this.
 
 Please note that the FatFS API calls documented below expect file paths to be fully resolved, i.e. they should not include [path prefixes](mos/System-Variables.md#path-variables) or [system variables](mos/System-Variables.md).  This means programs running on MOS 3 should use the [`mos_resolvepath` API call](#0x38-mos_resolvepath) to resolve any paths before using them with a FatFS API call.  If you do not resolve the path then the FatFS API call may fail or produce unexpected results.  For many API calls you can instead open the file using the MOS API call [`mos_fopen`](#0x0a-mos_fopen) and then use [`mos_getfil`](#0x19-mos_getfil) to get a pointer to a `FIL` structure that many FatFS API calls require.
 
-For more information on FatFS data structures (the `FIL`, `DIR` and `FILINFO` objects), functions, and info on which bits to set in fields such as "File open mode" please see the [FatFS documentation](http://elm-chan.org/fsw/ff/00index_e.html).
+For more information on FatFS data structures (the `FIL`, `DIR` and `FILINFO` objects), functions, and info on which bits to set in fields such as "File open mode" please see the [FatFS documentation](http://elm-chan.org/fsw/ff/00index_e.html).  The FatFS configuration can affect the contents of these data structures - our configuration has the `FF_USE_LFN` and `FF_USE_FIND` options set, and does _not_ set `FF_READ_ONLY` or `FF_USE_FASTSEEK`.
 
 ### `0x80`: ffs_fopen
 
@@ -1221,11 +1227,11 @@ Parameters:
 
 - `HL(U)`: Pointer to a `FIL` structure
 
-Preserves: `HL(U)`
-
 Returns:
 
 - `A`: `FRESULT`
+
+Preserves: `HL(U)`
 
 See [`ffs_fopen`](#0x80-ffs_fopen) for an example.
 
@@ -1241,12 +1247,12 @@ Parameters:
 - `DE(U)`: Pointer to a buffer to store the data in
 - `BC(U)`: Number of bytes to read (typically the size of the buffer)
 
-Preserves: `HL(U)`, `DE(U)`
-
 Returns:
 
-- `BC(U)`: Number of bytes read
 - `A`: `FRESULT`
+- `BC(U)`: Number of bytes read
+
+Preserves: `HL(U)`, `DE(U)`
 
 See ffs_fopen for an example
 
@@ -1260,12 +1266,12 @@ Parameters:
 - `DE(U)`: Pointer to a buffer to read the data from
 - `BC(U)`: Number of bytes to write (typically the size of the buffer)
 
-Preserves: `HL(U)`, `DE(U)`
-
 Returns:
 
-- `BC(U)`: Number of bytes written
 - `A`: `FRESULT`
+- `BC(U)`: Number of bytes written
+
+Preserves: `HL(U)`, `DE(U)`
 
 Example:
 
@@ -1290,11 +1296,17 @@ buffer:		DS	256				; Buffer containing data to write out
 
 Move the read/write pointer in a file (Requires MOS 1.03 or above)
 
+This API call can also be used to expand the file size, by moving the pointer to a location beyond the current end of the file.  It should be noted that the extra allocated disk space will not be cleared, so the data in the new space will be undefined.
+
 Parameters:
 
 - `HL(U)`: Pointer to a `FIL` structure
 - `DE(U)`: Least significant 3 bytes of the offset from the start of the file
 - `C`: Most significant byte of the offset (set to 0 for files < 16MB)
+
+Returns:
+
+- `A`: `FRESULT`
 
 Preserves: `HL(U)`, `DE(U)`, `BC(U)`
 
@@ -1302,28 +1314,177 @@ Preserves: `HL(U)`, `DE(U)`, `BC(U)`
 
 Truncate a file to the current file pointer offset (Requires Console8 MOS 2.3.0 or above)
 
-To truncate to a specified size you will need to use ffs_flseek to move the file pointer to the desired location before calling ffs_ftruncate.
+To truncate to a specified size you will need to use `ffs_flseek` to move the file pointer to the desired location before calling `ffs_ftruncate`.
 
 Parameters:
 
 - `HL(U)`: Pointer to a `FIL` structure
 
+Returns:
+
+- `A`: `FRESULT`
+
 Preserves: `HL(U)`
 
+### `0x86`: ffs_fsync
+
+Flushes cached information of a writing file (Requires Console8 MOS 3.0 or above)
+
+When writing to a file, file data may be cached in memory until the file is closed.  This function will flush the cache to the SD card, ensuring that all data has been written.  This can be useful to minimise the risks of data loss in the event of a power failure, SD card removal, or other unexpected shutdown.
+
+Parameters:
+
+- `HL(U)`: Pointer to a `FIL` structure
+
+Returns:
+
+- `A`: `FRESULT`
+
+### `0x87`: ffs_fforward
+
+This API is not implemented, as the FatFS `f_forward` function is not supported by the current configuration of the FatFS library used in MOS.
+
+The documented purpose of the `f_forward` function is to read file data and forward it to a "data streaming device" (a callback function).  It is unlikely that this feature would be enabled in the future as we do not have a clear use-case for it, and similar functionality can be achieved by other means.
+
+Returns:
+
+- `A`: `23` (Not implemented)
+
+### `0x88`: ffs_fexpand
+
+This API is not implemented, as the FatFS `f_expand` function is not supported by the current configuration of the FatFS library used in MOS.
+
+The purpose of the `f_expand` function is to expand a file allocating a contiguous data area to the file.  Files can be expanded using the [`ffs_flseek`](#0x84-ffs_flseek) API, although this will not guarantee that the data area is contiguous.  It is unlikely that this API will be implemented in the future, as on an SD card there is little advantage to be had in allocating a contiguous data area for a file.
+
+Returns:
+
+- `A`: `23` (Not implemented)
+
+### `0x89`: ffs_fgets
+
+Reads a string from a file (Requires MOS 3.0 or above)
+
+Reads characters into a buffer until a newline `\n` character is reached, the end of file encountered, or the buffer is filled.  The string read will be zero terminated.
+
+It should be noted that this API does not return a status code in the `A` register.
+
+Parameters:
+
+- `HL(U)`: Pointer to a `FIL` structure
+- `DE(U)`: Pointer to a buffer to store the string in
+- `BC(U)`: Buffer size
+
+Returns:
+
+- `DE(U)`: Pointer to the target buffer, or NULL if an error occurred
+
+Preserves: `HL(U)`, `BC(U)`
+
+### `0x8A`: ffs_fputc
+
+Writes a single character to a file (Requires MOS 3.0 or above)
+
+It should be noted that this API does not return a status code in the `A` register.
+
+Parameters:
+
+- `HL(U)`: Pointer to a `FIL` structure
+- `C`: Character to write
+
+Returns:
+
+- `BC(U)`: Number of bytes written
+
+Preserves: `HL(U)`
+
+### `0x8B`: ffs_fputs
+
+Writes a zero-terminated string to a file.  The termination character will not be written to the file. (Requires MOS 3.0 or above)
+
+It should be noted that this API does not return a status code in the `A` register.
+
+Parameters:
+
+- `HL(U)`: Pointer to a `FIL` structure
+- `DE(U)`: Pointer to a zero-terminated string
+
+Returns:
+
+- `BC(U)`: Number of bytes written
+
+Preserves: `HL(U)`, `DE(U)`
+
+### `0x8C`: ffs_fprintf
+
+Whilst our configuration of FatFS does support the `f_printf` function, at this time an API call for it has not been implemented.  This is because the function supports a variable number of arguments, and as of the MOS 3.0 release it is not clear how to implement this in a way that is consistent with the rest of the API calls.
+
+This may be added in a future version of MOS, and if so would likely be restricted to code running in ADL mode, and return an error to code running in Z80 mode.
+
+### `0x8D`: ffs_ftell
+
+Get the current read/write pointer of a file.  (Requires MOS 3.0 or above)
+
+Please note that this API call does not return a status code in the `A` register.
+
+Parameters:
+
+- `HL(U)`: Pointer to a `FIL` structure
+
+Returns:
+
+- `DE(U)`: Least significant 3 bytes of the offset from the start of the file
+- `C`: Most significant byte of the offset (set to 0 for files < 16MB).  `BC(U)` is set to `0` before `C` is returned
+
+Preserves: `HL(U)`
 
 ### `0x8E`: ffs_feof
 
-Detect end of file (Requires MOS 1.03 or above)
+Detect end of file (Requires MOS 3.0 or above)
+
+Please note that whilst this API has been present since MOS 1.03 its implementation had an error which meant that it would return the value of the `L` register passed in as a parameter, rather than the correct value.  This was fixed in MOS 3.0.
 
 Parameters:
 
 - `HL(U)`: Pointer to a `FIL` structure
-
-Preserves: `HL(U)`
 
 Returns:
 
 - `A`: 1 if at the end of the file, otherwise 0
+
+Preserves: `HL(U)`
+
+### `0x8F`: ffs_fsize
+
+Get the size of a file (Requires MOS 3.0 or above)
+
+Please note that this API call does not return a status code in the `A` register.
+
+Parameters:
+
+- `HL(U)`: Pointer to a `FIL` structure
+
+Returns:
+
+- `DE(U)`: Least significant 3 bytes of file size
+- `C`: Most significant byte of the file size (set to 0 for files < 16MB).  `BC(U)` is set to `0` before `C` is returned
+
+Preserves: `HL(U)`
+
+### `0x90`: ffs_ferror
+
+Tests for an error on a file (Requires MOS 3.0 or above)
+
+Returns a non-zero value if a hard error has returned, otherwise will return a status of `0` (OK).
+
+Parameters:
+
+- `HL(U)`: Pointer to a `FIL` structure
+
+Returns:
+
+- `A`: `FRESULT`
+
+Preserves: `HL(U)`
 
 ### `0x91`: ffs_dopen
 
@@ -1334,11 +1495,11 @@ Parameters:
 - `HL(U)`: Pointer to a blank `DIR` structure
 - `DE(U)`: Pointer to a C (zero-terminated) directory path string
 
-Preserves: `HL(U)`, `DE(U)`
-
 Returns:
 
 - `A`: `FRESULT`
+
+Preserves: `HL(U)`, `DE(U)`
 
 ### `0x92`: ffs_dclose
 
@@ -1348,11 +1509,11 @@ Parameters:
 
 - `HL(U)`: Pointer to a `DIR` structure
 
-Preserves: `HL(U)`
-
 Returns:
 
 - `A`: `FRESULT`
+
+Preserves: `HL(U)`
 
 ### `0x93`: ffs_dread
 
@@ -1363,11 +1524,49 @@ Parameters:
 - `HL(U)`: Pointer to a `DIR` structure
 - `DE(U)`: Pointer to a `FILINFO` structure
 
+Returns:
+
+- `A`: `FRESULT`
+
 Preserves: `HL(U)`, `DE(U)`
+
+### `0x94`: ffs_dfindfirst
+
+Searches a directory for a matching item (Requires MOS 3.0 or above)
+
+Parameters:
+
+- `HL(U)`: Pointer to a blank `DIR` struct
+- `DE(U)`: Pointer to a blank `FILINFO` struct
+- `BC(U)`: Pointer to directory path string
+- `IX(U)`: Pointer to matching pattern string
+
+The directory path provided in `BC(U)` must be a fully resolved path, and the matching pattern in `IX(U)` should be a zero-terminated string.  The matching pattern can include wildcards, such as `*` and `?`, and will be used to match against the directory entries.  Subsequent entries can be found using [`ffs_dfindnext`](#0x95-ffs_dfindnext) passing in the same `DIR` structures as passed to this call, and the pattern string must also be preserved.
+
+If a matching file is found, the `FILINFO` structure will be populated with information about the file.
 
 Returns:
 
 - `A`: `FRESULT`
+
+Preserves: `HL(U)`, `DE(U)`, `BC(U)`, `IX(U)`
+
+### `0x95`: ffs_dfindnext
+
+Find next matching item in a directory (Requires MOS 3.0 or above)
+
+This API call is used to find the next matching item in a directory after a successful call to [`ffs_dfindfirst`](#0x94-ffs_dfindfirst).  It will return the next matching file or directory in the same way as `ffs_dfindfirst`, but will not require the path and pattern strings to be passed in again.  Please note that whilst it is not a parameter for this API, the pattern string passed to `ffs_dfindfirst` must be preserved, as it will be used to match against the directory entries.
+
+Parameters:
+
+- `HL(U)`: Pointer to a `DIR` structure, as set up by [`ffs_dfindfirst`](#0x94-ffs_dfindfirst)
+- `DE(U)`: Pointer to a `FILINFO` structure
+
+Returns:
+
+- `A`: `FRESULT`
+
+Preserves: `HL(U)`, `DE(U)`
 
 ### `0x96`: ffs_stat
 
@@ -1378,11 +1577,11 @@ Parameters:
 - `HL(U)`: Pointer to a `FILINFO` structure
 - `DE(U)`: Pointer to a C (zero-terminated) filename string
 
-Preserves: `HL(U)`, `DE(U)`
-
 Returns:
 
 - `A`: `FRESULT`
+
+Preserves: `HL(U)`, `DE(U)`
 
 Example:
 
@@ -1397,6 +1596,87 @@ filename:	DB	"example.txt", 0		; The file to read
 filinfo:	DS	FILINFO_SIZE			; FILINFO buffer (defined in mos_api.inc)
 ```
 
+### `0x97`: ffs_unlink
+
+Removes ("unlinks") a file or sub-directory from the volume (Requires MOS 3.0 or above)
+
+Parameters:
+
+- `HL(U)`: Pointer to a zero-terminated file path string
+
+Returns:
+
+- `A`: `FRESULT`
+
+Preserves: `HL(U)`
+
+### `0x98`: ffs_rename
+
+Rename and/or move a file or sub-directory (Requires MOS 3.0 or above)
+
+This is a raw rename function that does not perform any path resolution, and does not support wildcards.  For more sophisticated behaviour you should use the [`mos_ren` API](#0x06-mos_ren) instead.
+
+Parameters:
+
+- `HL(U)`: Pointer to a zero-terminated source file path string
+- `DE(U)`: Pointer to a zero-terminated destination file path string
+
+Returns:
+
+- `A`: `FRESULT`
+
+Preserves: `HL(U)`, `DE(U)`
+
+### `0x99`: ffs_chmod
+
+This API is not implemented, as the FatFS `f_chmod` function is not supported by the current configuration of the FatFS library used in MOS.
+
+The purpose of the `f_chmod` function is to change the attributes set against a file or directory.  A future version of MOS may include support for this API.
+
+Returns:
+
+- `A`: `23` (Not implemented)
+
+### `0x9A`: ffs_utime
+
+This API is not implemented, as the FatFS `f_utime` function is not supported by the current configuration of the FatFS library used in MOS.
+
+The purpose of the `f_utime` function is to change the timestamp of a file or directory.  A future version of MOS may include support for this API.
+
+Returns:
+
+- `A`: `23` (Not implemented)
+
+### `0x9B`: ffs_mkdir
+
+Creates a new directory (Requires MOS 3.0 or above)
+
+Parameters:
+
+- `HL(U)`: Pointer to a zero-terminated directory name string
+
+Returns:
+
+- `A`: `FRESULT`
+
+### `0x9C`: ffs_chdir
+
+Change the current working directory (Requires MOS 3.0 or above)
+
+It is strongly recommended to use the [`mos_cd` API](#0x03-mos_cd) API call instead of this one, as it will automatically resolve the path for you.  Using this API may result in MOS not understand the current working directory until a call to `mos_cd` is made or a version of the [`CD` command](mos/Star-Commands.md#cd) is run.
+
+Parameters:
+
+- `HL(U)`: Pointer to a zero-terminated directory name string
+
+Returns:
+
+- `A`: `FRESULT`
+
+### `0x9D`: ffs_chdrive
+
+This API is not implemented, as no Agon platform computer currently supports multiple drives.
+
 ### `0x9E`: ffs_getcwd
 
 Get the current working directory (Requires Console8 MOS 2.2.0 or above)
@@ -1406,11 +1686,104 @@ Parameters:
 - `HL(U)`: Pointer to a buffer to store the directory path in
 - `BC(U)`: Maximum length of the buffer
 
+Returns:
+
+- `A`: `FRESULT`
+
 Preserves: `HL(U)`, `BC(U)`
+
+### `0x9F`: ffs_mount
+
+Mounts a volume/SD card (Requires MOS 3.0 or above)
+
+Whilst this API has documented parameters, as the current hardware configurations of Agon machines do not support multiple volumes or drives all of the parameters will be ignored.  They are documented here for completeness, and to allow for future expansion of the API in case a future Agon model is released that does support multiple SD cards.  For future compatibility you are advised to set all parameters to zero.
+
+Parameters:
+
+- `HL(U)`: Pointer to a blank FATFS `FATFS` structure (set to zero)
+- `DE(U)`: Pointer to a zero-terminated volume path string (set to zero)
+- `C`: Options byte (set to zero)
 
 Returns:
 
 - `A`: `FRESULT`
+
+### `0xA0`: ffs_mkfs
+
+This API is not implemented, as the FatFS `f_mkfs` function is not supported by the current configuration of the FatFS library used in MOS.
+
+Returns:
+
+- `A`: `23` (Not implemented)
+
+### `0xA1`: ffs_fdisk
+
+This API is not implemented, as the FatFS `f_fdisk` function is not supported by the current configuration of the FatFS library used in MOS.
+
+Returns
+
+- `A`: `23` (Not implemented)
+
+### `0xA2`: ffs_getfree
+
+Get free space information on a volume (Requires MOS 3.0 or above)
+
+Please note that this call does not directly return the number of free bytes on the volume, but instead returns the number of free clusters and the size of each cluster.  The number of free bytes can be calculated by multiplying these two values together.
+
+Parameters:
+
+- `HL(U)`: Pointer to a path string (ideally caller should set this to zero)
+- `DE(U)`: Pointer to a block of memory to store number of free clusters, 32-bit value
+- `BC(U)`: Pointer to a block of memory to store cluster size, 32-bit value
+
+Returns:
+
+- `A`: `FRESULT`
+
+Whilst this API will let you pass in a pointer to a path in the `HL(U)` register, you are recommended to set this to `0`, as the way that MOS uses FatFS means that the path is not needed, and the call will likely fail if any path other than an empty string is provided.  This API call also differs slightly from the underlying `f_getfree` function which does not directly return the cluster size, but instead returns a pointer to the `FATFS` structure for the volume, which will contain the cluster size.  As the `FATFS` structure is sensitive to the FatFS configuration and may change in future versions of MOS, we have chosen to return the cluster size directly instead.
+
+### `0xA3`: ffs_getlabel
+
+Gets the label of a volume (Requires MOS 3.0 or above)
+
+- `HL(U)`: Pointer to a path string (ideally caller should set this to zero)
+- `DE(U)`: Pointer to a buffer to store the label in (for safety and future proofing this should be 23 bytes long)
+- `BC(U)`: Pointer to a block of memory to store the 32-bit volume serial number
+
+Returns:
+
+- `A`: `FRESULT`
+
+As with the [`ffs_getfree` API](#0xa2-ffs_getfree) you should set the `HL(U)` parameter to `0`, as the way that MOS uses FatFS means that the path is not needed, and the call will likely fail if any path other than an empty string is provided.
+
+It should be noted that this API call does not include a parameter for the size of the buffer to store the label in.  If your buffer is not large enough any memory after the label may be overwritten.  As of MOS 3.0 the maximum size of a volume label is 12 bytes (11 characters plus a zero terminator), however for future proofing you are advised to ensure your buffer is 23 bytes long.  The reason for this is that in the future we may enable support for discs using the exFAT filing system, which supports longer volume labels.
+
+### `0xA4`: ffs_setlabel
+
+Sets the label of a volume (Requires MOS 3.0 or above)
+
+Please note that the label string must be a valid FAT volume label, which basically means that it must be 11 characters or less.  Setting a label to an empty string will remove the label.
+
+Owing to how filing systems work some labels may be rejected, and characters may be converted to upper-case.  The `f_setlabel` function that this API calls will attempt to look for a "drive prefix" in the label to specify a drive number, but owing to how we use FatFS in MOS this will not work.  As such you should not include a drive prefix in the label.
+
+Parameters:
+
+- `HL(U)`: Pointer to a zero-terminated volume label string
+
+Returns:
+
+- `A`: `FRESULT`
+
+### `0xA5`: ffs_setcp
+
+This API is not implemented, as the FatFS `f_setcp` function is not supported by the current configuration of the FatFS library used in MOS.
+
+The purpose of `f_setcp` is to set the active code page for file paths, and this is not available as our FatFS configuration is restricted to a single code page.  Adding this feature would greatly expand the size of FatFS, and consequently also MOS, which would almost certainly exceed the available flash space on the eZ80.  As such it is highly unlikely that this API will be implemented in the future.
+
+Returns:
+
+- `A`: `23` (Not implemented)
+
 
 ***
 
@@ -1452,15 +1825,15 @@ The possible status codes are as follows:
 | 23   | Not implemented | The API call is not implemented in this version of MOS |
 | 24   | Load overlaps system area | File load prevented to stop overlapping system memory |
 | 25   | Bad string | A bad or incomplete string has been encountered |
-| 26   | Too deep | Too many nested commands have been detected (usually caused by a faulty [alias](mos/System-Variables.md#command-aliases) definition) |
+| 26   | Too deep | Too many nested commands have been detected<br>This is usually caused by a faulty [alias](mos/System-Variables.md#command-aliases) definition including [file load/run types](mos/System-Variables.md#file-type-variables) |
 
 Please note that Quark MOS 1.04 will only return status codes 0-21.  The Console8 MOS 2.x release series added status codes 22-25, and MOS 3.0 added status code 26.  
 
-## System Variables
+## System State Variables (SysVars) {#sysvars}
 
-The MOS API command [mos_sysvars](#0x08-mos_sysvars) returns a pointer to the base of the MOS system variables area in IXU as a 24-bit pointer. The MOS system variables are often simply referred to as sysvars.
+The MOS API command [mos_sysvars](#0x08-mos_sysvars) returns a pointer to the base of the MOS SysVars (system state variables) area in IXU as a 24-bit pointer.  These are different from [System Variables](mos/System-Variables.md) which can be used in commands and scripts, so these these internal MOS system state variables are often simply referred to as sysvars.
 
-The following system variables are available in [mos_api.inc](#usage-from-z80-assembler):
+The following sysvars are available in [mos_api.inc](#usage-from-z80-assembler):
 
 ```
 ; System variable indexes for api_sysvars

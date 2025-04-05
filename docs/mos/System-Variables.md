@@ -60,11 +60,13 @@ If an application is started up using an `obey` file, then often the obey file w
 
 ## Command aliases
 
-If you set up a system variable in the format `Alias$Name` then this will set up a new command alias that can be used from the command line with the given name.  For example, one could add a new `mode` command using `*set Alias$Mode vdu 22 %0`.
+If you set up a system variable in the format `Alias$Name` then this will set up a new command alias that can be used from the command line with the given name.  For example, one could add a new `mode` command using `*set Alias$Mode vdu 22 %0`.  This would allow you to run the command `mode 1` to change the screen mode to mode 1.  The command will be expanded to `vdu 22 1` when the command is run.
 
 Aliases support [argument substitution](Argument-Substitution.md).  Any unused arguments (beyond the last used argument) will be automatically appended to the end of the resultant command.
 
-In MOS 3.0 an alias can be only a single command and cannot be a sequence of commands.  If you wish to create a sequence of commands you can use an obey file, potentially using an alias to run the obey file.  Support for multiple commands in an alias may be added in a future version of MOS.
+An alias can include multiple commands, separated by carriage return characters (`|M`).  If one command in an alias sequence fails, the rest of the commands will not be executed, and the error reported.
+
+As an alias will append any unused arguments to the end of the command, the example above for a `mode` command is actually flawed.  Whilst `mode 1` would result in a `vdu 22 1` command, `mode 1 2 3 4` would result in the command `vdu 22 1 2 3 4` which is still technically a valid VDU command, but would send 3 extra bytes to the VDP, performing a `VDU 2`, `VDU 3` and `VDU 4` commands (enable printer, disable printer, and "write text at text cursor"), and is unlikely to be the intended behaviour.  Therefore a better version of the command would be `*set Alias$Mode vdu 22 %0|M#`.  This splits the alias into two separate commands, the first being a `vdu 22` passing in the first argument, and the second command will be a `#` with all other arguments following it.  The command interpreter considers commands beginning with a `#` to be a comment, and will ignore it.
 
 
 ## File type variables
@@ -73,9 +75,11 @@ System variables are used to define how certain files should be loaded or run wh
 
 These aliases are named in the format `Alias$@LoadType_extension` or `Alias$@RunType_extension`, where the `extension` matches the filing system extension for that file type.  Load and run aliases also support [argument substitution](Argument-Substitution.md).  The system defines a few such aliases, for instance `Alias$@RunType_obey` is set to `Obey %*0`.
 
-Attempting to load or run a file with an extension that does not have a corresponding alias will result in the system (using `LoadFile` or `RunFile`) will result in an `Invalid command` error.
+Attempting to load or run a file with an extension that does not have a corresponding alias (using `LoadFile` or `RunFile`) will result in an `Invalid command` error.
 
 The system will set a variable named either `LastFile$Run` or `LastFile$Load` to the alias expansion that was used to run or load the file.
+
+The load and run aliases are executed in exactly the same way as command aliases.  They can therefore also contain mutiple commands, separated by carriage return characters (`|M`), and will automatically append any unused arguments to the end of the expanded command string.
 
 
 ## CLI
@@ -105,8 +109,13 @@ Hotkey definitions support [argument substitution](Argument-Substitution.md).  A
 
 If a hotkey definition is set as a macro variable (using `SetMacro`), then the system will expand the macro when the hotkey is pressed.
 
-In MOS 3.0 a hotkey can be only a single command and cannot be a sequence of commands.  If you wish to create a sequence of commands you can use an obey file, potentially using a hotkey to run the obey file.  Support for multiple commands in a hotkey may be added in a future version of MOS.
+A hotkey definition that ends with a carriage return character (`|M`) will automatically press return when the hotkey is pressed.  When used in a CLI this means the command will execute immediately.  Hotkeys set using the `*hotkey` will automatically append a carriage return to the end of the command.
 
+In MOS 3.0, whilst a hotkey variable can technically contain multiple lines, split by `|M`, the system will only use the first line of the variable, and the rest will be discarded.  This limitation is due to how the MOS line editor works.
+
+If you wish to create a hotkey that can run a sequence of commands then there are two options.  Firstly you could create an obey file, and define a hotkey to run the obey file passing in all the arguments.  Alternatively you could define a command alias that can run a sequence of commands, and define a hotkey to use that alias.  Please note that both of these options are only really suitable for running multiple MOS commands, and cannot be used for multi-line input in other environments such as the BBC BASIC command line.
+
+Support for multiple commands in a hotkey may be added in a future version of MOS.
 
 ## System
 
