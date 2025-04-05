@@ -237,9 +237,9 @@ The assembler will only compile 8-bit Z80 code and there are currently no plans 
 
 For the most part, the MOS is transparent to BASIC; most of the operations via the MOS and VDP are accessed via normal BBC BASIC statements, with the following exceptions:
 
-### Accessing the MOS system variables
+### Accessing the MOS SysVars
 
-MOS has a small system variables area which is in an area of RAM outside of its 64K segment. To access these, you will need to do an OSBYTE call
+MOS has a small area of memory for system state variables area which is in an area of RAM outside of its 64K segment. To access these, you will need to do an OSBYTE call
 
 Example: Print the least significant byte of the internal clock counter
 ```
@@ -248,7 +248,7 @@ Example: Print the least significant byte of the internal clock counter
 30 PRINT USR(&FFF4)
 ```
 
-Documentation for the full list of system variables can be found in the [MOS API documentation](MOS-API.md).
+Documentation for the full list of system variables can be found in the [MOS API documentation](MOS-API.md#sysvars).
 
 ### Running star commands with variables
 

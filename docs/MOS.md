@@ -4,7 +4,7 @@ The MOS is a command line Machine Operating System, similar to CP/M or DOS, that
 
 It also provides the [MOS API](MOS-API.md) for programmers to use that provides some basic facilities for file I/O and other common operations for BBC BASIC and other third-party applications.
 
-This documentation explains the general features of MOS, as well as commands it offers and how to use them.  It covers the Quark 1.04 version of MOS, and the later Console8 MOS versions up to and including 3.0 Alpha 3.  Versions of MOS prior to Quark 1.04 may be missing some features described below.
+This documentation explains the general features of MOS, as well as commands it offers and how to use them.  It covers the Quark 1.04 version of MOS, and the later Console8 MOS releases up to and including MOS 3.0.  Versions of MOS prior to Quark 1.04 may be missing some features described below.
 
 ## System Requirements
 
@@ -18,7 +18,7 @@ Technically MOS will work without an SD card, but you won't be able to do much w
 
 MOS supports the use of an SD card to store files and programs.  The SD card must be formatted as FAT32, and must be 32GB or less in size.  MOS supports automatically running a script file on boot and a way of adding new commands.
 
-### Moslets
+### Moslets
 
 "Moslets" are a special type of program that are intended to extend the functionality of MOS by adding in new commands.
 
@@ -73,7 +73,7 @@ NB:  This assumes that MOS is still talking to the VDP, as it is the VDP that is
 
 MOS provides a command line interface (CLI) that allows you to interact with the Agon file system and perform some basic control over your Agon computer.
 
-The MOS CLI is loosely inspired by the Acorn MOS present in the BBC Micro and later Acorn computer systems like the Archimedes.
+The MOS CLI is loosely inspired by the Acorn MOS present in the BBC Micro and later Acorn computer systems like the Archimedes.  The features and facilities supported by the MOS command line have evolved over time, with MOS 3.0 supporting many more commands than earlier versions of MOS.
 
 MOS works alongside the Agon's VDP, using the facilities of the VDP to display text on the screen and accept input from the keyboard.  The VDP provides some useful facilities, such as a "paged mode" that will stop the screen from scrolling until you press the `SHIFT` key to continue, or `ESCAPE` to exit.  Paged mode can be toggled on and off by pressing `CTRL+N` and `CTRL+O` respectively.
 
@@ -87,7 +87,7 @@ The MOS CLI line editor will also provide some basic command history, keeping tr
 
 The Console8 MOS 2.2.0 release also adds support for pressing the `PAGE UP` and `PAGE DOWN` keys to quickly step through the command history.
 
-Also added to the 2.2.0 release is "tab completion".  If you start typing a command and then press the `TAB` key, MOS will attempt to complete the command for you.  This includes both built-in commands, moslets found in the `mos` folder, programs found in the current directory, and programs found in the `bin` folder.  In MOS 3.0 onwards, the tab completion uses the `Run$Path` variable to determine where to look for commands.
+Also added to the 2.2.0 release is "tab completion".  If you start typing a command and then press the `TAB` key, MOS will attempt to complete the command for you.  This includes both built-in commands, moslets found in the `mos` folder, programs found in the current directory, and programs found in the `bin` folder, or file names within the current directory.  In MOS 3.0 onwards, the tab completion uses the `Run$Path` variable to determine where to look for commands.
 
 There is also support for programmable function keys in the 2.2.0 release.  For more information on that see the [`Hotkey` command](mos/Star-Commands.md#hotkey).
 
@@ -108,6 +108,8 @@ MOS 3.0 allows you to customise the prompt using the `CLI$Prompt` [system variab
 MOS offsets a number of inbuilt commands that allow you to interact with the Agon file system and control your computer.
 
 The various commands available in MOS are described in the [MOS Command Reference](mos/Star-Commands.md).
+
+The command interpreter in MOS, as of MOS 3.0, has become fairly sophisticated.  It will support user-defined [commands aliases](mos/System-Variables.md#command-aliases), and the use of [system variables](mos/System-Variables.md).  As well as the ability to run [moslets](#moslets) and program files directly (as [described above](#the-run-path)) it can now also directly run any file that has a ["run type"](mos/System-Variables.md#file-type-variables) set up for it by simply typing the name of the file.
 
 ## MOS System Variables
 

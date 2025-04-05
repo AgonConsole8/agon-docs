@@ -404,7 +404,7 @@ Works just like "Call a buffer" (command 1), except that it also accepts an adva
 
 Works just like the "Conditional call a buffer" command (command 6), except that it also accepts an advanced offset.
 
-<h2 id="command-13">Command 13: Copy blocks from multiple buffers into a single buffer</h2>
+## Command 13: Copy blocks from multiple buffers into a single buffer {#command-13}
 
 `VDU 23, 0, &A0, targetBufferId; 13, sourceBufferId1; sourceBufferId2; ... 65535;`
 
@@ -813,7 +813,7 @@ The various different values that pixels will be mapped to should immediately fo
 When a buffer is used for mapping data, that buffer must exist, and must contain a single block of at least the number of values required for the given number of bits per pixel.
 
 
-<h2 id="command-80">Command 80: Set a buffer to be used for a callback</h2>
+## Command 80: Set a buffer to be used for a callback {#command-80}
 
 `VDU 23, 0, &A0, bufferId; 80, type;`
 

@@ -4,11 +4,11 @@ VDP variables provide a way to both read and change the state of the VDP.  They 
 
 VDU variables contain 16-bit values.  Some variables may only use the lower 8 bits.
 
-Variables are currently split into three general categories: test flags, system variables, and VDU variables.  In the future we will add more variables to expose the state of the audio system.  These categorites are given some broad ranges of variable IDs to allow for future expansion, and to allow for easy identification of the type of variable.
+Variables are currently split into three general categories: test flags, system settings, and VDU variables.  In the future we will add more variables to expose the state of the audio system.  These categorites are given some broad ranges of variable IDs to allow for future expansion, and to allow for easy identification of the type of variable.
 
 Test flags are used to enable a feature that may either be experimental, not yet fully implemented, have an API that might change, or not fully tested.
 
-System variables provide access to VDP system information, such as memory usage, real-time clock data, and keyboard settings.
+System settings variables provide access to VDP system information, such as memory usage, real-time clock data, and keyboard settings.
 
 VDU variables provide access to the graphics system state, including context-specific information that may change when switching [context](Context-Management-API.md).
 
