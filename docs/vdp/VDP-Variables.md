@@ -134,10 +134,13 @@ Some variables provide coordinates.  For those variables that are marked as "scr
 | 0x1019 | | | | Text cursor, absolute Y position (chars) |
 | 0x1020 | | | | Frame counter low word (the frame counter is a 32-bit value) |
 | 0x1021 | | | | Frame counter high word |
+| 0x1022 | | | | Number of frames to pause on newline when the "Ctrl" key is held * |
+| 0x1023 | | | | Current number of frames being waited for * |
 | 0x1055 | | X | | Current screen mode number |
 | 0x1056 | 0/1 | | | Legacy modes flag |
 | 0x1057 | 0/1 | | | Coordinate system (0 = screen/pixel coordinates, 1 = logical/OS (default)) |
-| 0x1058 | 0/1 | | | Paged mode flag |
+| 0x1058 | 0/1/2*/3* | | | Paged mode flag (0 = disabled, 1 = enabled, 2 = disabled, but temporary paged mode is on *, 3 = enabled, and temporary paged mode is on *) |
+| 0x1059 | | | | Paged mode context row count * |
 | 0x1066 | 0-255 | | | Cursor behaviour flags byte, as set via VDU 23,16,x,y |
 | 0x1067 | 0/1 | | | Text cursor visibility |
 | 0x1068 | | | | Text cursor block horizontal start column |
@@ -209,3 +212,4 @@ Some variables provide coordinates.  For those variables that are marked as "scr
 | 0x1449 | | | | Mouse acceleration |
 | 0x144A | | | | Mouse wheel acceleration |
 
+\* Support for these variables was added in VDP 2.14.0
