@@ -129,6 +129,7 @@ Modes over 128 are double-buffered
 \*** As of Console8 VDP 2.8.0, mode 0 is now the mode that the VDP will use on startup.  The fallback mode when a requested mode is not available remains mode 1.
 
 § Support for screen modes 19-23, 145-146 and 149-151 was added in Console8 VDP 2.10.0
+
 §§ Support for screen modes 24-30, and 153-158 was added in Console8 VDP 2.13.0
 
 ### Legacy modes (prior to 1.04)
