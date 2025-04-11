@@ -6,17 +6,19 @@ It also provides the [MOS API](MOS-API.md) for programmers to use that provides 
 
 This documentation explains the general features of MOS, as well as commands it offers and how to use them.  It covers the Quark 1.04 version of MOS, and the later Console8 MOS releases up to and including MOS 3.0.  Versions of MOS prior to Quark 1.04 may be missing some features described below.
 
+Please note that if you are running Quark 1.04 or earlier, the capabilities of MOS are very limited, and quite a few features described in this documentation will not be available to you.  You are strongly advised to upgrade to a later version of MOS.  MOS 2.x and MOS 3.x releases are fully compatible with software written for Quark 1.04, and will run all Quark 1.04 software without modification.
+
 ## System Requirements
 
 To get the most out of MOS, you will need the following:
 
-* A 32GB or less micro-SD card formatted FAT32
+* A micro-SD card formatted as FAT32
 
 Technically MOS will work without an SD card, but you won't be able to do much with it.
 
 ## Using an SD card
 
-MOS supports the use of an SD card to store files and programs.  The SD card must be formatted as FAT32, and must be 32GB or less in size.  MOS supports automatically running a script file on boot and a way of adding new commands.
+MOS supports the use of an SD card to store files and programs.  The SD card must be formatted as FAT32.  This documentation previously advised that the card should be 32GB or less in size, however several users report successfully using 64GB cards.  MOS supports automatically running a script file on boot and a way of adding new commands.
 
 ### Moslets
 
@@ -40,15 +42,19 @@ It should be noted that MOS will always run the first program it finds with the 
 
 From MOS 3.0 onwards the order of directories searched is controlled by the `Run$Path` [system variable](mos/System-Variables.md#system-path-variables).  By default this is a macro variable set to `<Moslet$Path>, ./, /bin/` to be compatible with previous versions of MOS.  This variable can be changed to search in any order you like, and can include multiple directories.  By changing this variable you can, for example, make it so that the `bin` folder is searched before the `mos` folder, or add additional directories to search in.
 
-### Automatically running a script on boot
+### Automatically running a script on boot {#boot-script}
 
-MOS has the ability to automatically run a script file on boot.  Quite what this script does is up to you, but it could be used to set up your Agon in a particular way, or to run a program automatically.
+MOS has the ability to automatically run a script file on boot (power on, or a system reset).  Quite what this script does is up to you, but it could be used to set up your Agon in a particular way, or to run a program automatically.
 
 The exact file that will be run, and the manner in which the file is run varies depending on which version of MOS you are using.
 
-Quark 1.04, and Console8 MOS 2.0.0 to 2.3.x will all at boot-up time look for a file named `autoexec.txt` in the root folder of the SD card.  If it finds one, it will read the file in, and execute the MOS commands in the file sequentially from top to bottom.
+As of MOS 3, the system will first look for a boot file named `!boot.obey`, and use that as it's preferred boot script, running it using the [`obey` command](mos/Star-Commands.md#obey).  If that file is not present, it will look for a file named `autoexec.obey` and run that.  If neither of these are present it will fall back to working in a similar manner to Quark MOS 1.04 and MOS 2.x.  If you are running MOS 3, and have a suitably up-to-date version of the VDP firmware installed, you can prevent the boot script from being run by holding down the left "Shift" key on your keyboard during power up or reset.
 
-For example, to set keyboard to US, load BBC BASIC from the root folder, change to the test folder, then run BASIC
+Quark 1.04, and Console8 MOS 2.x releases will all, at boot-up time, look for a file named `autoexec.txt` in the root folder of the SD card.  The manner in which this file is executed differs slightly between Quark 1.04 and the later Console8 releases.  Quark will blindly execute the commands and silently carry on it encounters an error, and any such errors will not be reported.  The Console8 MOS 2.x releases execute the `autoexec.txt` file using the [`Exec` command](mos/Star-Commands.md#exec) and will stop execution if there is an error in the file, reporting the error as well as which line the error occurred on.
+
+If no matching script file is found, the system will simply boot to the command prompt.
+
+An example script, compatible with Quark 1.04 and all later versions of MOS, follows.  This script will to set keyboard to US, load BBC BASIC from the root folder, change to the test folder, then run BASIC.
 
 ```
 SET KEYBOARD 1
@@ -57,17 +63,25 @@ CD test
 RUN
 ```
 
-The manner in which this file is executed differs slightly between Quark 1.04 and the Console8 releases.  Quark will blindly execute the commands and silently carry on if there is an error, whereas Console8 releases will stop execution if there is an error in the file, report the error as well as which line the error occurred on.  MOS 2.x uses the [`Exec` command](mos/Star-Commands.md#exec) to run the file, whereas Quark uses a different method.
+If you are running MOS 2.2.0 or later, and `bbcbasic.bin` is in your run path (most likely in a `/bin` directory), this script could be simplified to:
 
-As of Console8 MOS 2.2.0 the autoexec.txt file will run on every boot.  Previous versions of MOS (including Quark 1.04) would only run the autoexec.txt file on a "hard reset" (i.e. a power cycle, or press of the reset button) and not on a soft reset (i.e. a `CTRL+ALT+DEL`).
+```
+SET KEYBOARD 1
+cd test
+bbcbasic
+```
 
-As of Console8 MOS 3.0, at boot time the system will look for a file named `!boot.obey` in the root folder of the SD card, and run that file using the [`Obey` command](mos/Star-Commands.md#obey).  If that file is not found, it will look for a file named `autoexec.obey`.  If that is also not found it will fall back to looking for `autoexec.txt` and running that using the `Exec` command.  Only one boot file will be run, and the order of preference is `!boot.obey`, `autoexec.obey`, `autoexec.txt`.
+MOS 3.0 allows for a great deal of customisation of your MOS environment, including the ability to set up custom command aliases, set "run types" to allow all sorts of files to be directly run from the command line, a custom command prompt, adjust the "run path" that will be searched for commands and executables, and many other features.  Many of these features are controlled through the use of [system variables](mos/System-Variables.md).  It is common to have a `!boot.obey` that will set up system variables to customise your MOS environment.
+
+MOS 3.0's preferred use of `!boot.obey` means that if you have more than one Agon computer running different versions of MOS then you can use the same SD card in all of them.  This would allow your MOS 3 system to use commands in its `!boot.obey` file that are not available in Quark MOS 1.04 or MOS 2, and those systems will still run the separate `autoexec.txt` file.  Your `!boot.obey` file could include commands specific to MOS 3, and finish with the command `exec autoexec.txt` to run the boot file used by earlier versions of MOS.
 
 ## Soft Boot
 
 Pressing `CTRL+ALT+DEL` will reboot MOS on the eZ80. (`CTRL+SHIFT+ESC` for MOS 1.02 or earlier)
 
 NB:  This assumes that MOS is still talking to the VDP, as it is the VDP that is responsible for detecting keypresses.  Sometimes a soft reboot key combination will therefore not work, and you may need to instead press the reset button on your Agon.
+
+If you are using a MOS version earlier than 2.2.0, then a soft reset will not try to run the boot script.  To make sure the boot script runs you would need to do a "hard boot" by powering cycling your Agon (turn it off, then on again), or pressing the reset button.
 
 ## The MOS Command Line Interface
 
@@ -101,15 +115,15 @@ From the Console8 MOS 2.2.0 release onwards the prompt has been extended to incl
 /programs *
 ```
 
-MOS 3.0 allows you to customise the prompt using the `CLI$Prompt` [system variable](mos/System-Variables.md#cli).  By default this is set to a macro to display a prompt identical to that introduced in MOS 2.2.0.  If this variable is unset, then the prompt will revert to the simple `*` character.
+MOS 3.0 allows you to customise the prompt using the [`CLI$Prompt` system variable](mos/System-Variables.md#cli).  By default this is set to a macro to display a prompt identical to that introduced in MOS 2.2.0.  If this variable is unset, then the prompt will revert to the simple `*` character.
 
 ## MOS Commands
 
 MOS offsets a number of inbuilt commands that allow you to interact with the Agon file system and control your computer.
 
-The various commands available in MOS are described in the [MOS Command Reference](mos/Star-Commands.md).
+The various commands available in MOS are described in the [MOS Command Reference](mos/Star-Commands.md).  The exact array of built-in commands available has changed over time with new commands being added, and new features added to existing commands.
 
-The command interpreter in MOS, as of MOS 3.0, has become fairly sophisticated.  It will support user-defined [commands aliases](mos/System-Variables.md#command-aliases), and the use of [system variables](mos/System-Variables.md).  As well as the ability to run [moslets](#moslets) and program files directly (as [described above](#the-run-path)) it can now also directly run any file that has a ["run type"](mos/System-Variables.md#file-type-variables) set up for it by simply typing the name of the file.
+As of MOS 3.0 the command interpreter has become fairly sophisticated.  It will support user-defined [commands aliases](mos/System-Variables.md#command-aliases), and the use of [system variables](mos/System-Variables.md).  As well as the ability to run [moslets](#moslets) and program files directly (as [described above](#the-run-path)) it can now also directly run any file that has a ["run type"](mos/System-Variables.md#file-type-variables) set up for it by simply typing the name of the file.
 
 ## MOS System Variables
 
