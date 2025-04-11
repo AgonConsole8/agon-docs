@@ -71,16 +71,36 @@ As an alias will append any unused arguments to the end of the command, the exam
 
 ## File type variables
 
-System variables are used to define how certain files should be loaded or run when using either the `LoadFile` or `RunFile` commands.
+System variables are used to define how certain files should be loaded or run when using either the `LoadFile` or `RunFile` commands.  Additionally the MOS 3 CLI will use run type aliases to determine how to run a file if the user enters a filename without a command.
 
-These aliases are named in the format `Alias$@LoadType_extension` or `Alias$@RunType_extension`, where the `extension` matches the filing system extension for that file type.  Load and run aliases also support [argument substitution](Argument-Substitution.md).  The system defines a few such aliases, for instance `Alias$@RunType_obey` is set to `Obey %*0`.
+Load and run type variables are a special type of [command alias](#command-aliases) named in the format `Alias$@LoadType_extension` or `Alias$@RunType_extension`, where the `extension` matches the filing system extension for that file type.  As with command aliases, these support [argument substitution](Argument-Substitution.md).  The system defines a few such aliases by default.
 
 Attempting to load or run a file with an extension that does not have a corresponding alias (using `LoadFile` or `RunFile`) will result in an `Invalid command` error.
 
-The system will set a variable named either `LastFile$Run` or `LastFile$Load` to the alias expansion that was used to run or load the file.
+The system will set a variable named either `LastFile$Run` or `LastFile$Load` to the alias expansion that was used to run or load the file.  This can be useful for debugging purposes, as it allows you to see exactly what command (or sequence of commands) was executed when the file was loaded or run.
 
-The load and run aliases are executed in exactly the same way as command aliases.  They can therefore also contain mutiple commands, separated by carriage return characters (`|M`), and will automatically append any unused arguments to the end of the expanded command string.
+As noted above, load and run aliases are essentially a special type of command alias, and are handled in exactly the same way.  They can therefore also contain mutiple commands, separated by carriage return characters (`|M`), and will automatically append any unused arguments to the end of the expanded command string.
 
+MOS 3.0 contains a few built in file load and run-types.  These are:
+
+| Type variable | File extension | Definition | Description |
+|---------------|----------------|------------|-------------|
+| `Alias$@LoadType_bin` | `.bin` | `Load %*0` | Load a binary file |
+| `Alias$@LoadType_obey` | `.obey` | `Type %*0` | Prints the contents of an obey file to the screen |
+| `Alias$@RunType_bas` | `.bas` | `BBCBasic %*0` | Run a text-format BBC BASIC program * |
+| `Alias$@RunType_bbc` | `.bbc` | `BBCBasic %*0` | Run a BBC BASIC program * |
+| `Alias$@RunType_bin` | `.bin` | `RunBin %*0` | Run a binary file |
+| `Alias$@RunType_exec` | `.exec` | `Exec %*0` | Run a script using the `*exec` command |
+| `Alias$@RunType_obey` | `.obey` | `Obey %*0` | Run a script using the `*obey` command |
+
+\* The aliases to run BBC BASIC assume that a `BBCBasic.bin` executable is present in your current [run path](#system-path-variables).  Often this is the plain Z80 version of BASIC.  If you wish to use the eZ80 version of BASIC, or BASIC V, then you can either rename their executable to `BBCBasic.bin` or redefine the `Alias$@RunType_bas` and `Alias$@RunType_bbc` variables to point to the correct executable.  For example, if you have a copy of BBC BASIC V in your current run path, with an executable named `BBCBasicV.bin`, you could use the following commands to redefine the aliases:
+
+```
+*set Alias$@RunType_bas BBCBasicV %*0
+*set Alias$@RunType_bbc BBCBasicV %*0
+```
+
+It is common for [boot-up scripts](../MOS.md#boot-script) to set up load and run type variables to add support for other file types, or change the in-built behaviour.
 
 ## CLI
 

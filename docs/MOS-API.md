@@ -133,6 +133,8 @@ Please note that the FatFS API calls (which named with an `ffs_` prefix) do _not
 
 In general, to read and/or write files files, it is recommended to use the MOS file APIs as these will automatically handle system variables and file paths.  MOS file APIs use a "file handle" to reference an open file, whereas the FatFS APIs expect a pointer to a `FIL` structure.  You can get a `FIL` structure for a MOS file handle by using the [`mos_getfil` API](#0x19-mos_getfil).  This will allow you to use the FatFS APIs directly if you need to, but in most cases it is recommended to use the MOS file APIs.  It is planned that future versions of MOS (beyond 3.0) will support using the MOS file APIs to open data streams other than files, such as the serial UART, I2C devices, and the VDP connection.  This will allow you to use the same APIs to read/write data across different all data streams.
 
+Please note that MOS 3.0 [system variables](mos/System-Variables.md) are a distinct and different feature from [system state information (sysvars)](#sysvars).  Some older code and documentation may use the term "system variables" to refer to sysvars.
+
 The following MOS commands are supported:
 
 ### `0x00`: mos_getkey
@@ -719,7 +721,7 @@ Flags are a bit-field to enable various different options.  Currently the follow
 - bit 0 = refresh RTC sysvar before unpacking
 - bit 1 = refresh RTC sysvar after unpacking
 
-The RTC data sysvar is updated by sending a command to the VDP to request the current time, and MOS will store the response in the RTC system variable area.  If you set bit 0, this API call will send the command to the VDP to request updated RTC data and wait for the response before unpacking the data.  When you set bit 1, the command will be sent after the data has been unpacked, and the API will return without waiting for the response.
+The RTC data sysvar is updated by sending a command to the VDP to request the current time, and MOS will store the response in the [RTC system state information area](#sysvar_rtc).  If you set bit 0, this API call will send the command to the VDP to request updated RTC data and wait for the response before unpacking the data.  When you set bit 1, the command will be sent after the data has been unpacked, and the API will return without waiting for the response.
 
 If you do not want to refresh the RTC data stored in MOS, set the flags to 0.  You should note that if you do this the data may be stale or, if no request has been sent to the VDP at all for RTC information, be invalid.
 
@@ -1829,14 +1831,14 @@ The possible status codes are as follows:
 
 Please note that Quark MOS 1.04 will only return status codes 0-21.  The Console8 MOS 2.x release series added status codes 22-25, and MOS 3.0 added status code 26.  
 
-## System State Variables (SysVars) {#sysvars}
+## System State Information (SysVars) {#sysvars}
 
-The MOS API command [mos_sysvars](#0x08-mos_sysvars) returns a pointer to the base of the MOS SysVars (system state variables) area in IXU as a 24-bit pointer.  These are different from [System Variables](mos/System-Variables.md) which can be used in commands and scripts, so these these internal MOS system state variables are often simply referred to as sysvars.
+The MOS API command [mos_sysvars](#0x08-mos_sysvars) returns a pointer to the base of the MOS SysVars (system state variables/information) area in IXU as a 24-bit pointer.  These are different from [System Variables](mos/System-Variables.md) which can be used in commands and scripts, so these these internal MOS system state variables are often simply referred to as sysvars.
 
 The following sysvars are available in [mos_api.inc](#usage-from-z80-assembler):
 
 ```
-; System variable indexes for api_sysvars
+; SysVars (System State Information) indexes for api_sysvars
 ; Index into _sysvars in globals.asm
 ;
 sysvar_time:			EQU	00h	; 4: Clock timer in centiseconds (incremented by 2 every VBLANK)
@@ -1884,6 +1886,8 @@ Example: Reading a virtual keycode in Z80 mode (16-bit):
 		LD.LIL	A, (IX + sysvar_vkeycode)	; Load A with the virtual keycode from FabGL
 ```
 
+### Real Time Clock (#sysvar_rtc)
+
 For efficiency, the real-time clock data in the sysvars is stored in a packed format, using subsets of bits within the 8 bytes of the `sysvar_rtc` data.  An API is provided from MOS 3 onwards to allow for this to be unpacked [mos_unpackrtc](#0x23-mos_unpackrtc) into a buffer in a friendlier, more easy to use format.  MOS uses the following C function to unpack the RTC data into a `vdp_time_t` object:
 ```c
 void rtc_unpack(UINT8 * sysvar_rtc, vdp_time_t * t) {
@@ -1901,3 +1905,4 @@ void rtc_unpack(UINT8 * sysvar_rtc, vdp_time_t * t) {
 }
 ```
 
+This real-time clock data is also available to programs, scripts, and the command line via [system variables](mos/System-Variables.md#time-and-date).
