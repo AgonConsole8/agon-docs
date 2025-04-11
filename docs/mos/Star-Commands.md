@@ -180,6 +180,7 @@ Syntax: `*Hotkey [<n> [<command string>]]`
 Sets or clears programmable function keys.
 
 Using this command you can set the function keys `F1-F12` on your to perform a specific command.  There are three ways in which this command works:
+
 1. If no parameters are provided, then the current hotkeys will be displayed.
 2. If a function key number `n` is provided alone without a command string, then the current command assigned to that function key will be cleared.
 3. If a function key number `n` and a command string are provided, then the command string will be assigned to that function key.
@@ -188,7 +189,7 @@ Using this command you can set the function keys `F1-F12` on your to perform a s
 
 Pressing a function key that has a hotkey definition set will result in the current input line being replaced with the defined hotkey string and "return" being automatically pressed.
 
-As of MOS 3.0, hotkeys are stored using [system variables](System-Variables.md#hotkeys), and can be defined using the `Set` or `SetMacro` commands.  Via the use of `Set` or `SetMacro` you can define hotkeys that do not automatically press "return".
+As of MOS 3.0, hotkeys are stored using [system variables](System-Variables.md#hotkeys), and can be defined using the `Set` or `SetMacro` commands.  Via the use of `Set` or `SetMacro` you can define hotkeys that do not automatically press "return".  For more information how how hotkeys are handled, and suggestions on how to allow a hotkey to trigger multiple commands, see the [hotkey system variable documentation](System-Variables.md#hotkeys).
 
 ## `If`
 
