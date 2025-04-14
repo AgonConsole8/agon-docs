@@ -1229,6 +1229,73 @@ Returns:
 
 - `A`: Status code (`0` = Success, `15` = Timeout)
 
+***
+
+## Low-level SD card access
+
+MOS 3.0 provides a set of APIs that provide low-level access to the SD card.  These are not intended for general use, but are provided for some limited use-cases, such as for an operating system that uses a different filing system than FatFS, or for tools that wish to access the SD card in ways that are not supported by the FatFS library.
+
+As the use of these APIs can potentialy cause data corruption in order to use them you need to use an "unlock code", obtainable
+
+### `0x70`: sd_getunlockcode
+
+This API call is used to obtain the unlock code needed to use the low-level SD card APIs.  The unlock code is a randomly generated 24-bit value, created the first time this API is called.
+
+Parameters:
+
+- `HL(U)`: Pointer to a 24-bit value to store the unlock code
+
+Returns:
+
+Nothing
+
+### `0x71`: sd_init
+
+Initialises the SD card support system.  MOS automatically calls this when it mounts an SD card.  If you are writing support for an operating system you may need to call this to restart the SD card system if the SD card is removed and reinserted.
+
+Parameters:
+
+- `HL(U)`: Pointer to the unlock code (24-bit value) as fetched by the [`sd_getunlockcode`](#0x70-sd_getunlockcode) API call
+
+Returns:
+
+- `A`: Status code
+    - `0` = Success/Ready
+	- `1` = Error
+	- `2` = Locked (incorrect unlock code provided, or no lock code yet set)
+
+### `0x72`: sd_readblocks
+
+Read raw blocks from the SD card.
+
+Parameters:
+- `HL(U)`: Pointer to a 32-bit sector number, followed by the 24-bit unlock code
+- `DE(U)`: Pointer to a buffer to store the read data
+- `BC`: Number of blocks to read (16-bit value)
+
+Returns:
+
+- `A`: Status code
+    - `0` = Success/Ready
+	- `1` = Error
+	- `2` = Locked (incorrect unlock code provided, or no lock code yet set)
+
+### `0x73`: sd_writeblocks
+
+Writes raw blocks to the SD card.
+
+Parameters:
+
+- `HL(U)`: Pointer to a 32-bit sector number, followed by the 24-bit unlock code
+- `DE(U)`: Pointer to a buffer containing the data to write
+- `BC`: Number of blocks to write (16-bit value)
+
+Returns:
+
+- `A`: Status code
+	- `0` = Success/Ready
+	- `1` = Error
+	- `2` = Locked (incorrect unlock code provided, or no lock code yet set)
 
 ***
 
