@@ -2031,7 +2031,7 @@ Example: Reading a virtual keycode in Z80 mode (16-bit):
 		LD.LIL	A, (IX + sysvar_vkeycode)	; Load A with the virtual keycode from FabGL
 ```
 
-### Real Time Clock (#sysvar_rtc)
+### Real Time Clock {#sysvar_rtc}
 
 For efficiency, the real-time clock data in the sysvars is stored in a packed format, using subsets of bits within the 8 bytes of the `sysvar_rtc` data.  An API is provided from MOS 3 onwards to allow for this to be unpacked [mos_unpackrtc](#0x23-mos_unpackrtc) into a buffer in a friendlier, more easy to use format.  MOS uses the following C function to unpack the RTC data into a `vdp_time_t` object:
 ```c

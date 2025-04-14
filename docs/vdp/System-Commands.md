@@ -16,7 +16,7 @@ Please note that not all versions of the VDP support the complete command set.  
  §§§§§§ Requires Console8 VDP 2.9.0 or above<br>
  §§§§§§§ Requires Console8 VDP 2.12.0 or above<br>
 
-Commands between &80 and &89 will return their data back to the eZ80 via the [serial protocol](#serial-protocol).
+Commands between &80 and &89 will return their data back to the eZ80 via the [VDP serial protocol](#vdp-serial-protocol).
 
 NB:
 
@@ -54,7 +54,7 @@ If the start and end lines are equal then the cursor will be drawn as a horizont
 
 ## `VDU 23, 0, &80, n`: General poll
 
-This command will echo back `n` to MOS (see [Serial Protocol](#serial-protocol))
+This command will echo back `n` to MOS (see [VDP Serial Protocol](#vdp-serial-protocol))
 
 This command is used by MOS and the VDP to synchronise with each other during the system start-up process.  It is not intended to be used by applications.
 
