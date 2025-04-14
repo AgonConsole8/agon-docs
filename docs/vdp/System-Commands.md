@@ -473,7 +473,7 @@ Suspending terminal mode temporarily restores VDU command processing.  (Keyboard
 
 
 
-## Serial Protocol
+## VDP Serial Protocol
 
 Data sent from the VDP to the eZ80's UART0 is sent as a packet in the following format:
 

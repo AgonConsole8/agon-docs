@@ -342,6 +342,8 @@ When a program is executed using the `Run` command, MOS will set up the followin
 - `DE(U)` the execution address passed to `RUN`
 - `HL(U)` pointer to additional parameters passed to `RUN`
 
+Notes about the processor stack can be [found here](../MOS.md#the-stack).
+
 ## `RunBin`
 
 Syntax: `*RunBin <filename> [<arguments>]`

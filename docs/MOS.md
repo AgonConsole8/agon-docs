@@ -149,3 +149,11 @@ Addresses are 24-bit, unless otherwise specified
 - `&0B0000 - &0B7FFF`: Storage for loading MOS star command executables off SD card
 - `&0BC000 - 0BFFFFF`: Global heap and stack
 
+
+## The Stack
+
+Up to and including the MOS 3.0 release, MOS sets up a stack pointer for its own use.  As MOS is written to run in the eZ80's "ADL" mode, this means the `SPL` register, the version of `SP` visible to ADL-mode code, is what is set up.  Programs that are run in ADL-mode will see this stack pointer when they start up.  Care should therefore be taken to ensure that the stack pointer is not corrupted by the program, as this will affect the operation of MOS and any other programs that are run after it.
+
+The architecture of the eZ80 means that programs running in Z80 mode see a different version of the stack pointer `SP` register, known as `SPS`.  This value is _not_ set up by MOS, and is left to the user program to set up.  The value of `SP` in Z80 mode should be treated by programs as undefined on startup.
+
+Future versions of MOS may change the behaviour of the stack pointer for ADL-mode code in order to provide better protection for the MOS stack.  For compatibility with existing software, a stack pointer will still be set up for programs that use ADL-mode, but this may be allocated within the MOS heap space.

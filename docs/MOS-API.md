@@ -20,11 +20,14 @@ In addition, if you are using the Zilog ZDS II assembler you may wish to include
 
 NB:
 
-- Using the `RST.LIS` opcode in an eZ80 assembler will ensure the MOS RST instructions are called regardless of the eZ80s current addressing mode.
+- Using the `RST.LIS` opcode in an eZ80 assembler will ensure the MOS `RST` instructions are called regardless of the eZ80s current addressing mode
+    - The Agon MOS RST handlers are written with the assumption that they have been called using `RST.LIS`
+    - Programs written to run in Z80 mode, using only plain Z80 opcodes, would therefore need to set up their own RST handlers to call through to to MOS using `RST.LIS`
+- This documentation generally uses the term `RST` in place of `RST.LIS` for simplicity
 - In the `mos_api.inc` file you will find:
-    - EQUs for all the MOS commands, data structures and [system state variables (sysvars)](#sysvars).
+    - EQUs for all the MOS commands, data structures and [system state variables (sysvars)](#sysvars)
     - An incomplete list of VDP control variables.  For a full list, see the [VDP documentation](VDP.md)
-    - A complete list FatFS APIs, however these are not yet all implemented in MOS.  Those that are implemented are documented below.
+    - A complete list FatFS APIs, however it should be noted that many these are not implemented in MOS prior to MOS 3.0
 
 Further information on the `RST` handlers provided by MOS are as follows:
 
@@ -134,6 +137,8 @@ Please note that the FatFS API calls (which named with an `ffs_` prefix) do _not
 In general, to read and/or write files files, it is recommended to use the MOS file APIs as these will automatically handle system variables and file paths.  MOS file APIs use a "file handle" to reference an open file, whereas the FatFS APIs expect a pointer to a `FIL` structure.  You can get a `FIL` structure for a MOS file handle by using the [`mos_getfil` API](#0x19-mos_getfil).  This will allow you to use the FatFS APIs directly if you need to, but in most cases it is recommended to use the MOS file APIs.  It is planned that future versions of MOS (beyond 3.0) will support using the MOS file APIs to open data streams other than files, such as the serial UART, I2C devices, and the VDP connection.  This will allow you to use the same APIs to read/write data across different all data streams.
 
 Please note that MOS 3.0 [system variables](mos/System-Variables.md) are a distinct and different feature from [system state information (sysvars)](#sysvars).  Some older code and documentation may use the term "system variables" to refer to sysvars.
+
+As of MOS 3.0 the standard for APIs that will either return or require a 32-bit value is to use a pointer to the value in a register.  Care should be taken to ensure that the pointer is pointing to a valid 4-byte block of memory.  There are two older APIs that date back to MOS 1.03, namely `mos_ that use a different approach and return a 32-bit value spread across two registers, with the lower 24-bits in one register and the upper byte in a separate register.  As this is not friendly to Z80 code 
 
 The following MOS commands are supported:
 
@@ -601,6 +606,8 @@ Returns:
 
 Move the read/write pointer in a file (Requires MOS 1.03 or above)
 
+NB this API is deprecated and kept for compatibility reasons.  You are advised to use the [`mos_flseek_p`](#0x24-mos_flseek_p) API instead.  As this API requires a full 24-bit value to be provided in the `HLU` register it is not directly compatible with programs written to run in Z80 mode.
+
 This API can be used to expand the size of a file, although you should note that the file data in the expanded part will be undefined.
 
 Parameters:
@@ -743,6 +750,26 @@ Data returned in the buffer at `HL(U)` will be in the following order, with 16-b
 	UINT8  minute;
 	UINT8  second;
 ```
+
+### `0x24`: mos_flseek_p
+
+Move the read/write offset pointer in a file (Requires MOS 3.0 or above)
+
+This API can be used to expand the size of a file, although you should note that the file data in the expanded part will be undefined.
+
+Whilst the [`mos_flseek`](#0x1c-mos_flseek) API can essentially perform the same function as this API, this is the preferred API to use for moving the current read/write pointer offset within a file.  As it accepts a pointer to the 32-bit offset value, it is compatible with both Z80-mode and ADL-mode code.
+
+Parameters:
+
+- `C`: File handle
+- `HL(U)`: Pointer to a 32-bit value for the desired new offset from the start of the file
+
+Preserves: `HL(U)`, `BC(U)`
+
+Returns:
+
+- `A`: Status code
+
 
 ***
 
@@ -1168,6 +1195,41 @@ Returns:
 
 If the buffer is too short for the resolved path then a status code of `22` (Out of memory) will be returned.  Path resolution problems may result in status codes of `5` (No path) or `4` (No file).
 
+### `0x40`: mos_clearvdpflags
+
+Clears VDP Protocol status flags from the `sysvar_vpd_pflags` [sysvar](#sysvars).
+
+Bits in this status value will be set when various different VDP Protocol message packet types are received by MOS from the VDP.  Such packets may be sent for user-initiated actions, such as pressing a key on the keyboard, or moving the mouse, or for system-initiated actions, such as a VDU command being sent to the VDP.  Please note that in general use these bits are not automatically cleared, so if you wish to detect a response from the VDP to a VDU command your program sends it is important to clear out the corresponding protocol flags before sending the command.  You can then use the [`mos_waitforvdpflags`](#0x41-mos_waitforvdpflags) API call to wait for the VDP to respond, and check the status of the flags in `sysvar_vpd_pflags` to see if the command was successful.
+
+Further information on the VDP protocol and the flag bits can be found in the [VDP Protocol documentation](vdp/System-Commands.md#vdp-serial-protocol).
+
+Parameters:
+
+- `C`: Bitmask of flags to clear
+
+Returns:
+
+- `A`: New VDP flags
+
+### `0x41`: mos_waitforvdpflags
+
+Waits for corresponding VDP protocol flags to be set in the `sysvar_vpd_pflags` [sysvar](#sysvars).
+
+Typically your program should first clear whichever protocol flag you are interested in detecting, using the [`mos_clearvdpflags`](#0x40-mos_clearvdpflags) API call.  Once you have done that, you should send a VDU command to the VDP for which you are expecting a response, and then use this API call to wait for that response to be received.
+
+MOS contains inbuilt support for handling VDP protocol messages.  Typically on receipt of a message a flag will be set in the `sysvar_vpd_pflags` variable, and also other corresponding [sysvars](#sysvars) will be updated from the contents of the message.
+
+This API call will wait for approximately 1 second for the VDP to respond, which should be more than enough time for any VDU command to be processed.  If the VDP does not respond within this time, the API call will return with a status code of `15` (Timeout).  If the VDP does respond, the API call will return with a status code of `0` (Success).
+
+Parameters:
+
+- `C`: Bitmask of flags to wait for
+
+Returns:
+
+- `A`: Status code (`0` = Success, `15` = Timeout)
+
+
 ***
 
 ## FatFS commands
@@ -1298,6 +1360,8 @@ buffer:		DS	256				; Buffer containing data to write out
 
 Move the read/write pointer in a file (Requires MOS 1.03 or above)
 
+NB this API is deprecated and kept for compatibility reasons.  You are advised to use the [`ffs_flseek_p`](#0xa6-ffs_flseek_p) API instead.  As this API requires a full 24-bit value to be provided in the `DE(U)` register it is not directly compatible with programs written to run in Z80 mode.
+
 This API call can also be used to expand the file size, by moving the pointer to a location beyond the current end of the file.  It should be noted that the extra allocated disk space will not be cleared, so the data in the new space will be undefined.
 
 Parameters:
@@ -1316,7 +1380,7 @@ Preserves: `HL(U)`, `DE(U)`, `BC(U)`
 
 Truncate a file to the current file pointer offset (Requires Console8 MOS 2.3.0 or above)
 
-To truncate to a specified size you will need to use `ffs_flseek` to move the file pointer to the desired location before calling `ffs_ftruncate`.
+To truncate to a specified size you will need to use [`ffs_flseek_p`](#0xa6-ffs_flseek_p) to move the file pointer to the desired location before calling `ffs_ftruncate`.
 
 Parameters:
 
@@ -1424,20 +1488,18 @@ This may be added in a future version of MOS, and if so would likely be restrict
 
 ### `0x8D`: ffs_ftell
 
-Get the current read/write pointer of a file.  (Requires MOS 3.0 or above)
-
-Please note that this API call does not return a status code in the `A` register.
+Get the current read/write offset pointer of a file.  (Requires MOS 3.0 or above)
 
 Parameters:
 
 - `HL(U)`: Pointer to a `FIL` structure
+- `DE(U)`: Pointer to a 4-byte buffer to store the returned 32-bit offset in
 
 Returns:
 
-- `DE(U)`: Least significant 3 bytes of the offset from the start of the file
-- `C`: Most significant byte of the offset (set to 0 for files < 16MB).  `BC(U)` is set to `0` before `C` is returned
+- `A`: `FRESULT` (`0` = Success, or `19` = Invalid parameter)
 
-Preserves: `HL(U)`
+Preserves: `HL(U)`, `DE(U)`
 
 ### `0x8E`: ffs_feof
 
@@ -1459,16 +1521,14 @@ Preserves: `HL(U)`
 
 Get the size of a file (Requires MOS 3.0 or above)
 
-Please note that this API call does not return a status code in the `A` register.
-
 Parameters:
 
 - `HL(U)`: Pointer to a `FIL` structure
+- `DE(U)`: Pointer to a 4-byte buffer to store the returned 32-bit file size in
 
 Returns:
 
-- `DE(U)`: Least significant 3 bytes of file size
-- `C`: Most significant byte of the file size (set to 0 for files < 16MB).  `BC(U)` is set to `0` before `C` is returned
+- `A`: `FRESULT` (`0` = Success, or `19` = Invalid parameter)
 
 Preserves: `HL(U)`
 
@@ -1786,6 +1846,24 @@ Returns:
 
 - `A`: `23` (Not implemented)
 
+### `0xA6`: ffs_flseek_p
+
+Move the read/write offset pointer in a file (Requires MOS 3.0 or above)
+
+This API can be used to expand the size of a file, although you should note that the file data in the expanded part will be undefined.
+
+Whilst the [`ffs_flseek`](#0x84-ffs_flseek) API can essentially perform the same function as this API, this is the preferred API to use for moving the current read/write pointer offset within a file.  As it accepts a pointer to the 32-bit offset value, it is compatible with both Z80-mode and ADL-mode code.
+
+Parameters:
+
+- `HL(U)`: Pointer to a `FIL` structure
+- `DE(U)`: Pointer to a 32-bit value for the desired new offset from the start of the file
+
+Preserves: `HL(U)`, `BC(U)`
+
+Returns:
+
+- `A`: Status code
 
 ***
 
