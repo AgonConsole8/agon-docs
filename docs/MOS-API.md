@@ -505,7 +505,7 @@ To handle the received interrupts, you will need to assign a handler to UART1's 
 
 Parameters:
 
-- `IXU`: Pointer to a UART struct
+- `IX(U)`: Pointer to a UART struct
 
 ```
 +0: Baud rate (24-bit, little endian)
@@ -526,6 +526,8 @@ Preserves: `HL(U)`
 Returns:
 
 - `A`: Error code (always 0)
+
+Please note that before MOS 3.0 the return value from this API was not always `0` owing to a bug in how the return value was handled.  This has been fixed in MOS 3.0 and later.
 
 ### `0x16`: mos_uclose
 
@@ -609,6 +611,8 @@ Move the read/write pointer in a file (Requires MOS 1.03 or above)
 NB this API is deprecated and kept for compatibility reasons.  You are advised to use the [`mos_flseek_p`](#0x24-mos_flseek_p) API instead.  As this API requires a full 24-bit value to be provided in the `HLU` register it is not directly compatible with programs written to run in Z80 mode.
 
 This API can be used to expand the size of a file, although you should note that the file data in the expanded part will be undefined.
+
+Please note that on MOS releases prior to MOS 3.0, the status code returned in the `A` register will be incorrect.
 
 Parameters:
 
