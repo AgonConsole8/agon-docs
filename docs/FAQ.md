@@ -69,18 +69,14 @@ All Agon platforms can be powered using a USB cable to your PC, or a USB wall-ch
 
 It really depends on the current firmware versions on your Agon. The Agon contains firmware for both the OS (MOS) and graphics unit (VDP).
 
-If both VDP and MOS are currently still at 1.03, as most Olimex AgonLight2 boards are, follow [this detailed guide](./Updating-Firmware-from103.md) to upgrade it. This is only necessary once; from 1.04 onwards, all upgrades can be done with the flash tool.
-
-If you are running at least VDP and MOS 1.04, just install the [flash tool](https://github.com/envenomator/agon-flash), get the appropriate firmware files (see below for examples) and read the short documentation on the page to upgrade both VDP and MOS in one go. The latest version can be found under the [releases](https://github.com/envenomator/agon-flash/releases/latest) tab. The page also has a link to help you upgrade, if you are running an even older version than 1.03.
-
-[this flowchart](https://github.com/envenomator/agon-flash/blob/master/assets/update_process.png) provides an overview of the overall process, instructions for all version combinations of VDP and MOS and additional links to use, depending on your current version starting points.
+Full guidance on updating your Agon can be found in [this detailed guide](./Updating-Firmware.md).
 
 ## Where can I find the latest Agon firmware(s) to download?
 
-I recommend using the Console8 firmware.
+The latest Agon platform firmware releases for MOS and the VDP can be found here:
 
-- [Console8 MOS firmware](https://github.com/AgonConsole8/agon-mos/releases/latest)
-- [Console8 VDP firmware](https://github.com/AgonConsole8/agon-vdp/releases/latest)
+- [MOS firmware](https://github.com/AgonConsole8/agon-mos/releases/latest)
+- [VDP firmware](https://github.com/AgonConsole8/agon-vdp/releases/latest)
 
 ## Which firmware do you currently recommend using on my Agon?
 
