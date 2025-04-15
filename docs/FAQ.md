@@ -13,9 +13,15 @@ The following questions (and answers) on using the Agon platform are below:
 
 No, and there are no immediate plans on doing this to reduce the amount of time spent doing documentation.
 
+This documentation however is all [open source](https://github.com/AgonConsole8/agon-docs), and written in [Markdown](https://www.markdownguide.org) format.  Pull requests suggesting changes to the documentation are always welcome.
+
 ## Is the Agon open source?
 
-The official hardware and software components that are part of the Quark firmware are open source, including BBC BASIC for Agon. Please check the license of any third party applications.
+Yes.  All of the firmware for the Agon platform is open source, for both [MOS](https://github.com/AgonConsole8/agon-mos) and the [VDP](https://github.com/AgonConsole8/agon-mos), and also including the various versions of BBC BASIC for the Agon ([BASIC 4 for Z80](https://github.com/breakintoprogram/agon-bbc-basic), [BASIC 4 for eZ80](https://github.com/breakintoprogram/agon-bbc-basic-adl) and [BASIC V for Z80](https://github.com/breakintoprogram/agon-bbc-basic-v)).
+
+[Bernado Kastrup](https://www.thebyteattic.com), the original hardware designer of the Agon Light, released the full schematics for the [Agon light](https://github.com/TheByteAttic/AgonLight) and the [Agon light ORIGINS edition](https://github.com/TheByteAttic/AgonORIGINS) as open source.  He also designed Heber Ltd.'s [Agon Console8](https://heber.co.uk/agon-console8/), available from the Heber and Retro Collective [shop](https://shop.heber.co.uk/agon-console8/).
+
+The [Olimex AgonLight2](https://www.olimex.com/Products/Retro-Computers/AgonLight2/open-source-hardware) is based on the original Agon Light design, which is also an open source design.
 
 ## What else do I need to buy?
 
@@ -29,7 +35,7 @@ As a minimum, you also need the following extra hardware:
 !!! note
 
     - The original Agon Light requires a PS/2 keyboard, or a USB keyboard that supports the PS/2 protocol with a USB to PS/2 adaptor.
-    - The Agon Light 2 requires a USB keyboard that supports the PS/2 protocol, or a PS/2 keyboard with a PS/2 to USB adaptor.
+    - The Agon Light 2 and Agon Console8 require a USB keyboard that supports the PS/2 protocol, or a PS/2 keyboard with a PS/2 to USB adaptor.
 
 ## Does Agon support CP/M?
 
@@ -78,6 +84,20 @@ The latest Agon platform firmware releases for MOS and the VDP can be found here
 - [MOS firmware](https://github.com/AgonConsole8/agon-mos/releases/latest)
 - [VDP firmware](https://github.com/AgonConsole8/agon-vdp/releases/latest)
 
+## What is the difference between the Quark firmware and Console8 firmware?
+
+The original "official" firmware for the Agon Light was primarily written by [Dean Belfield](http://www.breakintoprogram.co.uk), with help from several other contributors, and was given the name "Quark".
+
+At the time of writing, the latest Quark firmware releases are Quark MOS 1.04 and Quark VDP 1.04, which were released in November 2023.  Dean is a busy man with a full-time job, and a family to look after, so his available time to work on the Agon is limited.  Since those firmware releases, he has concentrated his Agon efforts since then in developing and maintaining versions of BBC BASIC for the Agon.
+
+The Agon Console8 firmware started as a fork of the Quark firmware, made by [Steve Sims](https://www.patreon.com/c/SteveSims).  An AgonConsole8 organisation was set up, and hard forks made of the Quark firmware.  There are many reasons why this fork was made which won't be explored here.  The two most important reasons however were to allow for a more rapid release schedule, and to have a wider organisation in place for looking after the firmware, to avoid the "hit by a bus" risk of a single owner.  Initially all changes made to the Console8 firmware were raised as pull requests to be merged back into the Quark firmware, and broadly speaking the Quark 1.04 and Console8 2.0.0 releases were nearly identical.
+
+Owing to the pace of development, it stopped being practical to contribute changes made to the Console8 firmware back to the Quark firmware early in 2024.  The Console8 firmware is a community effort, with contributions from several developers.  The Console8 VDP and MOS now supports many new features, improvements, and bug fixes compared to the Quark firmware, and is still being actively developed.
+
+Despite it's name, the Console8 firmware has always been able to be used on all Agon platforms, including the Agon Light,Agon Light 2, and Agon Origins Edition.  This will always be the case.
+
+In general any software written for Quark 1.04 should run on the Console8 firmware.  Software that makes use of newer features added to the Console8 firmware however may not run on Quark.
+
 ## Which firmware do you currently recommend using on my Agon?
 
 We recommend using the Console8 firmware, as most development currently takes place there while staying compatible with previously released software. It's important to mention that the latest, most interesting games, make use of features that are only available in the Console8 (VDP) firmware, so make sure to use that.
@@ -108,6 +128,8 @@ All Agon variants have a jumper to enable/disable the onboard buzzer, labeled 'B
 
 No, not unless you will be developing your own Agon MOS firmware AND need to be comfortably sure you can recover it under ALL circumstances. And even then you may very well get by using one of the community-provided options. People in the community owning SMART cables are seldomly using them nowadays.
 
+As an example of this, most of the development of the Agon Console8 MOS firmware has been done without the use of the Zilog SMART cable.
+
 Again, for regular update purposes, the Zilog SMART cable is unnecessary and a waste of money. If it's bricking you're worried about; there is a [simple solution](https://github.com/envenomator/agon-recovery) requiring just a few dupont cables and a clear step-by-step plan to recover your Agon. In any case, you can at least buy a new Agon for the price of the Zilog SMART cable. Ease your worries.
 
 ## I still would like to buy a Zilog SMART cable. Which one should I get?
@@ -127,9 +149,11 @@ Absolutely (and this has been tested), but because literally ANY version can be 
 
 Do yourselves a big favor, and stay away from anything below Quark 1.03, or that Zilog ZDS cable I mentioned you shouldn't buy, might suddenly start get interesting again.
 
-## Do I understand correctly, that the Console8 firmware(s) can be used with any Agon platform?
+## I don't have a Console8, can I still use the Console8 firmware?
 
-Yes, it can be used with any Agon platform.
+Yes, the Console8 firmware can be used on any existing Agon platform computer.  This includes the original Agon Light, the Olimex Agon Light 2, the Agon Origins Edition, as well as the Agon Console8.
+
+There are no features in the firmware that are exclusive to the Agon Console8.  It is possible to add a PS/2 mouse port and two joystick ports to Agon Light machines in a manner that is completely compatible with the Console8 firmware.
 
 ## How should I connect the Agon to my PC for programming the VDP?
 
@@ -171,7 +195,8 @@ You can use the following command from the MOS command line, from BBC BASIC (usi
     *SET KEYBOARD n
 
 The keyboard layout for UK = 0, US = 1
-Other available layouts are available from MOS 1.03+, [documented here](mos/Star-Commands.md#keyboard-layout)
+
+The keyboard layouts your Agon can support depends on the firmware versions you are using; at the time of writing 17 different layouts are supported.  More information about available layouts is [documented here](mos/Star-Commands.md#keyboard-layout)
 
 ## How do I exit to the MOS command line, from within BBC Basic?
 
@@ -217,6 +242,8 @@ Historically, this has been a problem when the VDP firmware was built using the 
 
 If you wish to still use the Arduino IDE and are building the Quark variant of the VDP firmware, you will need to make sure you have PSRAM enabled in the [Arduino IDE settings](https://github.com/breakintoprogram/agon-vdp#arduino-ide-settings) when you compile and transfer the VDP code.
 
+Finally there are a few screen modes that the Agon supports that a limited number of screens might not support.  If you are having issues with a particular screen mode, try using a different screen mode to see if that resolves the issue.  Remember that you can always press the reset button.
+
 ## I'd like to start programming BBC Basic - where might I start?
 
 Have a look at [this](https://oldpatientsea.github.io/agon-bbc-basic-manual/0.1/bbc1.html) excellent guide.
@@ -232,7 +259,8 @@ The AGON comes pre-shipped with BASIC as it is a good language to start coding w
 
 - Forth
 - Assembly Language (either via BBC Basic inline assembler or external assembler)
-- C (Cross-compiled from a PC, via ZDS tools or AgDev)
+- C (Cross-compiled from a PC, via ZDS tools, Agondev, or AgDev)
+- C++ (Cross-compiled from a PC or Mac, via Agondev or AgDev)
 
 ## I'd like to start assembly programming for the Agon platform - where might I start?
 
@@ -242,7 +270,11 @@ Download the latest version of the [onboard assembler](https://github.com/enveno
 
 ## I'd like to start C/C++ programming for the Agon platform - where might I start?
 
-Assuming you already know some C/C++, start downloading the best [C/C++ cross-development toolchain](https://github.com/pcawte/AgDev) there currently is, and look at some online examples from tools/games.
+Assuming you already know some C/C++, we recommend downloading and using [agondev](https://github.com/AgonConsole8/agondev) as it is the best cross-development toolchain available for the Agon platform.  This is a comparatively new toolchain and is still in active development.
+
+Another option is the [AgDev](https://github.com/pcawte/AgDev), which is an extension of the CEDev toolchain originally written to allow programs to be written for the TI-85 Plus CE and TI-83 Premium CE calculators, which use the same eZ80 processor as the Agon.  There are a number of example programs available in the AgDev repository.
+
+Agondev has a decent degree of compatibility with AgDev, but tends to be slightly more compliant with modern C and C++ standards.
 
 ## I'd like to start Forth programming for the Agon platform - where might I start?
 
