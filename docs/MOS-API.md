@@ -1469,6 +1469,8 @@ Flushes cached information of a writing file (Requires Console8 MOS 3.0 or above
 
 When writing to a file, file data may be cached in memory until the file is closed.  This function will flush the cache to the SD card, ensuring that all data has been written.  This can be useful to minimise the risks of data loss in the event of a power failure, SD card removal, or other unexpected shutdown.
 
+As of MOS 3.0, the underlying SD card access layer does not cache writes, so this API call is not actually needed.  It is implemented in case we do add caching in the future.
+
 Parameters:
 
 - `HL(U)`: Pointer to a `FIL` structure
