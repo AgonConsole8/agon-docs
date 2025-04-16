@@ -1199,6 +1199,12 @@ Returns:
 
 If the buffer is too short for the resolved path then a status code of `22` (Out of memory) will be returned.  Path resolution problems may result in status codes of `5` (No path) or `4` (No file).
 
+***
+
+### `0x40-0x50`: VDP protocol, and miscellaneous functions
+
+Functions in this range are used for VDP protocol, and other miscellaneous functions.
+
 ### `0x40`: mos_clearvdpflags
 
 Clears VDP Protocol status flags from the `sysvar_vpd_pflags` [sysvar](#sysvars).
@@ -1233,13 +1239,62 @@ Returns:
 
 - `A`: Status code (`0` = Success, `15` = Timeout)
 
+### `0x50`: mos_getfunction
+
+This API call will return a pointer to a function that follows the Zilog eZ80 C calling convention.  As these are 24-bit pointers, and passing arguments needs to be done using the 24-bit stack pointer (`SPL`), this API call is not usable by programs running in Z80 mode.
+
+Information on the C calling convention can be found [here](https://github.com/pcawte/AgDev?tab=readme-ov-file#c-calling-conventions-for-interfacing-with-asm-applications)
+
+Parameters:
+
+- `C`: Flags (must be `0` in MOS 3.0)
+- `B`: Function number
+
+Returns:
+
+- `A`: Status code (`0` = Success, `19` = Invalid parameter, `20` = Invalid command)
+- `HLU`: Pointer to function (or `0` if the request was invalid invalid)
+
+If this API is called from Z80 mode code, then it will return a status code of `20` (Invalid command) as this API is only supported in ADL mode.
+
+This API includes a flags byte which must be set to zero in MOS 3.0.  This is reserved for future use to allow for additional functionality to be added in future versions of MOS.  If flags are set to anything other than `0` then the API will return a status code of `19` (Invalid parameter).
+
+Similarly, if the function number passed to this API is higher than the highest available function, then the API will return a status code of `20` (Invalid command).
+
+Many of the functions returned by this API have equivalent MOS API calls.  They have been included here because the MOS API calls use the `IX(U)` register for arguments, which makes them difficult to use for programs written in C.  The manner in which the APIs work often have subtle differences from their underlying functions, owing to the fact that the functions return multiple values.  When needed, the APIs will store register-provided values in a temporary workspace and call the underlying function with appropriate pointers, and then fetch values from temporary workspace placing them in registers before returning to the caller.
+
+The function numbers are as follows:
+
+| Number | C function prototype | Description |
+| ------ | -------------------- | ----------- |
+| 0x00   | `BYTE	SD_init();` | Initialises the low-level SD card handling system | 
+| 0x01   | `BYTE	SD_readBlocks(DWORD sector, BYTE *buf, WORD count);` | Read raw sector data from SD card |
+| 0x02   | `BYTE	SD_writeBlocks(DWORD addr, BYTE *buf, WORD count);` | Write raw sector data to SD card |	; 
+| 0x03   | n/a (returns a `NULL` pointer) | Reserved for potential future `SD_status` function |
+| 0x04   | n/a (returns a `NULL` pointer) | Reserved for potential future `SD_ioctl` function |
+| 0x05   | `int	f_printf (FIL* fp, const TCHAR* str, ...);` | The FatFS `f_printf` function |
+| 0x06   | `FRESULT	f_findfirst (DIR* dp, FILINFO* fno, const TCHAR* path, const TCHAR* pattern);` | The FatFS `f_findfirst` function, equivalent to the [`ffs_dfindfirst`](#0x94-ffs_dfindfirst) API call. |
+| 0x07   | `FRESULT	f_findnext (DIR* dp, FILINFO* fno);` | The FatFS `f_findnext` function, equivalent to the [`ffd_dfindnext`](#0x95-ffs_dfindnext) API call |
+| 0x08   | `BYTE	open_UART1(UART * pUART);` | Equivalent to the [`mos_uopen`](#0x15-mos_uopen) API call | 
+| 0x09   | `int		setVarVal(char * name, void * value, char ** actualName, BYTE * type);` | The underlying function the [`mos_setvarval`](#0x30-mos_setvarval) API call uses.<br/>Please note that the way the API call implementation wraps this function means that the `actualName` and `type` arguments need to be handled differently than the API. |
+| 0x0A   | `int		readVarVal(char * namePattern, void * value, char ** actualName, int * length, BYTE * typeFlag);` | The underlying function the [`mos_readvarval`](#0x31-mos_readvarval) API call uses.<br/>As with the `setVarVal` function, the `actualName`, `length` and `typeFlags` are handled differently than the equivalent API. | 
+| 0x0B   | `int		gsTrans(char * source, char * dest, int destLen, int * read, BYTE flags);` | The underlying function the [`mos_gstrans`](#0x34-mos_gstrans) API call uses.<br/>The pointer to `read` is used to return the calculated total length of the translated string. |
+| 0x0C   | `int	substituteArgs(char * template, char * args, char * dest, int length, BYTE omitRest);` | The underlying function the [`mos_substituteargs`](#0x35-mos_substituteargs) API call uses. |
+| 0x0D   | `int	resolvePath(char * filepath, char * resolvedPath, int * length, BYTE * index, DIR * dir, BYTE flags);` | The underlying function the [`mos_resolvepath`](#0x38-mos_resolvepath) API call uses.<br/>The `length` pointer used both for the `resolvedPath` buffer size, and to return the resolved path length.  The `index` pointer can be null, but when pointing to a value will work the same as the `C` register in the API.  As with the API, the `dir` pointer can be omitted. |
+| 0x0E   | `int getDirectoryForPath(char * srcPath, char * dir, int * length, BYTE index);`	 | The underlying function the [`mos_getdirforpath`](#0x39-mos_getdirforpath) API call uses.<br/>As with the `resolvePath` function, the value pointed to by `length` is used both as the buffer size for the `dir` output buffer, and to return the actual length. |
+| 0x0F   | `int resolveRelativePath(char * path, char * resolved, int length);` | This is the underlying function that [`mos_api_getabsolutepath`](#0x3c-mos_getabsolutepath) uses. |
+| 0x10   | `void * getsysvars()` | Returns a pointer to the system variables area.  Directly equivalent to the [`mos_getsysvars`](#0x0b-mos_getsysvars) API call. | 
+| 0x11   | `void * getkbmap()` | Returns a pointer to the keyboard map.  Directly equivalent to the [`mos_getkbmap`](#0x0c-mos_getkbmap) API call. | 
+
+Please note that whilst MOS APIs will return `FRESULT` or "status" values in the 8-bit `A` register, most of the underlying functions return an `FRESULT` or an `int` for their status, which are actually 24-bit values.  The calling convention means they will be returned in `HL(U)`.
+
 ***
 
 ## Low-level SD card access
 
-MOS 3.0 provides a set of APIs that provide low-level access to the SD card.  These are not intended for general use, but are provided for some limited use-cases, such as for an operating system that uses a different filing system than FatFS, or for tools that wish to access the SD card in ways that are not supported by the FatFS library.
+MOS 3.0 provides a set of APIs that provide low-level access to the SD card.  These are not intended for general use, but are provided for some special use-cases, such as for an operating system that uses a different filing system than FatFS, or for tools that wish to access the SD card in ways that are not supported by the FatFS library.
 
-As the use of these APIs can potentialy cause data corruption in order to use them you need to use an "unlock code", obtainable
+As the use of these APIs can potentialy cause data corruption in order to use them you need to use an "unlock code".  It is possible to avoid using the unlock mechanism by using the underlying functions directly via the [`mos_getfunction`](#0x50-mos_getfunction) API call.
 
 ### `0x70`: sd_getunlockcode
 
