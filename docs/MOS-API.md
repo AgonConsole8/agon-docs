@@ -267,6 +267,8 @@ Returns:
 
 Fetch a pointer to the [system state variables](#sysvars)
 
+NB as this returns a pointer in `IXU`, and is therefore difficult to use from C code, as of MOS 3.0 an alternative way to access the sysvars address is available via a C function obtainable from the [`mos_getfunction`](#0x38-mos_getfunction) API.
+
 Parameters: None
 
 Returns:
@@ -645,6 +647,8 @@ Be sure to clear the kbvector before your program exits (call mos_setkbvector ag
 ### `0x1E`: mos_getkbmap
 
 Fetch a pointer to the virtual keyboard map (Requires MOS 1.04 RC2 or above)
+
+NB as this returns a pointer in IXU, and is therefore difficult to use from C code, as of MOS 3.0 an alternative way to access the keyboard bitmap address is available via a C function obtainable from the [`mos_getfunction`](#0x38-mos_getfunction) API.
 
 Parameters: None
 
@@ -1185,7 +1189,7 @@ Returns:
 
 Get the absolute version of a (relative) path
 
-(NB currently as of MOS 3.0a2 unlike similar functions above this API call does not support being called with a null pointer to count the length of the resolved path, and does not return the length.)
+NB currently as of MOS 3.0, unlike similar API calls above, this API does not support being called with a null pointer to count the length of the resolved path, and does not return the length.  If called with a null pointer from ADL mode, the API will return a status code of `19` (Invalid parameter).  Calling with a null pointer from Z80 mode code is not currently supported/checked and may cause unexpected results or crashes.  This will likely change in a future MOS release.
 
 Parameters:
 
@@ -1269,7 +1273,7 @@ The function numbers are as follows:
 | ------ | -------------------- | ----------- |
 | 0x00   | `BYTE	SD_init();` | Initialises the low-level SD card handling system | 
 | 0x01   | `BYTE	SD_readBlocks(DWORD sector, BYTE *buf, WORD count);` | Read raw sector data from SD card |
-| 0x02   | `BYTE	SD_writeBlocks(DWORD addr, BYTE *buf, WORD count);` | Write raw sector data to SD card |	; 
+| 0x02   | `BYTE	SD_writeBlocks(DWORD sector, BYTE *buf, WORD count);` | Write raw sector data to SD card |
 | 0x03   | n/a (returns a `NULL` pointer) | Reserved for potential future `SD_status` function |
 | 0x04   | n/a (returns a `NULL` pointer) | Reserved for potential future `SD_ioctl` function |
 | 0x05   | `int	f_printf (FIL* fp, const TCHAR* str, ...);` | The FatFS `f_printf` function |
@@ -1279,10 +1283,10 @@ The function numbers are as follows:
 | 0x09   | `int		setVarVal(char * name, void * value, char ** actualName, BYTE * type);` | The underlying function the [`mos_setvarval`](#0x30-mos_setvarval) API call uses.<br/>Please note that the way the API call implementation wraps this function means that the `actualName` and `type` arguments need to be handled differently than the API. |
 | 0x0A   | `int		readVarVal(char * namePattern, void * value, char ** actualName, int * length, BYTE * typeFlag);` | The underlying function the [`mos_readvarval`](#0x31-mos_readvarval) API call uses.<br/>As with the `setVarVal` function, the `actualName`, `length` and `typeFlags` are handled differently than the equivalent API. | 
 | 0x0B   | `int		gsTrans(char * source, char * dest, int destLen, int * read, BYTE flags);` | The underlying function the [`mos_gstrans`](#0x34-mos_gstrans) API call uses.<br/>The pointer to `read` is used to return the calculated total length of the translated string. |
-| 0x0C   | `int	substituteArgs(char * template, char * args, char * dest, int length, BYTE omitRest);` | The underlying function the [`mos_substituteargs`](#0x35-mos_substituteargs) API call uses. |
+| 0x0C   | `int	substituteArgs(char * template, char * args, char * dest, int length, BYTE flags);` | The underlying function the [`mos_substituteargs`](#0x35-mos_substituteargs) API call uses. |
 | 0x0D   | `int	resolvePath(char * filepath, char * resolvedPath, int * length, BYTE * index, DIR * dir, BYTE flags);` | The underlying function the [`mos_resolvepath`](#0x38-mos_resolvepath) API call uses.<br/>The `length` pointer used both for the `resolvedPath` buffer size, and to return the resolved path length.  The `index` pointer can be null, but when pointing to a value will work the same as the `C` register in the API.  As with the API, the `dir` pointer can be omitted. |
 | 0x0E   | `int getDirectoryForPath(char * srcPath, char * dir, int * length, BYTE index);`	 | The underlying function the [`mos_getdirforpath`](#0x39-mos_getdirforpath) API call uses.<br/>As with the `resolvePath` function, the value pointed to by `length` is used both as the buffer size for the `dir` output buffer, and to return the actual length. |
-| 0x0F   | `int resolveRelativePath(char * path, char * resolved, int length);` | This is the underlying function that [`mos_api_getabsolutepath`](#0x3c-mos_getabsolutepath) uses. |
+| 0x0F   | `int resolveRelativePath(char * path, char * resolved, int * length);` | This is the underlying function that [`mos_api_getabsolutepath`](#0x3c-mos_getabsolutepath) uses. |
 | 0x10   | `void * getsysvars()` | Returns a pointer to the system variables area.  Directly equivalent to the [`mos_getsysvars`](#0x0b-mos_getsysvars) API call. | 
 | 0x11   | `void * getkbmap()` | Returns a pointer to the keyboard map.  Directly equivalent to the [`mos_getkbmap`](#0x0c-mos_getkbmap) API call. | 
 
@@ -1610,9 +1614,9 @@ Preserves: `HL(U)`, `DE(U)`
 
 ### `0x8C`: ffs_fprintf
 
-Whilst our configuration of FatFS does support the `f_printf` function, at this time an API call for it has not been implemented.  This is because the function supports a variable number of arguments, and as of the MOS 3.0 release it is not clear how to implement this in a way that is consistent with the rest of the API calls.
+Whilst our configuration of FatFS does support the `f_printf` function, we do not currently support it in the MOS API.  This is because the function accepts a variable number of arguments, and it is not clear how this could be implemented in a way that is consistent with the rest of the APIs that MOS supports.
 
-This may be added in a future version of MOS, and if so would likely be restricted to code running in ADL mode, and return an error to code running in Z80 mode.
+The `f_printf` function is made available via the [`mos_getfunction`](#0x50-mos_getfunction) API call.  It can therefore be used from any (ADL mode) code that complies with the Zilog eZ80 C calling convention.  This API is not available in Z80 mode code.
 
 ### `0x8D`: ffs_ftell
 
