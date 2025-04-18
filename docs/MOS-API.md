@@ -20,11 +20,14 @@ In addition, if you are using the Zilog ZDS II assembler you may wish to include
 
 NB:
 
-- Using the `RST.LIS` opcode in an eZ80 assembler will ensure the MOS RST instructions are called regardless of the eZ80s current addressing mode.
+- Using the `RST.LIS` opcode in an eZ80 assembler will ensure the MOS `RST` instructions are called regardless of the eZ80s current addressing mode
+    - The Agon MOS RST handlers are written with the assumption that they have been called using `RST.LIS`
+    - Programs written to run in Z80 mode, using only plain Z80 opcodes, would therefore need to set up their own RST handlers to call through to to MOS using `RST.LIS`
+- This documentation generally uses the term `RST` in place of `RST.LIS` for simplicity
 - In the `mos_api.inc` file you will find:
-    - EQUs for all the MOS commands, data structures and [system state variables (sysvars)](#sysvars).
+    - EQUs for all the MOS commands, data structures and [system state variables (sysvars)](#sysvars)
     - An incomplete list of VDP control variables.  For a full list, see the [VDP documentation](VDP.md)
-    - A complete list FatFS APIs, however these are not yet all implemented in MOS.  Those that are implemented are documented below.
+    - A complete list FatFS APIs, however it should be noted that many these are not implemented in MOS prior to MOS 3.0
 
 Further information on the `RST` handlers provided by MOS are as follows:
 
@@ -132,6 +135,10 @@ As of MOS 3.0, all the MOS API calls that accept any kind of filepath string as 
 Please note that the FatFS API calls (which named with an `ffs_` prefix) do _not_ support this behaviour, and will only work with fully resolved file paths.  There is an API to [resolve the path](#0x38-mos_resolvepath) which can be used to convert a path with system variables into a path suitable for use with the fatfs APIs.
 
 In general, to read and/or write files files, it is recommended to use the MOS file APIs as these will automatically handle system variables and file paths.  MOS file APIs use a "file handle" to reference an open file, whereas the FatFS APIs expect a pointer to a `FIL` structure.  You can get a `FIL` structure for a MOS file handle by using the [`mos_getfil` API](#0x19-mos_getfil).  This will allow you to use the FatFS APIs directly if you need to, but in most cases it is recommended to use the MOS file APIs.  It is planned that future versions of MOS (beyond 3.0) will support using the MOS file APIs to open data streams other than files, such as the serial UART, I2C devices, and the VDP connection.  This will allow you to use the same APIs to read/write data across different all data streams.
+
+Please note that MOS 3.0 [system variables](mos/System-Variables.md) are a distinct and different feature from [system state information (sysvars)](#sysvars).  Some older code and documentation may use the term "system variables" to refer to sysvars.
+
+As of MOS 3.0 the standard for APIs that will either return or require a 32-bit value is to use a pointer to the value in a register.  Care should be taken to ensure that the pointer is pointing to a valid 4-byte block of memory.  There are two older APIs that date back to MOS 1.03, namely `mos_ that use a different approach and return a 32-bit value spread across two registers, with the lower 24-bits in one register and the upper byte in a separate register.  As this is not friendly to Z80 code 
 
 The following MOS commands are supported:
 
@@ -259,6 +266,8 @@ Returns:
 ### `0x08`: mos_sysvars
 
 Fetch a pointer to the [system state variables](#sysvars)
+
+NB as this returns a pointer in `IXU`, and is therefore difficult to use from C code, as of MOS 3.0 an alternative way to access the sysvars address is available via a C function obtainable from the [`mos_getfunction`](#0x50-mos_getfunction) API.
 
 Parameters: None
 
@@ -498,7 +507,7 @@ To handle the received interrupts, you will need to assign a handler to UART1's 
 
 Parameters:
 
-- `IXU`: Pointer to a UART struct
+- `IX(U)`: Pointer to a UART struct
 
 ```
 +0: Baud rate (24-bit, little endian)
@@ -519,6 +528,8 @@ Preserves: `HL(U)`
 Returns:
 
 - `A`: Error code (always 0)
+
+Please note that before MOS 3.0 the return value from this API was not always `0` owing to a bug in how the return value was handled.  This has been fixed in MOS 3.0 and later.
 
 ### `0x16`: mos_uclose
 
@@ -599,7 +610,11 @@ Returns:
 
 Move the read/write pointer in a file (Requires MOS 1.03 or above)
 
+NB this API is deprecated and kept for compatibility reasons.  You are advised to use the [`mos_flseek_p`](#0x24-mos_flseek_p) API instead.  As this API requires a full 24-bit value to be provided in the `HLU` register it is not directly compatible with programs written to run in Z80 mode.
+
 This API can be used to expand the size of a file, although you should note that the file data in the expanded part will be undefined.
+
+Please note that on MOS releases prior to MOS 3.0, the status code returned in the `A` register will be incorrect.
 
 Parameters:
 
@@ -632,6 +647,8 @@ Be sure to clear the kbvector before your program exits (call mos_setkbvector ag
 ### `0x1E`: mos_getkbmap
 
 Fetch a pointer to the virtual keyboard map (Requires MOS 1.04 RC2 or above)
+
+NB as this returns a pointer in IXU, and is therefore difficult to use from C code, as of MOS 3.0 an alternative way to access the keyboard bitmap address is available via a C function obtainable from the [`mos_getfunction`](#0x50-mos_getfunction) API.
 
 Parameters: None
 
@@ -719,7 +736,7 @@ Flags are a bit-field to enable various different options.  Currently the follow
 - bit 0 = refresh RTC sysvar before unpacking
 - bit 1 = refresh RTC sysvar after unpacking
 
-The RTC data sysvar is updated by sending a command to the VDP to request the current time, and MOS will store the response in the RTC system variable area.  If you set bit 0, this API call will send the command to the VDP to request updated RTC data and wait for the response before unpacking the data.  When you set bit 1, the command will be sent after the data has been unpacked, and the API will return without waiting for the response.
+The RTC data sysvar is updated by sending a command to the VDP to request the current time, and MOS will store the response in the [RTC system state information area](#sysvar_rtc).  If you set bit 0, this API call will send the command to the VDP to request updated RTC data and wait for the response before unpacking the data.  When you set bit 1, the command will be sent after the data has been unpacked, and the API will return without waiting for the response.
 
 If you do not want to refresh the RTC data stored in MOS, set the flags to 0.  You should note that if you do this the data may be stale or, if no request has been sent to the VDP at all for RTC information, be invalid.
 
@@ -741,6 +758,26 @@ Data returned in the buffer at `HL(U)` will be in the following order, with 16-b
 	UINT8  minute;
 	UINT8  second;
 ```
+
+### `0x24`: mos_flseek_p
+
+Move the read/write offset pointer in a file (Requires MOS 3.0 or above)
+
+This API can be used to expand the size of a file, although you should note that the file data in the expanded part will be undefined.
+
+Whilst the [`mos_flseek`](#0x1c-mos_flseek) API can essentially perform the same function as this API, this is the preferred API to use for moving the current read/write pointer offset within a file.  As it accepts a pointer to the 32-bit offset value, it is compatible with both Z80-mode and ADL-mode code.
+
+Parameters:
+
+- `C`: File handle
+- `HL(U)`: Pointer to a 32-bit value for the desired new offset from the start of the file
+
+Preserves: `HL(U)`, `BC(U)`
+
+Returns:
+
+- `A`: Status code
+
 
 ***
 
@@ -1152,7 +1189,7 @@ Returns:
 
 Get the absolute version of a (relative) path
 
-(NB currently as of MOS 3.0a2 unlike similar functions above this API call does not support being called with a null pointer to count the length of the resolved path, and does not return the length.)
+NB currently as of MOS 3.0, unlike similar API calls above, this API does not support being called with a null pointer to count the length of the resolved path, and does not return the length.  If called with a null pointer from ADL mode, the API will return a status code of `19` (Invalid parameter).  Calling with a null pointer from Z80 mode code is not currently supported/checked and may cause unexpected results or crashes.  This will likely change in a future MOS release.
 
 Parameters:
 
@@ -1165,6 +1202,163 @@ Returns:
 - `A`: Status code
 
 If the buffer is too short for the resolved path then a status code of `22` (Out of memory) will be returned.  Path resolution problems may result in status codes of `5` (No path) or `4` (No file).
+
+***
+
+### `0x40-0x50`: VDP protocol, and miscellaneous functions
+
+Functions in this range are used for VDP protocol, and other miscellaneous functions.
+
+### `0x40`: mos_clearvdpflags
+
+Clears VDP Protocol status flags from the `sysvar_vpd_pflags` [sysvar](#sysvars).
+
+Bits in this status value will be set when various different VDP Protocol message packet types are received by MOS from the VDP.  Such packets may be sent for user-initiated actions, such as pressing a key on the keyboard, or moving the mouse, or for system-initiated actions, such as a VDU command being sent to the VDP.  Please note that in general use these bits are not automatically cleared, so if you wish to detect a response from the VDP to a VDU command your program sends it is important to clear out the corresponding protocol flags before sending the command.  You can then use the [`mos_waitforvdpflags`](#0x41-mos_waitforvdpflags) API call to wait for the VDP to respond, and check the status of the flags in `sysvar_vpd_pflags` to see if the command was successful.
+
+Further information on the VDP protocol and the flag bits can be found in the [VDP Protocol documentation](vdp/System-Commands.md#vdp-serial-protocol).
+
+Parameters:
+
+- `C`: Bitmask of flags to clear
+
+Returns:
+
+- `A`: New VDP flags
+
+### `0x41`: mos_waitforvdpflags
+
+Waits for corresponding VDP protocol flags to be set in the `sysvar_vpd_pflags` [sysvar](#sysvars).
+
+Typically your program should first clear whichever protocol flag you are interested in detecting, using the [`mos_clearvdpflags`](#0x40-mos_clearvdpflags) API call.  Once you have done that, you should send a VDU command to the VDP for which you are expecting a response, and then use this API call to wait for that response to be received.
+
+MOS contains inbuilt support for handling VDP protocol messages.  Typically on receipt of a message a flag will be set in the `sysvar_vpd_pflags` variable, and also other corresponding [sysvars](#sysvars) will be updated from the contents of the message.
+
+This API call will wait for approximately 1 second for the VDP to respond, which should be more than enough time for any VDU command to be processed.  If the VDP does not respond within this time, the API call will return with a status code of `15` (Timeout).  If the VDP does respond, the API call will return with a status code of `0` (Success).
+
+Parameters:
+
+- `C`: Bitmask of flags to wait for
+
+Returns:
+
+- `A`: Status code (`0` = Success, `15` = Timeout)
+
+### `0x50`: mos_getfunction
+
+This API call will return a pointer to a function that follows the Zilog eZ80 C calling convention.  As these are 24-bit pointers, and passing arguments needs to be done using the 24-bit stack pointer (`SPL`), this API call is not usable by programs running in Z80 mode.
+
+Information on the C calling convention can be found [here](https://github.com/pcawte/AgDev?tab=readme-ov-file#c-calling-conventions-for-interfacing-with-asm-applications)
+
+Parameters:
+
+- `C`: Flags (must be `0` in MOS 3.0)
+- `B`: Function number
+
+Returns:
+
+- `A`: Status code (`0` = Success, `19` = Invalid parameter, `20` = Invalid command)
+- `HLU`: Pointer to function (or `0` if the request was invalid invalid)
+
+If this API is called from Z80 mode code, then it will return a status code of `20` (Invalid command) as this API is only supported in ADL mode.
+
+This API includes a flags byte which must be set to zero in MOS 3.0.  This is reserved for future use to allow for additional functionality to be added in future versions of MOS.  If flags are set to anything other than `0` then the API will return a status code of `19` (Invalid parameter).
+
+Similarly, if the function number passed to this API is higher than the highest available function, then the API will return a status code of `20` (Invalid command).
+
+Many of the functions returned by this API have equivalent MOS API calls.  They have been included here because the MOS API calls use the `IX(U)` register for arguments, which makes them difficult to use for programs written in C.  The manner in which the APIs work often have subtle differences from their underlying functions, owing to the fact that the functions return multiple values.  When needed, the APIs will store register-provided values in a temporary workspace and call the underlying function with appropriate pointers, and then fetch values from temporary workspace placing them in registers before returning to the caller.
+
+The function numbers are as follows:
+
+| Number | C function prototype | Description |
+| ------ | -------------------- | ----------- |
+| 0x00   | `BYTE	SD_init();` | Initialises the low-level SD card handling system | 
+| 0x01   | `BYTE	SD_readBlocks(DWORD sector, BYTE *buf, WORD count);` | Read raw sector data from SD card |
+| 0x02   | `BYTE	SD_writeBlocks(DWORD sector, BYTE *buf, WORD count);` | Write raw sector data to SD card |
+| 0x03   | n/a (returns a `NULL` pointer) | Reserved for potential future `SD_status` function |
+| 0x04   | n/a (returns a `NULL` pointer) | Reserved for potential future `SD_ioctl` function |
+| 0x05   | `int	f_printf (FIL* fp, const TCHAR* str, ...);` | The FatFS `f_printf` function |
+| 0x06   | `FRESULT	f_findfirst (DIR* dp, FILINFO* fno, const TCHAR* path, const TCHAR* pattern);` | The FatFS `f_findfirst` function, equivalent to the [`ffs_dfindfirst`](#0x94-ffs_dfindfirst) API call. |
+| 0x07   | `FRESULT	f_findnext (DIR* dp, FILINFO* fno);` | The FatFS `f_findnext` function, equivalent to the [`ffd_dfindnext`](#0x95-ffs_dfindnext) API call |
+| 0x08   | `BYTE	open_UART1(UART * pUART);` | Equivalent to the [`mos_uopen`](#0x15-mos_uopen) API call | 
+| 0x09   | `int		setVarVal(char * name, void * value, char ** actualName, BYTE * type);` | The underlying function the [`mos_setvarval`](#0x30-mos_setvarval) API call uses.<br/>Please note that the way the API call implementation wraps this function means that the `actualName` and `type` arguments need to be handled differently than the API. |
+| 0x0A   | `int		readVarVal(char * namePattern, void * value, char ** actualName, int * length, BYTE * typeFlag);` | The underlying function the [`mos_readvarval`](#0x31-mos_readvarval) API call uses.<br/>As with the `setVarVal` function, the `actualName`, `length` and `typeFlags` are handled differently than the equivalent API. | 
+| 0x0B   | `int		gsTrans(char * source, char * dest, int destLen, int * read, BYTE flags);` | The underlying function the [`mos_gstrans`](#0x34-mos_gstrans) API call uses.<br/>The pointer to `read` is used to return the calculated total length of the translated string. |
+| 0x0C   | `int	substituteArgs(char * template, char * args, char * dest, int length, BYTE flags);` | The underlying function the [`mos_substituteargs`](#0x35-mos_substituteargs) API call uses. |
+| 0x0D   | `int	resolvePath(char * filepath, char * resolvedPath, int * length, BYTE * index, DIR * dir, BYTE flags);` | The underlying function the [`mos_resolvepath`](#0x38-mos_resolvepath) API call uses.<br/>The `length` pointer used both for the `resolvedPath` buffer size, and to return the resolved path length.  The `index` pointer can be null, but when pointing to a value will work the same as the `C` register in the API.  As with the API, the `dir` pointer can be omitted. |
+| 0x0E   | `int getDirectoryForPath(char * srcPath, char * dir, int * length, BYTE index);`	 | The underlying function the [`mos_getdirforpath`](#0x39-mos_getdirforpath) API call uses.<br/>As with the `resolvePath` function, the value pointed to by `length` is used both as the buffer size for the `dir` output buffer, and to return the actual length. |
+| 0x0F   | `int resolveRelativePath(char * path, char * resolved, int * length);` | This is the underlying function that [`mos_api_getabsolutepath`](#0x3c-mos_getabsolutepath) uses. |
+| 0x10   | `void * getsysvars()` | Returns a pointer to the system variables area.  Directly equivalent to the [`mos_sysvars`](#0x08-mos_sysvars) API call. | 
+| 0x11   | `void * getkbmap()` | Returns a pointer to the keyboard map.  Directly equivalent to the [`mos_getkbmap`](#0x1e-mos_getkbmap) API call. | 
+
+Please note that whilst MOS APIs will return `FRESULT` or "status" values in the 8-bit `A` register, most of the underlying functions return an `FRESULT` or an `int` for their status, which are actually 24-bit values.  The calling convention means they will be returned in `HL(U)`.
+
+***
+
+## Low-level SD card access
+
+MOS 3.0 provides a set of APIs that provide low-level access to the SD card.  These are not intended for general use, but are provided for some special use-cases, such as for an operating system that uses a different filing system than FatFS, or for tools that wish to access the SD card in ways that are not supported by the FatFS library.
+
+As the use of these APIs can potentialy cause data corruption in order to use them you need to use an "unlock code".  It is possible to avoid using the unlock mechanism by using the underlying functions directly via the [`mos_getfunction`](#0x50-mos_getfunction) API call.
+
+### `0x70`: sd_getunlockcode
+
+This API call is used to obtain the unlock code needed to use the low-level SD card APIs.  The unlock code is a randomly generated 24-bit value, created the first time this API is called.
+
+Parameters:
+
+- `HL(U)`: Pointer to a 24-bit value to store the unlock code
+
+Returns:
+
+Nothing
+
+### `0x71`: sd_init
+
+Initialises the SD card support system.  MOS automatically calls this when it mounts an SD card.  If you are writing support for an operating system you may need to call this to restart the SD card system if the SD card is removed and reinserted.
+
+Parameters:
+
+- `HL(U)`: Pointer to the unlock code (24-bit value) as fetched by the [`sd_getunlockcode`](#0x70-sd_getunlockcode) API call
+
+Returns:
+
+- `A`: Status code
+    - `0` = Success/Ready
+	- `1` = Error
+	- `2` = Locked (incorrect unlock code provided, or no lock code yet set)
+
+### `0x72`: sd_readblocks
+
+Read raw blocks from the SD card.
+
+Parameters:
+- `HL(U)`: Pointer to a 32-bit sector number, followed by the 24-bit unlock code
+- `DE(U)`: Pointer to a buffer to store the read data
+- `BC`: Number of blocks to read (16-bit value)
+
+Returns:
+
+- `A`: Status code
+    - `0` = Success/Ready
+	- `1` = Error
+	- `2` = Locked (incorrect unlock code provided, or no lock code yet set)
+
+### `0x73`: sd_writeblocks
+
+Writes raw blocks to the SD card.
+
+Parameters:
+
+- `HL(U)`: Pointer to a 32-bit sector number, followed by the 24-bit unlock code
+- `DE(U)`: Pointer to a buffer containing the data to write
+- `BC`: Number of blocks to write (16-bit value)
+
+Returns:
+
+- `A`: Status code
+	- `0` = Success/Ready
+	- `1` = Error
+	- `2` = Locked (incorrect unlock code provided, or no lock code yet set)
 
 ***
 
@@ -1296,6 +1490,8 @@ buffer:		DS	256				; Buffer containing data to write out
 
 Move the read/write pointer in a file (Requires MOS 1.03 or above)
 
+NB this API is deprecated and kept for compatibility reasons.  You are advised to use the [`ffs_flseek_p`](#0xa6-ffs_flseek_p) API instead.  As this API requires a full 24-bit value to be provided in the `DE(U)` register it is not directly compatible with programs written to run in Z80 mode.
+
 This API call can also be used to expand the file size, by moving the pointer to a location beyond the current end of the file.  It should be noted that the extra allocated disk space will not be cleared, so the data in the new space will be undefined.
 
 Parameters:
@@ -1314,7 +1510,7 @@ Preserves: `HL(U)`, `DE(U)`, `BC(U)`
 
 Truncate a file to the current file pointer offset (Requires Console8 MOS 2.3.0 or above)
 
-To truncate to a specified size you will need to use `ffs_flseek` to move the file pointer to the desired location before calling `ffs_ftruncate`.
+To truncate to a specified size you will need to use [`ffs_flseek_p`](#0xa6-ffs_flseek_p) to move the file pointer to the desired location before calling `ffs_ftruncate`.
 
 Parameters:
 
@@ -1331,6 +1527,8 @@ Preserves: `HL(U)`
 Flushes cached information of a writing file (Requires Console8 MOS 3.0 or above)
 
 When writing to a file, file data may be cached in memory until the file is closed.  This function will flush the cache to the SD card, ensuring that all data has been written.  This can be useful to minimise the risks of data loss in the event of a power failure, SD card removal, or other unexpected shutdown.
+
+As of MOS 3.0, the underlying SD card access layer does not cache writes, so this API call is not actually needed.  It is implemented in case we do add caching in the future.
 
 Parameters:
 
@@ -1416,26 +1614,24 @@ Preserves: `HL(U)`, `DE(U)`
 
 ### `0x8C`: ffs_fprintf
 
-Whilst our configuration of FatFS does support the `f_printf` function, at this time an API call for it has not been implemented.  This is because the function supports a variable number of arguments, and as of the MOS 3.0 release it is not clear how to implement this in a way that is consistent with the rest of the API calls.
+Whilst our configuration of FatFS does support the `f_printf` function, we do not currently support it in the MOS API.  This is because the function accepts a variable number of arguments, and it is not clear how this could be implemented in a way that is consistent with the rest of the APIs that MOS supports.
 
-This may be added in a future version of MOS, and if so would likely be restricted to code running in ADL mode, and return an error to code running in Z80 mode.
+The `f_printf` function is made available via the [`mos_getfunction`](#0x50-mos_getfunction) API call.  It can therefore be used from any (ADL mode) code that complies with the Zilog eZ80 C calling convention.  This API is not available in Z80 mode code.
 
 ### `0x8D`: ffs_ftell
 
-Get the current read/write pointer of a file.  (Requires MOS 3.0 or above)
-
-Please note that this API call does not return a status code in the `A` register.
+Get the current read/write offset pointer of a file.  (Requires MOS 3.0 or above)
 
 Parameters:
 
 - `HL(U)`: Pointer to a `FIL` structure
+- `DE(U)`: Pointer to a 4-byte buffer to store the returned 32-bit offset in
 
 Returns:
 
-- `DE(U)`: Least significant 3 bytes of the offset from the start of the file
-- `C`: Most significant byte of the offset (set to 0 for files < 16MB).  `BC(U)` is set to `0` before `C` is returned
+- `A`: `FRESULT` (`0` = Success, or `19` = Invalid parameter)
 
-Preserves: `HL(U)`
+Preserves: `HL(U)`, `DE(U)`
 
 ### `0x8E`: ffs_feof
 
@@ -1457,16 +1653,14 @@ Preserves: `HL(U)`
 
 Get the size of a file (Requires MOS 3.0 or above)
 
-Please note that this API call does not return a status code in the `A` register.
-
 Parameters:
 
 - `HL(U)`: Pointer to a `FIL` structure
+- `DE(U)`: Pointer to a 4-byte buffer to store the returned 32-bit file size in
 
 Returns:
 
-- `DE(U)`: Least significant 3 bytes of file size
-- `C`: Most significant byte of the file size (set to 0 for files < 16MB).  `BC(U)` is set to `0` before `C` is returned
+- `A`: `FRESULT` (`0` = Success, or `19` = Invalid parameter)
 
 Preserves: `HL(U)`
 
@@ -1784,6 +1978,24 @@ Returns:
 
 - `A`: `23` (Not implemented)
 
+### `0xA6`: ffs_flseek_p
+
+Move the read/write offset pointer in a file (Requires MOS 3.0 or above)
+
+This API can be used to expand the size of a file, although you should note that the file data in the expanded part will be undefined.
+
+Whilst the [`ffs_flseek`](#0x84-ffs_flseek) API can essentially perform the same function as this API, this is the preferred API to use for moving the current read/write pointer offset within a file.  As it accepts a pointer to the 32-bit offset value, it is compatible with both Z80-mode and ADL-mode code.
+
+Parameters:
+
+- `HL(U)`: Pointer to a `FIL` structure
+- `DE(U)`: Pointer to a 32-bit value for the desired new offset from the start of the file
+
+Preserves: `HL(U)`, `BC(U)`
+
+Returns:
+
+- `A`: Status code
 
 ***
 
@@ -1829,14 +2041,14 @@ The possible status codes are as follows:
 
 Please note that Quark MOS 1.04 will only return status codes 0-21.  The Console8 MOS 2.x release series added status codes 22-25, and MOS 3.0 added status code 26.  
 
-## System State Variables (SysVars) {#sysvars}
+## System State Information (SysVars) {#sysvars}
 
-The MOS API command [mos_sysvars](#0x08-mos_sysvars) returns a pointer to the base of the MOS SysVars (system state variables) area in IXU as a 24-bit pointer.  These are different from [System Variables](mos/System-Variables.md) which can be used in commands and scripts, so these these internal MOS system state variables are often simply referred to as sysvars.
+The MOS API command [mos_sysvars](#0x08-mos_sysvars) returns a pointer to the base of the MOS SysVars (system state variables/information) area in IXU as a 24-bit pointer.  These are different from [System Variables](mos/System-Variables.md) which can be used in commands and scripts, so these these internal MOS system state variables are often simply referred to as sysvars.
 
 The following sysvars are available in [mos_api.inc](#usage-from-z80-assembler):
 
 ```
-; System variable indexes for api_sysvars
+; SysVars (System State Information) indexes for api_sysvars
 ; Index into _sysvars in globals.asm
 ;
 sysvar_time:			EQU	00h	; 4: Clock timer in centiseconds (incremented by 2 every VBLANK)
@@ -1884,6 +2096,8 @@ Example: Reading a virtual keycode in Z80 mode (16-bit):
 		LD.LIL	A, (IX + sysvar_vkeycode)	; Load A with the virtual keycode from FabGL
 ```
 
+### Real Time Clock {#sysvar_rtc}
+
 For efficiency, the real-time clock data in the sysvars is stored in a packed format, using subsets of bits within the 8 bytes of the `sysvar_rtc` data.  An API is provided from MOS 3 onwards to allow for this to be unpacked [mos_unpackrtc](#0x23-mos_unpackrtc) into a buffer in a friendlier, more easy to use format.  MOS uses the following C function to unpack the RTC data into a `vdp_time_t` object:
 ```c
 void rtc_unpack(UINT8 * sysvar_rtc, vdp_time_t * t) {
@@ -1901,3 +2115,4 @@ void rtc_unpack(UINT8 * sysvar_rtc, vdp_time_t * t) {
 }
 ```
 
+This real-time clock data is also available to programs, scripts, and the command line via [system variables](mos/System-Variables.md#time-and-date).

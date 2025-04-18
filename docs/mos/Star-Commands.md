@@ -106,7 +106,7 @@ This command is an alias for the `Cat` command.
 
 Syntax: `*Do <command>`
 
-Execute a command.  The command string used here will be transformed before use, allowing for the use of [system variables](System-Variables.md) to define which command may actually be executed.
+Execute a command.  The command string used here will be sent through the GSTrans transformation process before use, expanding any [system variables](System-Variables.md) that may be present in the arguments.  One use of this would be to allow for a variable to define which command to execute, which is not usually possible with the command interpreter.  Another use is to allow for commands that do not expand variables by default to include variable values, such as the [`PrintF`](#printf) command.
 
 This command was added in Console8 MOS 3.0.
 
@@ -287,7 +287,7 @@ Support for this command was added in Console8 MOS 3.0.
 
 Syntax: `*PrintF <string>`
 
-Prints the given string to the screen.  This command is similar to the `Echo` command, but supports a subset of unix-style escape transformations for the string.
+Prints the given string to the screen.  This command is similar to the `Echo` command, but supports a subset of unix-style escape transformations for the string, does not expand system variables by default, and does not automatically add a newline to the printed output.  Support for this command was added in MOS 2.3.0.
 
 The following escape sequences are supported:
 
@@ -301,6 +301,8 @@ The following escape sequences are supported:
 | `\xhh`   | Hexadecimal value |
 
 If an invalid escape sequence is found, it will be ignored/skipped.
+
+Please note that if you wish to use the `PrintF` command with [system variable](System-Variables.md) values then you can run this command via the [`do`](#do) command.  For example `*PrintF <Sys$Time>` would normally just output the string `<Sys$Time>`, but as the `do` command expands any variables before processing the resultant command `*do PrintF <Sys$Time>` would print the current time.
 
 ## `Rename`
 
@@ -324,11 +326,11 @@ As of MOS 3.0, the `Rename` command supports the use of [system variables](Syste
 
 Syntax: `*RM <filename>`
 
-This command is an alias for the `DELETE` command, and is only available from Console8 MOS 2.2.0 onwards.
+This command is an alias for the [`Delete`](#delete) command, and is only available from Console8 MOS 2.2.0 onwards.
 
 ## `Run`
 
-Syntax: `*Run <address | .> [<parameters>]`
+Syntax: `*Run [<address | .> [<parameters>]]`
 
 Call an executable binary loaded in memory. If no parameters are passed, then the address will default to `&40000`.  The address parameter can also be replaced with `.` to indicate that the default address of `&40000` should be used.  Any additional parameters will be passed through to the executable.
 
@@ -340,11 +342,13 @@ When a program is executed using the `Run` command, MOS will set up the followin
 - `DE(U)` the execution address passed to `RUN`
 - `HL(U)` pointer to additional parameters passed to `RUN`
 
+Notes about the processor stack can be [found here](../MOS.md#the-stack).
+
 ## `RunBin`
 
 Syntax: `*RunBin <filename> [<arguments>]`
 
-This command will load and run a binary file. It differs from performing a `load` followed by a `run` in that it will work out the appropriate memory address to load the file into. It does this by comparing the path to the given file to the current [`Moslet$Path` system variable](System-Variables.md#system-path-variables), so moslets will get loaded and run at the appropriate moslet memory location.
+This command will load and run a binary file. It differs from performing a `load` followed by a `run` in that it will work out the appropriate memory address to load the file into.  This is done by comparing the path to the given file with the current [`Moslet$Path` system variable](System-Variables.md#system-path-variables), so moslets will get loaded and run at the appropriate moslet memory location.
 
 This command was added in Console8 MOS 3.0.
 

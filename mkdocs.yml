@@ -88,8 +88,7 @@ nav:
   - 'BBC Basic': BBC-BASIC-for-Agon.md
   - 'GPIO': GPIO.md
   - 'Guides':
-    - 'Updating Firmware': Updating-Firmware-from103.md
-    - 'Updating Firmware (prio v1.03)': Updating-Firmware.md
+    - 'Updating Firmware': Updating-Firmware.md
   - 'Additional resources':
     - 'External documentation': External-Documentation.md
     - 'Third party projects': Third-Party-Projects.md

@@ -239,16 +239,16 @@ For the most part, the MOS is transparent to BASIC; most of the operations via t
 
 ### Accessing the MOS SysVars
 
-MOS has a small area of memory for system state variables area which is in an area of RAM outside of its 64K segment. To access these, you will need to do an OSBYTE call
+MOS has a small area of memory for system state variables (sysvars) which lives in an area of RAM outside of the 64K segment in which BBC BASIC runs. To access these, you will need to do an OSBYTE call
 
 Example: Print the least significant byte of the internal clock counter
 ```
-10 L%=&00 : REM The system variable to fetch
+10 L%=&00 : REM The sysvar to fetch
 20 A%=&A0 : REM The OSBYTE number
 30 PRINT USR(&FFF4)
 ```
 
-Documentation for the full list of system variables can be found in the [MOS API documentation](MOS-API.md#sysvars).
+Documentation for the full list of sysvars can be found in the [MOS API documentation](MOS-API.md#sysvars).
 
 ### Running star commands with variables
 
