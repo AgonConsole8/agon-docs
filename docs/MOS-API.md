@@ -267,7 +267,7 @@ Returns:
 
 Fetch a pointer to the [system state variables](#sysvars)
 
-NB as this returns a pointer in `IXU`, and is therefore difficult to use from C code, as of MOS 3.0 an alternative way to access the sysvars address is available via a C function obtainable from the [`mos_getfunction`](#0x38-mos_getfunction) API.
+NB as this returns a pointer in `IXU`, and is therefore difficult to use from C code, as of MOS 3.0 an alternative way to access the sysvars address is available via a C function obtainable from the [`mos_getfunction`](#0x50-mos_getfunction) API.
 
 Parameters: None
 
@@ -648,7 +648,7 @@ Be sure to clear the kbvector before your program exits (call mos_setkbvector ag
 
 Fetch a pointer to the virtual keyboard map (Requires MOS 1.04 RC2 or above)
 
-NB as this returns a pointer in IXU, and is therefore difficult to use from C code, as of MOS 3.0 an alternative way to access the keyboard bitmap address is available via a C function obtainable from the [`mos_getfunction`](#0x38-mos_getfunction) API.
+NB as this returns a pointer in IXU, and is therefore difficult to use from C code, as of MOS 3.0 an alternative way to access the keyboard bitmap address is available via a C function obtainable from the [`mos_getfunction`](#0x50-mos_getfunction) API.
 
 Parameters: None
 
@@ -1287,8 +1287,8 @@ The function numbers are as follows:
 | 0x0D   | `int	resolvePath(char * filepath, char * resolvedPath, int * length, BYTE * index, DIR * dir, BYTE flags);` | The underlying function the [`mos_resolvepath`](#0x38-mos_resolvepath) API call uses.<br/>The `length` pointer used both for the `resolvedPath` buffer size, and to return the resolved path length.  The `index` pointer can be null, but when pointing to a value will work the same as the `C` register in the API.  As with the API, the `dir` pointer can be omitted. |
 | 0x0E   | `int getDirectoryForPath(char * srcPath, char * dir, int * length, BYTE index);`	 | The underlying function the [`mos_getdirforpath`](#0x39-mos_getdirforpath) API call uses.<br/>As with the `resolvePath` function, the value pointed to by `length` is used both as the buffer size for the `dir` output buffer, and to return the actual length. |
 | 0x0F   | `int resolveRelativePath(char * path, char * resolved, int * length);` | This is the underlying function that [`mos_api_getabsolutepath`](#0x3c-mos_getabsolutepath) uses. |
-| 0x10   | `void * getsysvars()` | Returns a pointer to the system variables area.  Directly equivalent to the [`mos_getsysvars`](#0x0b-mos_getsysvars) API call. | 
-| 0x11   | `void * getkbmap()` | Returns a pointer to the keyboard map.  Directly equivalent to the [`mos_getkbmap`](#0x0c-mos_getkbmap) API call. | 
+| 0x10   | `void * getsysvars()` | Returns a pointer to the system variables area.  Directly equivalent to the [`mos_sysvars`](#0x08-mos_sysvars) API call. | 
+| 0x11   | `void * getkbmap()` | Returns a pointer to the keyboard map.  Directly equivalent to the [`mos_getkbmap`](#0x1e-mos_getkbmap) API call. | 
 
 Please note that whilst MOS APIs will return `FRESULT` or "status" values in the 8-bit `A` register, most of the underlying functions return an `FRESULT` or an `int` for their status, which are actually 24-bit values.  The calling convention means they will be returned in `HL(U)`.
 
