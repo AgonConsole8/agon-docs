@@ -248,7 +248,7 @@ Example: Print the least significant byte of the internal clock counter
 30 PRINT USR(&FFF4)
 ```
 
-Documentation for the full list of sysvars can be found in the [MOS API documentation](MOS-API.md#sysvars).
+Documentation for the full list of sysvars can be found in the [MOS API documentation](mos/API.md#sysvars).
 
 ### Running star commands with variables
 

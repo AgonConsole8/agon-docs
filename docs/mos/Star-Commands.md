@@ -332,17 +332,11 @@ This command is an alias for the [`Delete`](#delete) command, and is only availa
 
 Syntax: `*Run [<address | .> [<parameters>]]`
 
-Call an executable binary loaded in memory. If no parameters are passed, then the address will default to `&40000`.  The address parameter can also be replaced with `.` to indicate that the default address of `&40000` should be used.  Any additional parameters will be passed through to the executable.
+The `Run` command will call an executable binary loaded in memory. If no parameters are passed, then the address will default to `&040000`.  The address parameter can also be replaced with `.` to indicate that the default address of `&040000` should be used.  Any additional parameters will be passed through to the executable.
 
-When using the `Run` command MOS will check the header of the executable to determine which mode it is in, and will run the executable in the appropriate mode.  This allows you to run both Z80 mode executables, which are restricted to 64kb of RAM, and ADL mode executables which can use all 512kb of memory.  The header starts at byte 64 of the executable, which must contain `MOS`.  Byte 68 must be a `0` byte to indicate Z80 mode, or a `1` byte to indicate ADL mode.
+When using the `Run` command, MOS will check for the presence of a valid [executable](./Executables.md) at the given address by looking for valid header.  If the header header is not found, or is invalid, then it will return an "Invalid executable" error.
 
-When a program is executed using the `Run` command, MOS will set up the following processor registers:
-
-- `A` will be set to the current memory bank value `MB`
-- `DE(U)` the execution address passed to `RUN`
-- `HL(U)` pointer to additional parameters passed to `RUN`
-
-Notes about the processor stack can be [found here](../MOS.md#the-stack).
+More information about parameters that will be passed to an executable when it is run can be found in the [executable documentation](./Executables.md#parameters).
 
 ## `RunBin`
 
