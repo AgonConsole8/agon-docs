@@ -68,7 +68,10 @@ nav:
   - 'MOS':
       - 'Overview': MOS.md
       - 'Command line': mos/Star-Commands.md
-      - 'API': MOS-API.md
+      - 'API': mos/API.md
+      - 'C functions': mos/C-Functions.md
+      - 'Executable format': mos/Executables.md
+      - 'Modules': mos/Modules.md
       - 'System Variables': mos/System-Variables.md
       - 'Argument Substitution': mos/Argument-Substitution.md
   - 'VDP':

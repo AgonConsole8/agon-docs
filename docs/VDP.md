@@ -60,7 +60,7 @@ As of Console8 MOS 2.2.0, the `VDU` command is now more sophisticated and can su
 
 MOS offers two ways to send VDU commands from assembly code.  The first is to use the `RST 10h` call, which will send the byte in the A register to the VDP.  The second is to use a `RST 18h` call which is used to send multiple bytes to the VDP at once.  (Neither of these calls require the string `VDU` to be included in the data sent to the VDP, and both require raw binary values to be sent, rather than an ASCII string.)
 
-More information about these can be found in the [MOS API documentation](MOS-API.md).
+More information about these can be found in the [MOS API documentation](mos/API.md#rst).
 
 
 ## VDU Character Sequences
