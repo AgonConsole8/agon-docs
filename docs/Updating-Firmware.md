@@ -13,7 +13,7 @@ These two components are updated separately.  The exact steps to update your Ago
 
     Before you continue, please note that if your Agon is running a version of MOS before 1.03, or a version of the VDP before 1.04RC3, then the upgrade process is a little different.  It is important that you follow the guidance that can be found [below](#update-old).  Failing to do so may result in your Agon becoming unusable.  [Recovery tools](#recovery) are available to restore your Agon to a working state, but it is best to avoid needing them in the first place.
 
-The primary tool to update the firmware on your Agon is the [Agon firmware update utility](https://github.com/AgonConsole8/agon-flash), otherwise known as "agon-flash".  This tool runs on your Agon, and can be used to update both MOS and the VDP so long as they are already running compatible versions.  The latest version of the this tool can be [downloaded here](https://github.com/AgonConsole8/agon-flash/releases/latest).
+The primary tool to update the firmware on your Agon is the [Agon firmware update utility](https://github.com/AgonPlatform/agon-flash), otherwise known as "agon-flash".  This tool runs on your Agon, and can be used to update both MOS and the VDP so long as they are already running compatible versions.  The latest version of the this tool can be [downloaded here](https://github.com/AgonPlatform/agon-flash/releases/latest).
 
 Updating the VDP firmware can also be done using the online [Agon VDP installer](#vdp-installer).  Many users find this to be the easiest way to update the VDP firmware.
 
@@ -22,10 +22,10 @@ Updating the VDP firmware can also be done using the online [Agon VDP installer]
 The Agon firmware update utility is run on your Agon, and needs to be installed onto the SD card you use with your Agon.  That SD card must be formatted as FAT32.
 
 1. Make sure to create a **mos** directory on the microSD card, if it's not already present.
-2. Place the [flash.bin](https://github.com/AgonConsole8/agon-flash/releases/latest/download/flash.bin) in the **mos** directory
+2. Place the [flash.bin](https://github.com/AgonPlatform/agon-flash/releases/latest/download/flash.bin) in the **mos** directory
 3. Place the firmware files in the **root** directory of the microSD card:
-    - MOS firmware - default filename 'MOS.bin' (download [latest](https://github.com/AgonConsole8/agon-mos/releases/latest/download/MOS.bin) version)
-    - VDP firmware - default filename 'firmware.bin' (download [latest](https://github.com/AgonConsole8/agon-vdp/releases/latest/download/firmware.bin) version)
+    - MOS firmware - default filename 'MOS.bin' (download [latest](https://github.com/AgonPlatform/agon-mos/releases/latest/download/MOS.bin) version)
+    - VDP firmware - default filename 'firmware.bin' (download [latest](https://github.com/AgonPlatform/agon-vdp/releases/latest/download/firmware.bin) version)
 
 Once you have installed the Agon firmware update utility, and ensured that you have the latest firmware files on your SD card, it can be used to update the firmware on your Agon.
 
@@ -88,7 +88,7 @@ If your Agon is running older versions of the firmware then you will need to fol
 
 In general, the simplest way to update your Agon is to follow these two steps:
 
-1. Update MOS to the latest version using the [Agon legacy firmware update utility](https://github.com/AgonConsole8/agon-flashlegacy)
+1. Update MOS to the latest version using the [Agon legacy firmware update utility](https://github.com/AgonPlatform/agon-flashlegacy)
 2. Update your VDP firmware to the latest version using the online [Agon VDP installer](https://envenomator.github.io/)
 
 It is very important that you update MOS first, as there was a change in how MOS and the VDP communicated in early firmware versions.  If you try to update the VDP first then you will not be able to run the Agon legacy firmware update utility, and you will not be able to update MOS.
@@ -103,7 +103,7 @@ Both of these options require that your Agon is connected to your PC using a USB
 
 ### Using PlatformIO
 
-The Agon VDP firmware can be built from its [source code](https://github.com/AgonConsole8/agon-vdp) using the [PlatformIO IDE](https://platformio.org) extension to [Microsoft Visual Studio Code](https://code.visualstudio.com).  This approach is how the firmware is developed, and built for release.
+The Agon VDP firmware can be built from its [source code](https://github.com/AgonPlatform/agon-vdp) using the [PlatformIO IDE](https://platformio.org) extension to [Microsoft Visual Studio Code](https://code.visualstudio.com).  This approach is how the firmware is developed, and built for release.
 
 You will need to download the source code, either by cloning the repository using `git`, or by downloading the source code as a ZIP file and extracting it.  When you open up the source code in Visual Studio Code then from the PlatformIO extension under "Project Tasks > esp32dev > General" you can select "Upload" to build and upload the firmware to your Agon.
 
@@ -121,9 +121,9 @@ Usually updating your Agon firmware will go smoothly, and you will not have any 
 
 The process of updating the VDP firmware is designed to be as simple and robust as possible, and is designed to be able to recover from all problems.  The VDP actually keeps two copies of its firmware installed, and so in the rare event that something does go wrong when updating the VDP firmware the VDP simply won't switch to the new firmware.  This means that you can safely update your Agon without worrying.  In the incredibly rare event that this does not work then the [online Agon VDP installer](https://envenomator.github.io/) can be used to install the latest VDP firmware.
 
-It is not possible to make the upgrade process for MOS quite as robust, as it cannot keep two copies of the firmware installed.  There is however an [Agon recovery utility](https://github.com/AgonConsole8/agon-recovery) available.
+It is not possible to make the upgrade process for MOS quite as robust, as it cannot keep two copies of the firmware installed.  There is however an [Agon recovery utility](https://github.com/AgonPlatform/agon-recovery) available.
 
-Full guidance on using the recovery utility is [found here](https://github.com/AgonConsole8/agon-recovery#readme).
+Full guidance on using the recovery utility is [found here](https://github.com/AgonPlatform/agon-recovery#readme).
 
 The guidance will let you know that if you have an Agon Light, Agon Light 2, or Agon Light Origins Edition, then as well as connecting your Agon to your PC via a USB data cable you will also need two dupont female-to-female cables to make some connections between the ports on your Agon.  The whole process including which connections to make are clearly described.
 

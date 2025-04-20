@@ -54,7 +54,7 @@ Example:
 
 `VDU 17 15`: Set the text foreground colour to 15
 
-As of Console8 MOS 2.2.0, the `VDU` command is now more sophisticated and can support sending 16-bit values as well as 8-bit values.  More information can be found in the [MOS documentation](MOS.md).
+As of MOS 2.2.0, the `VDU` command is now more sophisticated and can support sending 16-bit values as well as 8-bit values.  More information can be found in the [MOS documentation](MOS.md).
 
 ### From Assembly code on MOS
 

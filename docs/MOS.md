@@ -4,7 +4,7 @@ The MOS is a command line Machine Operating System, similar to CP/M or DOS, that
 
 It also provides the [MOS API](mos/API.md) for programmers to use that provides some basic facilities for file I/O and other common operations for BBC BASIC and other third-party applications.
 
-This documentation explains the general features of MOS, as well as commands it offers and how to use them.  It covers the Quark 1.04 version of MOS, and the later Console8 MOS releases up to and including MOS 3.0.  Versions of MOS prior to Quark 1.04 may be missing some features described below.
+This documentation explains the general features of MOS, as well as commands it offers and how to use them.  It covers the Quark 1.04 version of MOS, the later Console8 MOS releases, and the Agon Platform MOS up to and including MOS 3.0.  Versions of MOS prior to Quark 1.04 may be missing some features described below.
 
 Please note that if you are running Quark 1.04 or earlier, the capabilities of MOS are very limited, and quite a few features described in this documentation will not be available to you.  You are strongly advised to upgrade to a later version of MOS.  MOS 2.x and MOS 3.x releases are fully compatible with software written for Quark 1.04, and will run all Quark 1.04 software without modification.
 
@@ -32,7 +32,7 @@ From MOS 3.0 onwards it is possible to specify a different directory, or multipl
 
 ### The "run path"
 
-Console8 MOS 2.2.0 effectively added the concept of a "run path" to MOS, which would be used by the CLI to either search for commands not built into MOS, or to run programs.  In MOS 2.2.0 to MOS 2.3.2 the order of directories searched would be fixed, with the `mos` folder being searched first for moslets, followed by the current directory, and then the `bin` folder.  In MOS 2.x the order could not be changed.  MOS 3.0 provides a way to change this.
+MOS 2.2.0 effectively added the concept of a "run path" to MOS, which would be used by the CLI to either search for commands not built into MOS, or to run programs.  In MOS 2.2.0 to MOS 2.3.2 the order of directories searched would be fixed, with the `mos` folder being searched first for moslets, followed by the current directory, and then the `bin` folder.  In MOS 2.x the order could not be changed.  MOS 3.0 provides a way to change this.
 
 Programs located outside of the moslet folder are expected to be full standalone programs that will be run and executed at the default memory address of `0x040000`, and thus will overwrite existing programs.
 
@@ -131,7 +131,7 @@ From MOS 3.0 onwards, MOS supports the concept of [system variables](mos/System-
 
 ## Script files
 
-All Console8 versions of MOS support the concept of a script file.  This is a file that contains a series of MOS commands that can be executed in sequence.  This is useful for automating tasks, or for setting up your Agon in a particular way.  When a script file is run, if an error is encountered the system will stop executing the script and report the error, as well as which line the error occurred on.
+All Agon Platform and Console8 MOS releases support the concept of a script file.  This is a file that contains a series of MOS commands that can be executed in sequence.  This is useful for automating tasks, or for setting up your Agon in a particular way.  When a script file is run, if an error is encountered the system will stop executing the script and report the error, as well as which line the error occurred on.
 
 The first type of script file is an "Exec" file, which is a simple text file containing a series of MOS commands, one per line.  You can run an Exec file using the [`Exec` command](mos/Star-Commands.md#exec).
 
@@ -157,7 +157,7 @@ Addresses are 24-bit, unless otherwise specified
 - ...
 - `&B7E000 - &B7FFFF`: The eZ80's 8kb of internal (fast) RAM
 
-\* Technically, user programs can actually use the whole RAM space from `&040000` to `&0BBFFF`, but programs that use memory above `&0AFFFF` may have limitations.  A program that uses the moslet/module memory space for instance will not be able to use moslet-based commands, and when modules are introduced will have limitations on access to functionality provided by modules.  Programs should need to indicate in their [header](mos/Executables.md#advanced-header) whether they are "module safe" or "module compatible".  Guidance on how to make your program "module safe" will be provided in the [MOS Modules](mos/Modules.md) documentation, and .
+\* Technically, user programs can actually use the whole RAM space from `&040000` to `&0BBFFF`, but programs that use memory above `&0AFFFF` may have limitations.  A program that uses the moslet/module memory space for instance will not be able to use moslet-based commands, and when modules are introduced will have limitations on access to functionality provided by modules.  Programs should need to indicate in their [header](mos/Executables.md#advanced-header) whether they are "module safe" or "module compatible".  Guidance on how to make your program "module safe" will be provided in the [MOS Modules](mos/Modules.md) documentation.
 
 ## The Stack
 

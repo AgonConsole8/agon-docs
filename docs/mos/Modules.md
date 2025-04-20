@@ -89,5 +89,5 @@ Some possibilities for the future include:
 
 ## More information
 
-At the time of writing the full details of the MOS module system are still being worked out.  If you wish to learn more and see how these ideas develop you can check the corresponding [issue on GitHub](https://github.com/AgonConsole8/agon-mos/issues/2).
+At the time of writing the full details of the MOS module system are still being worked out.  If you wish to learn more and see how these ideas develop you can check the corresponding [issue on GitHub](https://github.com/AgonPlatform/agon-mos/issues/2).
 

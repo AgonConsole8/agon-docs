@@ -17,7 +17,7 @@
 #
 
 site_name: "Community Agon Platform documentation"
-repo_url: https://github.com/AgonConsole8/agon-docs
+repo_url: https://github.com/AgonPlatform/agon-docs
 repo_name: contribute
 edit_uri: edit/main/docs/
 theme:

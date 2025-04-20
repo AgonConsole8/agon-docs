@@ -42,7 +42,7 @@ The basic format requires a header to be present at an offset of 64 bytes into t
 
 You will note that this header format is very simple and essentially includes only one piece of information, whether the executable code should be run in Z80 or ADL mode on the eZ80 processor.  There is no information here about where the program should be loaded into memory, so it is not possible to tell from the header whether a program is a moslet, a regular program, or some other type of program file.
 
-The header version byte should be set to `0` for all programs written for MOS 1 and MOS 2.  Up to and including MOS 3.0 the version byte is not actually checked.
+The header version byte should be set to `0` for all programs that were written for MOS 1 and MOS 2.  Up to and including MOS 3.0 the version byte is not actually checked.
 
 ### The "advanced" header format {#advanced-header}
 

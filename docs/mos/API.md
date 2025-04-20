@@ -14,9 +14,9 @@ There are four RST instructions for accessing MOS functionality from Z80.
 - `RST 08h`: Execute a MOS command
 - `RST 10h`: Output a single character to the VDP
 - `RST 18h`: Output a stream of characters to the VDP (MOS 1.03 or above)
-- `RST 38h`: Outputs a crash report (Console8 MOS 2.3.0 or above)
+- `RST 38h`: Outputs a crash report (MOS 2.3.0 or above)
 
-In addition, if you are using the Zilog ZDS II assembler you may wish to include the file `mos_api.inc` in your project.  The Console8 version can be found in the folder [src](https://github.com/AgonConsole8/agon-./tree/main/src) of project [agon-mos](https://github.com/AgonConsole8/agon-mos).  The original Quark versions of this file can be found in the folder [src](https://github.com/breakintoprogram/agon-./tree/main/src) of project [agon-mos](https://github.com/breakintoprogram/agon-mos).
+In addition, if you are using the Zilog ZDS II assembler you may wish to include the file `mos_api.inc` in your project.  The latest Agon Platform (previously known as Console8) version can be found in the folder [src](https://github.com/AgonPlatform/agon-mos/tree/main/src) of project [agon-mos](https://github.com/AgonPlatform/agon-mos).  The original Quark versions of this file can be found in the folder [src](https://github.com/breakintoprogram/agon-./tree/main/src) of project [agon-mos](https://github.com/breakintoprogram/agon-mos).
 
 NB:
 
@@ -115,11 +115,11 @@ Example:
 text:	DB	"Hello World", 0
 ```
 
-### `RST 38h`: Outputs a crash report (Console8 MOS 2.3.0 or above)
+### `RST 38h`: Outputs a crash report (MOS 2.3.0 or above)
 
 This command will output a crash report to the screen.  This report will show the current processor state, and the top of the stack.  This can be useful for debugging purposes.
 
-This command works in conjunction with the fact that as of Console8 MOS 2.3.0, on initial startup memory will be reset to contain `0xFF` bytes in every location, which equates to a `RST 38h` instruction.  This means that for many system crashes execution will end up at the `RST 38h` instruction, and a crash report will be displayed on the screen.
+This command works in conjunction with the fact that as of MOS 2.3.0, on initial startup memory will be reset to contain `0xFF` bytes in every location, which equates to a `RST 38h` instruction.  This means that for many system crashes execution will end up at the `RST 38h` instruction, and a crash report will be displayed on the screen.
 
 
 ## The MOS API
@@ -128,7 +128,7 @@ MOS API calls can be executed from a classic 64K Z80 segment or whilst the eZ80 
 
 Many, but not all, of the MOS API calls will return a [status code](#status-codes) in the `A` register.  This status code will indicate the success or failure of the operation.  If the operation was successful, the status code will be `0`.  If the operation failed, the status code will be non-zero, and will indicate the nature of the failure.  Some API calls, such as those for I2C communications or string comparisons, use different sets of status codes, which are documented in the API call's description.
 
-The APIs available from MOS have changed over time, and some of the APIs described are only available in later versions of MOS.  If you attempt to call an API that is not available in the version of MOS you are using the API will return the status value `23` in the `A` register to indicate it is not supported.  Please note that Console8 MOS 2.1.0 and earlier, including Quark MOS 1.04, do support detecting unknown/unsupported API calls and will produce unexpected results if you attempt to call an API that is not supported.  This is a known issue with these versions of MOS, and it is recommended to upgrade to a later version of MOS if you are using these versions.
+The APIs available from MOS have changed over time, and some of the APIs described are only available in later versions of MOS.  If you attempt to call an API that is not available in the version of MOS you are using the API will return the status value `23` in the `A` register to indicate it is not supported.  Please note that MOS 2.1.0 and earlier, including Quark MOS 1.04, do support detecting unknown/unsupported API calls and will produce unexpected results if you attempt to call an API that is not supported.  This is a known issue with these versions of MOS, and it is recommended to upgrade to a later version of MOS if you are using these versions.
 
 ### Advice on file handling
 
@@ -320,7 +320,7 @@ Editor behaviour flags are as follows:
 | 3   | When set, input history will be _disabled_ * |
 | 4-7 | Reserved for future use (for future compatibility, ensure these are set to zero) |
 
-\* Support for editor control flags was added in Console8 MOS 2.2.0.  Prior to this the only documented values for `E` were 0 and 1 to indicate whether the buffer should be cleared.
+\* Support for editor control flags was added in MOS 2.2.0.  Prior to this the only documented values for `E` were 0 and 1 to indicate whether the buffer should be cleared.
 
 ### `0x0A`: mos_fopen
 
@@ -1313,7 +1313,7 @@ Full details of the functions available through this API, and more information a
 
 ## `0x70-0x73`: Low-level SD card access 
 
-APIs provide low-level access to the SD card.  These are not intended for general use, but are provided for some special use-cases, such as for an operating system that uses a different filing system than FatFS, or for tools that wish to access the SD card in ways that are not supported by the FatFS library.
+These APIs provide low-level access to the SD card.  They are not intended for general use, but are provided for some special use-cases, such as for an operating system that uses a different filing system than FatFS, or for tools that wish to access the SD card in ways that are not supported by the FatFS library.
 
 As the use of these APIs can potentialy cause data corruption in order to use them you need to use an "unlock code".  It is possible to avoid using the unlock mechanism by using the underlying functions directly via the [`mos_getfunction`](#0x50-mos_getfunction) API call.
 
@@ -2064,7 +2064,7 @@ The possible status codes are as follows:
 | 25   | Bad string | A bad or incomplete string has been encountered |
 | 26   | Too deep | Too many nested commands have been detected<br>This is usually caused by a faulty [alias](./System-Variables.md#command-aliases) definition including [file load/run types](./System-Variables.md#file-type-variables) |
 
-Please note that Quark MOS 1.04 will only return status codes 0-21.  The Console8 MOS 2.x release series added status codes 22-25, and MOS 3.0 added status code 26.  
+Please note that Quark MOS 1.04 will only return status codes 0-21.  The MOS 2.x release series added status codes 22-25, and MOS 3.0 added status code 26.  
 
 ## System State Information (SysVars) {#sysvars}
 
@@ -2100,7 +2100,7 @@ sysvar_keydelay:		EQU	22h	; 2: Keyboard repeat delay
 sysvar_keyrate:			EQU	24h	; 2: Keyboard repeat rate
 sysvar_keyled:			EQU	26h	; 1: Keyboard LED status
 sysvar_scrMode:			EQU	27h	; 1: Screen mode (from MOS 1.04)
-sysvar_rtc_enable:		EQU 28h ; 1: RTC enable status (from Console8 MOS 2.0.0)
+sysvar_rtc_enable:		EQU 28h ; 1: RTC enable status (from MOS 2.0.0)
 sysvar_mouseX:			EQU 29h ; 2: Mouse X position
 sysvar_mouseY:			EQU 2Bh ; 2: Mouse Y position
 sysvar_mouseButtons:	EQU 2Dh ; 1: Mouse left+right+middle buttons (bits 0-2, 0=up, 1=down)

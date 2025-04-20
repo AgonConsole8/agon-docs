@@ -13,11 +13,11 @@ The following questions (and answers) on using the Agon platform are below:
 
 No, and there are no immediate plans on doing this to reduce the amount of time spent doing documentation.
 
-This documentation however is all [open source](https://github.com/AgonConsole8/agon-docs), and written in [Markdown](https://www.markdownguide.org) format.  Pull requests suggesting changes to the documentation are always welcome.
+This documentation however is all [open source](https://github.com/AgonPlatform/agon-docs), and written in [Markdown](https://www.markdownguide.org) format.  Pull requests suggesting changes to the documentation are always welcome.
 
 ## Is the Agon open source?
 
-Yes.  All of the firmware for the Agon platform is open source, for both [MOS](https://github.com/AgonConsole8/agon-mos) and the [VDP](https://github.com/AgonConsole8/agon-mos), and also including the various versions of BBC BASIC for the Agon ([BASIC 4 for Z80](https://github.com/breakintoprogram/agon-bbc-basic), [BASIC 4 for eZ80](https://github.com/breakintoprogram/agon-bbc-basic-adl) and [BASIC V for Z80](https://github.com/breakintoprogram/agon-bbc-basic-v)).
+Yes.  All of the firmware for the Agon platform is open source, for both [MOS](https://github.com/AgonPlatform/agon-mos) and the [VDP](https://github.com/AgonPlatform/agon-mos), and also including the various versions of BBC BASIC for the Agon ([BASIC 4 for Z80](https://github.com/breakintoprogram/agon-bbc-basic), [BASIC 4 for eZ80](https://github.com/breakintoprogram/agon-bbc-basic-adl) and [BASIC V for Z80](https://github.com/breakintoprogram/agon-bbc-basic-v)).
 
 [Bernado Kastrup](https://www.thebyteattic.com), the original hardware designer of the Agon Light, released the full schematics for the [Agon light](https://github.com/TheByteAttic/AgonLight) and the [Agon light ORIGINS edition](https://github.com/TheByteAttic/AgonORIGINS) as open source.  He also designed Heber Ltd.'s [Agon Console8](https://heber.co.uk/agon-console8/), available from the Heber and Retro Collective [shop](https://shop.heber.co.uk/agon-console8/).
 
@@ -81,28 +81,28 @@ Full guidance on updating your Agon can be found in [this detailed guide](./Upda
 
 The latest Agon platform firmware releases for MOS and the VDP can be found here:
 
-- [MOS firmware](https://github.com/AgonConsole8/agon-mos/releases/latest)
-- [VDP firmware](https://github.com/AgonConsole8/agon-vdp/releases/latest)
+- [MOS firmware](https://github.com/AgonPlatform/agon-mos/releases/latest)
+- [VDP firmware](https://github.com/AgonPlatform/agon-vdp/releases/latest)
 
-## What is the difference between the Quark firmware and Console8 firmware?
+## Quark, Console8, or Agon Platform firmware??
 
 The original "official" firmware for the Agon Light was primarily written by [Dean Belfield](http://www.breakintoprogram.co.uk), with help from several other contributors, and was given the name "Quark".
 
 At the time of writing, the latest Quark firmware releases are Quark MOS 1.04 and Quark VDP 1.04, which were released in November 2023.  Dean is a busy man with a full-time job, and a family to look after, so his available time to work on the Agon is limited.  Since those firmware releases, he has concentrated his Agon efforts since then in developing and maintaining versions of BBC BASIC for the Agon.
 
-The Agon Console8 firmware started as a fork of the Quark firmware, made by [Steve Sims](https://www.patreon.com/c/SteveSims).  An AgonConsole8 organisation was set up, and hard forks made of the Quark firmware.  There are many reasons why this fork was made which won't be explored here.  The two most important reasons however were to allow for a more rapid release schedule, and to have a wider organisation in place for looking after the firmware, to avoid the "hit by a bus" risk of a single owner.  Initially all changes made to the Console8 firmware were raised as pull requests to be merged back into the Quark firmware, and broadly speaking the Quark 1.04 and Console8 2.0.0 releases were nearly identical.
+The Agon Console8 firmware started as a fork of the Quark firmware, made by [Steve Sims](https://www.patreon.com/c/SteveSims).  An AgonConsole8 organisation was set up on GitHub, and hard forks made of the Quark firmware.  There are many reasons why this fork was made which won't be explored here.  The two most important reasons however were to allow for a more rapid release schedule, and to have a wider organisation in place for looking after the firmware, to avoid the "hit by a bus" risk of a single owner.  Initially all changes made to the Console8 firmware were raised as pull requests to be merged back into the Quark firmware, and broadly speaking the Quark 1.04 and Console8 2.0.0 releases were nearly identical.
 
-Owing to the pace of development, it stopped being practical to contribute changes made to the Console8 firmware back to the Quark firmware early in 2024.  The Console8 firmware is a community effort, with contributions from several developers.  The Console8 VDP and MOS now supports many new features, improvements, and bug fixes compared to the Quark firmware, and is still being actively developed.
+Owing to the pace of development, it stopped being practical to contribute changes made to the Console8 firmware (as it was then known) back to the Quark firmware early in 2024.
 
-Despite it's name, the Console8 firmware has always been able to be used on all Agon platforms, including the Agon Light,Agon Light 2, and Agon Origins Edition.  This will always be the case.
+Despite it's name, the Console8 firmware has always been able to be used on all Agon platforms, including the Agon Light, Agon Light 2, and Agon Origins Edition.  Whilst this has always been the case, the "Console8" name has lead to some confusion...
 
-In general any software written for Quark 1.04 should run on the Console8 firmware.  Software that makes use of newer features added to the Console8 firmware however may not run on Quark.
+"Agon Platform" is the new name for the Console8 firmware, and also the new name for the organisation.  This rename happened in April 2025.
 
 ## Which firmware do you currently recommend using on my Agon?
 
-We recommend using the Console8 firmware, as most development currently takes place there while staying compatible with previously released software. It's important to mention that the latest, most interesting games, make use of features that are only available in the Console8 (VDP) firmware, so make sure to use that.
+We recommend using the Agon Platform firmware, as most development currently takes place there while staying compatible with previously released software. It's important to mention that the latest, most interesting games, make use of features that are only available in the Agon Platform (VDP) firmware, so make sure to use that.
 
-## Can I switch between the Quark firmware and Console8 firmware?
+## Can I switch between the Quark firmware, Console8, and Agon Platform firmware?
 
 Yes, either way.
 
@@ -128,7 +128,7 @@ All Agon variants have a jumper to enable/disable the onboard buzzer, labeled 'B
 
 No, not unless you will be developing your own Agon MOS firmware AND need to be comfortably sure you can recover it under ALL circumstances. And even then you may very well get by using one of the community-provided options. People in the community owning SMART cables are seldomly using them nowadays.
 
-As an example of this, most of the development of the Agon Console8 MOS firmware has been done without the use of the Zilog SMART cable.
+As an example of this, most of the development of the Agon Platform MOS firmware has been done without the use of the Zilog SMART cable.
 
 Again, for regular update purposes, the Zilog SMART cable is unnecessary and a waste of money. If it's bricking you're worried about; there is a [simple solution](https://github.com/envenomator/agon-recovery) requiring just a few dupont cables and a clear step-by-step plan to recover your Agon. In any case, you can at least buy a new Agon for the price of the Zilog SMART cable. Ease your worries.
 
@@ -154,6 +154,8 @@ Do yourselves a big favor, and stay away from anything below Quark 1.03, or that
 Yes, the Console8 firmware can be used on any existing Agon platform computer.  This includes the original Agon Light, the Olimex Agon Light 2, the Agon Origins Edition, as well as the Agon Console8.
 
 There are no features in the firmware that are exclusive to the Agon Console8.  It is possible to add a PS/2 mouse port and two joystick ports to Agon Light machines in a manner that is completely compatible with the Console8 firmware.
+
+To help reduce this confusion, the "Console8" name has been dropped for firmware releases in favour of "Agon Platform" in April 2025.  The Console8 firmware is now known as the Agon Platform firmware.
 
 ## How should I connect the Agon to my PC for programming the VDP?
 
@@ -238,7 +240,7 @@ And there are some minor revisions to discrete components on the board. Other th
 
 ## I'm having issues with some video modes
 
-Historically, this has been a problem when the VDP firmware was built using the Arduino IDE.  You are strongly advised to use PlatformIO to build the VDP firmware, and to update to the latest versions; in doing so you should no longer have any issues with screen modes.  PlatformIO takes care of all the dependencies and settings and thus is much easier to use than the Arduino IDE.  The Console8 VDP firmware no longer supports being built using the Arduino IDE and instead is built using PlatformIO to avoid these kind of issues.
+Historically, this has been a problem when the VDP firmware was built using the Arduino IDE.  You are strongly advised to use PlatformIO to build the VDP firmware, and to update to the latest versions; in doing so you should no longer have any issues with screen modes.  PlatformIO takes care of all the dependencies and settings and thus is much easier to use than the Arduino IDE.  The Agon Console8 VDP firmware (now known as the Agon Platform VDP firmware) no longer supports being built using the Arduino IDE and instead is built using PlatformIO to avoid these kind of issues.
 
 If you wish to still use the Arduino IDE and are building the Quark variant of the VDP firmware, you will need to make sure you have PSRAM enabled in the [Arduino IDE settings](https://github.com/breakintoprogram/agon-vdp#arduino-ide-settings) when you compile and transfer the VDP code.
 
@@ -270,7 +272,7 @@ Download the latest version of the [onboard assembler](https://github.com/enveno
 
 ## I'd like to start C/C++ programming for the Agon platform - where might I start?
 
-Assuming you already know some C/C++, we recommend downloading and using [agondev](https://github.com/AgonConsole8/agondev) as it is the best cross-development toolchain available for the Agon platform.  This is a comparatively new toolchain and is still in active development.
+Assuming you already know some C/C++, we recommend downloading and using [agondev](https://github.com/AgonPlatform/agondev) as it is the best cross-development toolchain available for the Agon platform.  This is a comparatively new toolchain and is still in active development.
 
 Another option is the [AgDev](https://github.com/pcawte/AgDev), which is an extension of the CEDev toolchain originally written to allow programs to be written for the TI-85 Plus CE and TI-83 Premium CE calculators, which use the same eZ80 processor as the Agon.  There are a number of example programs available in the AgDev repository.
 
@@ -282,7 +284,7 @@ There is an excellent Forth implementation available [here](https://github.com/l
 
 ## Is there some in-depth API documentation available for me to look at?
 
-The community is building out [at set of markdown documents](https://github.com/AgonConsole8/agon-docs) to detail several aspects. These are extremely useful to a programmer.
+The community is building out [at set of markdown documents](https://github.com/AgonPlatform/agon-docs) to detail several aspects. These are extremely useful to a programmer.
 
 ## Is there a documented memory map available to me as a programmer?
 
@@ -302,7 +304,7 @@ All suggestions are welcome, though the developers will be concentrating on key 
 
 ## Why is feature {x} not documented anywhere?
 
-You might have found an opportunity to make a valuable contribution to the Agon community. Take a look at the community [documentation](https://github.com/AgonConsole8/agon-docs) and create a pull request.
+You might have found an opportunity to make a valuable contribution to the Agon community. Take a look at the community [documentation](https://github.com/AgonPlatform/agon-docs) and create a pull request.
 
 ## I'd like to discuss my project or ideas with like-minded people
 
