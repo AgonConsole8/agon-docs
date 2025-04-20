@@ -30,17 +30,26 @@ This feature was added in MOS 3.0.
 
 ## `.` (dot)
 
-Syntax: `*. [<path>]` (Alias for `Cat`)
+Syntax: `*. [-l] [-a] [-s] [-v] [<path>]` (Alias for `Cat`)
 
-This command is an alias for the `Cat` command.  If a path is provided, it will list the contents of that directory, otherwise it will list the contents of the current directory.
+This command is an alias for the [`Cat`](#cat) command.  Please see the `Cat` command for more information on how this command works and the options it supports.
 
 ## `Cat`
 
-Syntax: `*Cat [-l] [<path>]` (Aliases include `Dir` and `.`)
+Syntax: `*Cat [-l] [-a] [-s] [-v] [<path>]` (Aliases include `Dir` and `.`)
 
 The "Catalogue" command, which displays a directory listing of the current directory, or of the directory at the path given.
 
-From MOS 2.2.0 onwards, the `-l` flag can be used to display the long form of the directory listing, which includes the file size and date/time of last modification, otherwise a shorter form of the directory listing will be displayed.  Versions of MOS prior to 2.2.0 will always display the long form of the directory listing.
+Before MOS 2.2.0 this command did not support any flags and would always show a long-form directory listing of all files in a directory, which includes the file modification date/time, file size and file name.
+
+From MOS 2.2.0 onwards, by default a short listing is shown.  MOS 3.0 will, by default, hide hidden and system files from directory listings.
+
+The flags supported by the `Cat` command are as follows:
+
+- `-l`: Display the long form of the directory listing, which includes the file size and date/time of last modification, introduced in MOS 2.2.0
+- `-a`: Show hidden files, introduced in MOS 3.0
+- `-s`: Show system files, introduced in MOS 3.0
+- `-v`: Hide volume information, introduced in MOS 3.0
 
 ## `CD`
 
@@ -98,9 +107,9 @@ As of Console8 VDP 2.2.0 this command supports wild-cards in the filename.  Addi
 
 ## `Dir`
 
-Syntax: `*Dir [<path>]`
+Syntax: `*Dir [-l] [-a] [-s] [-v] [<path>]`
 
-This command is an alias for the `Cat` command.
+This command is an alias for the [`Cat`](#cat) command.  Please see the `Cat` command for more information on how this command works and the options it supports.
 
 ## `Do`
 
@@ -143,13 +152,13 @@ When using MOS 2.3.0, if you had an invalid number inside `<` and `>` characters
 
 Numeric system variables will be converted to text for output, and macro variables will be evaluated and expanded before being output.
 
-This command was added in MOS 2.3.0, and support for system variables added in MOS 3.
+This command was added in MOS 2.3.0, and support for system variables added in MOS 3.0.
 
 ## `Erase`
 
-Syntax: `*Erase <filename>`
+Syntax: `*Erase [-f] <filename>`
 
-This command is an alias for the `Delete` command.
+This command is an alias for the [`Delete`](#delete) command.
 
 ## `Exec`
 
@@ -171,7 +180,7 @@ Displays help information for a command.  If no command is provided, a list of a
 
 NB prior to MOS 2.2.0 the `Help` command required a command name to be provided, or the `all` keyword to display all commands.
 
-As of MOS 3.0, the `Help` command will accept a space-separated list of commands to show help for, and will also match commands abreviated with a `.` in the same manner as the command line.  `*Help c.` for example would show help for all commands beginning with `C`.
+As of MOS 3.0, the `Help` command will accept a space-separated list of commands to show help for, and will also match commands abreviated with a `.` in the same manner as the command line.  `*Help c.` for example would show help for all commands beginning with `C`.  When running MOS 3.0 with VDP 2.14.0 or later, the output of the `Help` command will automatically be paged; to move on to the next page you will need to press the "shift" key.
 
 ## `Hotkey`
 
@@ -235,7 +244,9 @@ This command was added in MOS 3.0.
 
 ## `LS`
 
-This command is an alias for the `Cat` command.
+Syntax: `*LS [-l] [-a] [-s] [-v] [<path>]`
+
+This command is an alias for the [`Cat`](#cat) command.  Please see the `Cat` command for more information on how this command works and the options it supports.
 
 ## `Mem`
 
@@ -324,7 +335,7 @@ As of MOS 3.0, the `Rename` command supports the use of [system variables](Syste
 
 ## `RM`
 
-Syntax: `*RM <filename>`
+Syntax: `*RM [-f] <filename>`
 
 This command is an alias for the [`Delete`](#delete) command, and is only available from MOS 2.2.0 onwards.
 
