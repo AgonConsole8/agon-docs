@@ -6,7 +6,7 @@ Please note that this documentation uses assembler in the examples in a format t
 
 This documentation is not intended as a tutorial on eZ80 assembler, but as a reference for those who are already familiar with the eZ80 or Z80 instruction set and wish to use MOS APIs in their programs.
 
-## Usage from Z80 assembler
+## Usage from Z80 assembler {#rst}
 
 There are four RST instructions for accessing MOS functionality from Z80.
 
@@ -14,9 +14,9 @@ There are four RST instructions for accessing MOS functionality from Z80.
 - `RST 08h`: Execute a MOS command
 - `RST 10h`: Output a single character to the VDP
 - `RST 18h`: Output a stream of characters to the VDP (MOS 1.03 or above)
-- `RST 38h`: Outputs a crash report (Console8 MOS 2.3.0 or above)
+- `RST 38h`: Outputs a crash report (MOS 2.3.0 or above)
 
-In addition, if you are using the Zilog ZDS II assembler you may wish to include the file `mos_api.inc` in your project.  The Console8 version can be found in the folder [src](https://github.com/AgonConsole8/agon-mos/tree/main/src) of project [agon-mos](https://github.com/AgonConsole8/agon-mos).  The original Quark versions of this file can be found in the folder [src](https://github.com/breakintoprogram/agon-mos/tree/main/src) of project [agon-mos](https://github.com/breakintoprogram/agon-mos).
+In addition, if you are using the Zilog ZDS II assembler you may wish to include the file `mos_api.inc` in your project.  The latest Agon Platform (previously known as Console8) version can be found in the folder [src](https://github.com/AgonPlatform/agon-mos/tree/main/src) of project [agon-mos](https://github.com/AgonPlatform/agon-mos).  The original Quark versions of this file can be found in the folder [src](https://github.com/breakintoprogram/agon-./tree/main/src) of project [agon-mos](https://github.com/breakintoprogram/agon-mos).
 
 NB:
 
@@ -26,7 +26,7 @@ NB:
 - This documentation generally uses the term `RST` in place of `RST.LIS` for simplicity
 - In the `mos_api.inc` file you will find:
     - EQUs for all the MOS commands, data structures and [system state variables (sysvars)](#sysvars)
-    - An incomplete list of VDP control variables.  For a full list, see the [VDP documentation](VDP.md)
+    - An incomplete list of VDP control variables.  For a full list, see the [VDP documentation](../VDP.md)
     - A complete list FatFS APIs, however it should be noted that many these are not implemented in MOS prior to MOS 3.0
 
 Further information on the `RST` handlers provided by MOS are as follows:
@@ -115,30 +115,49 @@ Example:
 text:	DB	"Hello World", 0
 ```
 
-### `RST 38h`: Outputs a crash report (Console8 MOS 2.3.0 or above)
+### `RST 38h`: Outputs a crash report (MOS 2.3.0 or above)
 
 This command will output a crash report to the screen.  This report will show the current processor state, and the top of the stack.  This can be useful for debugging purposes.
 
-This command works in conjunction with the fact that as of Console8 MOS 2.3.0, on initial startup memory will be reset to contain `0xFF` bytes in every location, which equates to a `RST 38h` instruction.  This means that for many system crashes execution will end up at the `RST 38h` instruction, and a crash report will be displayed on the screen.
+This command works in conjunction with the fact that as of MOS 2.3.0, on initial startup memory will be reset to contain `0xFF` bytes in every location, which equates to a `RST 38h` instruction.  This means that for many system crashes execution will end up at the `RST 38h` instruction, and a crash report will be displayed on the screen.
 
 
 ## The MOS API
 
 MOS API calls can be executed from a classic 64K Z80 segment or whilst the eZ80 is running in 24-bit ADL mode. For classic mode, 16 bit registers are passed as pointers to the MOS commands; these are automatically promoted to 24 bit by adding the MB register to bits 16-23 of the register. When running in ADL mode, a 24-bit register will be passed, but MB must be set to `0`.
 
-Many, but not all, of the MOS API calls will return a [status code](#status-codes) in the `A` register.  This status code will indicate the success or failure of the operation.  If the operation was successful, the status code will be `0`.  If the operation failed, the status code will be non-zero, and will indicate the nature of the failure.  Some API calls, such as those for I2C communications or string comparisons, use different sets of status codes, which will be documented in the API call's description.
+Many, but not all, of the MOS API calls will return a [status code](#status-codes) in the `A` register.  This status code will indicate the success or failure of the operation.  If the operation was successful, the status code will be `0`.  If the operation failed, the status code will be non-zero, and will indicate the nature of the failure.  Some API calls, such as those for I2C communications or string comparisons, use different sets of status codes, which are documented in the API call's description.
 
-The APIs available from MOS have changed over time, and some of the APIs described are only available in later versions of MOS.  If you attempt to call an API that is not available in the version of MOS you are using the API will return the status value `23` in the `A` register to indicate it is not supported.  Please note that Console8 MOS 2.1.0 and earlier, including Quark MOS 1.04, do support detecting unknown/unsupported API calls and will produce unexpected results if you attempt to call an API that is not supported.  This is a known issue with these versions of MOS, and it is recommended to upgrade to a later version of MOS if you are using these versions.
+The APIs available from MOS have changed over time, and some of the APIs described are only available in later versions of MOS.  If you attempt to call an API that is not available in the version of MOS you are using the API will return the status value `23` in the `A` register to indicate it is not supported.  Please note that MOS 2.1.0 and earlier, including Quark MOS 1.04, do support detecting unknown/unsupported API calls and will produce unexpected results if you attempt to call an API that is not supported.  This is a known issue with these versions of MOS, and it is recommended to upgrade to a later version of MOS if you are using these versions.
 
-As of MOS 3.0, all the MOS API calls that accept any kind of filepath string as a parameter, whether that is to a filename or a directory, will support the use of [system variables](mos/System-Variables.md) and [custom file paths](mos/System-Variables.md#path-variables) within the string.  These will automatically be handled in native MOS file handling API calls.  This allows for more flexible and powerful file handling in your applications.
+### Advice on file handling
+
+As of MOS 3.0, all the MOS API calls that accept any kind of filepath string as a parameter, whether that is to a filename or a directory, will support the use of [system variables](./System-Variables.md) and [custom file paths](./System-Variables.md#path-variables) within the string.  These will automatically be handled in native MOS file handling API calls.  This allows for more flexible and powerful file handling in your applications.
 
 Please note that the FatFS API calls (which named with an `ffs_` prefix) do _not_ support this behaviour, and will only work with fully resolved file paths.  There is an API to [resolve the path](#0x38-mos_resolvepath) which can be used to convert a path with system variables into a path suitable for use with the fatfs APIs.
 
 In general, to read and/or write files files, it is recommended to use the MOS file APIs as these will automatically handle system variables and file paths.  MOS file APIs use a "file handle" to reference an open file, whereas the FatFS APIs expect a pointer to a `FIL` structure.  You can get a `FIL` structure for a MOS file handle by using the [`mos_getfil` API](#0x19-mos_getfil).  This will allow you to use the FatFS APIs directly if you need to, but in most cases it is recommended to use the MOS file APIs.  It is planned that future versions of MOS (beyond 3.0) will support using the MOS file APIs to open data streams other than files, such as the serial UART, I2C devices, and the VDP connection.  This will allow you to use the same APIs to read/write data across different all data streams.
 
-Please note that MOS 3.0 [system variables](mos/System-Variables.md) are a distinct and different feature from [system state information (sysvars)](#sysvars).  Some older code and documentation may use the term "system variables" to refer to sysvars.
+### A note on "system variables"
 
-As of MOS 3.0 the standard for APIs that will either return or require a 32-bit value is to use a pointer to the value in a register.  Care should be taken to ensure that the pointer is pointing to a valid 4-byte block of memory.  There are two older APIs that date back to MOS 1.03, namely `mos_ that use a different approach and return a 32-bit value spread across two registers, with the lower 24-bits in one register and the upper byte in a separate register.  As this is not friendly to Z80 code 
+Please note that MOS 3.0 [system variables](./System-Variables.md) are a distinct and different feature from [system state information (sysvars)](#sysvars).  Some older code and documentation may use the term "system variables" to refer to sysvars.
+
+### APIs that use 32-bit values
+
+As of MOS 3.0 the standard for APIs that either require or return a 32-bit value is to pass a pointer to the value in a register.  Care should be taken to ensure that the pointer is pointing to a valid 4-byte block of memory.  There are two older APIs that date back to MOS 1.03, namely [`mos_flseek`](#0x1c-mos_flseek) and [`ffs_flseek`](#0x84-ffs_flseek) that used a different approach and return a 32-bit value spread across two registers, with the lower 24-bits in one register and the upper byte in a separate register.  As this is not friendly to Z80 code, MOS 3.0 has added new equivalent APIs that use the new 32-bit pointer approach.  The old APIs are still available for backwards compatibility, but it is recommended to use the new APIs where possible.
+
+### Core MOS APIs, and Modules
+
+A future version of MOS may support the use of [modules](./Modules.md) to extend the functionality of the system.  This may include adding new APIs, commands, and functions.
+
+When this happens, the concept of "Core MOS" will be introduced.  Core MOS will be the set of APIs, commands, and functions that are guaranteed to be available to all programs.  
+
+The exact set of APIs and commands that Core MOS will be comprised of has yet to be determined, but for compatibility with existing programs they will definitely include all commands and APIs that were available in MOS 2.3 and earlier.  It is expected that many of the APIs added in MOS 3.0 will also be included in Core MOS, but this is not guaranteed.
+
+Functionality provided by modules would only be available to programs that are "module safe" or "module compatible".  Guidance on how to ensure that your program is "module safe" or "module compatible" will be provided in the [MOS Modules](./Modules.md) documentation.
+
+
+## MOS API calls
 
 The following MOS commands are supported:
 
@@ -301,7 +320,7 @@ Editor behaviour flags are as follows:
 | 3   | When set, input history will be _disabled_ * |
 | 4-7 | Reserved for future use (for future compatibility, ensure these are set to zero) |
 
-\* Support for editor control flags was added in Console8 MOS 2.2.0.  Prior to this the only documented values for `E` were 0 and 1 to indicate whether the buffer should be cleared.
+\* Support for editor control flags was added in MOS 2.2.0.  Prior to this the only documented values for `E` were 0 and 1 to indicate whether the buffer should be cleared.
 
 ### `0x0A`: mos_fopen
 
@@ -504,6 +523,8 @@ Returns:
 Open UART1 (Requires MOS 1.03 or above)
 
 To handle the received interrupts, you will need to assign a handler to UART1's interrupt vector (0x1A).
+
+NB as this API uses a pointer in `IX(U)`, and is therefore difficult to use from C code, as of MOS 3.0 th underlying function this API uses is available via a C function accessible using the [`mos_getfunction`](#0x50-mos_getfunction) API.
 
 Parameters:
 
@@ -778,12 +799,13 @@ Returns:
 
 - `A`: Status code
 
-
 ***
 
 ### `0x28-0x2C`: String functions
 
-API calls in this range are string manipulation functions, added in MOS 3.0.
+API calls in this range are string manipulation functions.
+
+All of the API calls in this range require MOS 3.0 or above.
 
 ### `0x28`: mos_pmatch
 
@@ -864,7 +886,7 @@ Preserves: `BC(U)`
 
 ### `0x2B`: mos_extractnumber
 
-Extract a number, using given divider.  Various number formats are supported - for more information see notes on numbers interpreted by the [MOS CLI](mos/Star-Commands.md)
+Extract a number, using given divider.  Various number formats are supported - for more information see notes on numbers interpreted by the [MOS CLI](./Star-Commands.md)
 
 Parameters:
 
@@ -915,9 +937,11 @@ Returns:
 
 API calls in this range are used for setting and reading system variables, and for performing string translations.
 
+All of the API calls in this range require MOS 3.0 or above.
+
 ### `0x30`: mos_setvarval
 
-Set, update, replace or remove a [System Variable](mos/System-Variables.md)
+Set, update, replace or remove a [System Variable](./System-Variables.md)
 
 Parameters:
 
@@ -944,6 +968,8 @@ If either a type of 3 or 4 is used then the variable type used for storage of th
 
 Internally MOS also supports "Code" type variables, which are used for several things, such as exposing date/time information.  If such a variable variable supports being set then you can call the "set" functions of these variables by using the String type with a matching name.  You cannot remove a "Code" type variable using this function.
 
+NB as this API requires a pointer in `IX(U)`, and is therefore difficult to use from C code, the underlying C function this API uses can be accessed using the [`mos_getfunction`](#0x50-mos_getfunction) API.
+
 Returns:
 
 - `A`: Status code
@@ -966,7 +992,9 @@ Parameters:
 
 If the name includes a wildcard then the first matching variable will be read.  Subsequent calls can be made to read the next value that matches the pattern, so long as you preserve `IY(U)` between calls.
 
-NB Whilst numeric variables are set by providing their value directly in a register, when reading a numeric variable the value will be returned in the buffer pointed to by `IX(U)`.  That buffer must be at least 3 bytes long, unless the "flag" value is set to `3`, in which case it must be large enough to contain a string representation of the number in decimal.
+Please note that whilst numeric variables are set using [`mos_setvarval`](#0x30-mos_setvarval) by providing their value directly in a register, when reading a numeric variable the value will be returned in the buffer pointed to by `IX(U)`.  That buffer must be at least 3 bytes long, unless the "flag" value is set to `3`, in which case it must be large enough to contain a string representation of the number in decimal.
+
+NB as this API requires a pointer in `IX(U)`, and is therefore difficult to use from C code, the underlying C function this API uses can be accessed using the [`mos_getfunction`](#0x50-mos_getfunction) API.
 
 Returns:
 
@@ -979,11 +1007,11 @@ Returns:
 
 Initialises a GSTrans operation.
 
-GSTrans is a process of taking a source string and translating it, replacing any variables referenced, and converting any control codes into raw control bytes.  The [`echo` command](mos/Star-Commands.md#echo) in MOS is an example of a command that uses the GSTrans process, and the documentation for that command contains a more complete description of how the source string will be interpreted.
+GSTrans is a process of taking a source string and translating it, replacing any variables referenced, and converting any control codes into raw control bytes.  The [`echo` command](./Star-Commands.md#echo) in MOS is an example of a command that uses the GSTrans process, and the documentation for that command contains a more complete description of how the source string will be interpreted.
 
 The process of translating a string is a two-step process.  The first step is to call `mos_gsinit` to initialise the process, and the second step is to repeatedly call `mos_gsread` to actually perform the translation, fetching one character at a time until the whole string has been translated, and a zero character is read.
 
-Various options are available to control how the translation process operates, and these are set using the flags parameter.  By default, the translation process will continue until the end of the source string is reached.  It is possible to instead translate only up to the first space.  The process also supports detecting double-quotes to surround a string, in which case a request to terminate at a space will be ignored if the space is inside the double-quotes.  (It should be noted that the `echo` command sets this flag.)  Finally by default the process will translate characters preceeded by a `|` character as control codes, as explained in the documentation for the [`echo` command](mos/Star-Commands.md#echo).  If you wish to disable this behaviour then you can set the "no pipe" flag.
+Various options are available to control how the translation process operates, and these are set using the flags parameter.  By default, the translation process will continue until the end of the source string is reached.  It is possible to instead translate only up to the first space.  The process also supports detecting double-quotes to surround a string, in which case a request to terminate at a space will be ignored if the space is inside the double-quotes.  (It should be noted that the `echo` command sets this flag.)  Finally by default the process will translate characters preceeded by a `|` character as control codes, as explained in the documentation for the [`echo` command](./Star-Commands.md#echo).  If you wish to disable this behaviour then you can set the "no pipe" flag.
 
 Parameters:
 
@@ -1041,6 +1069,8 @@ If the destination buffer given for this command is less than the size required 
 
 The flags here are identical those used with `mos_gsinit`, with the exception that the "No tracking" flag will be ignored.
 
+NB as this API requires a pointer in `IX(U)`, and is therefore difficult to use from C code, the underlying C function this API uses can be accessed using the [`mos_getfunction`](#0x50-mos_getfunction) API.
+
 Returns:
 
 - `A`: Status code
@@ -1060,6 +1090,8 @@ Parameters:
 
 The only flag currently supported is bit 0, which when set indicates that the "rest" arguments (i.e. those not explicitly used in the template) should be omitted from the destination string.  When this bit is clear they will be automatically appended.
 
+NB as this API requires a pointer in `IX(U)`, and is therefore difficult to use from C code, the underlying C function this API uses can be accessed using the [`mos_getfunction`](#0x50-mos_getfunction) API.
+
 Returns:
 
 - `BC(U)`: Calculated length of destination string
@@ -1072,11 +1104,13 @@ As of MOS 3.0 this function has not yet been implemented.  Support for this func
 
 ### `0x38-0x3C`: File path functions
 
-Functions in this range were added in MOS 3.0 to provide a set of functions for working with and manipulating file paths.
+These APIs provide a set of functions for working with and manipulating file paths.
+
+All of the API calls in this range require MOS 3.0 or above.
 
 ### `0x38`: mos_resolvepath
 
-Resolves a path, creating a new resolved path string that expands [system variables](mos/System-Variables.md), and also replaces [prefixes](mos/System-Variables.md#path-variables) and leafnames with actual values.  System variables will be expanded first, and then the prefix and leafname will be resolved.  The result is a fully resolved path that can be used with the FatFS API calls.
+Resolves a path, creating a new resolved path string that expands [system variables](./System-Variables.md), and also replaces [prefixes](./System-Variables.md#path-variables) and leafnames with actual values.  System variables will be expanded first, and then the prefix and leafname will be resolved.  The result is a fully resolved path that can be used with the FatFS API calls.
 
 If the leafname contains wildcards then the first matching file will be returned.  Please note that this will be the first match found in a directory, and owing to how directories are managed this may not be the first alphabetical match.  Subsequent calls can be made to find the next matching file, so long as you provide a pointer to an empty directory object to persist between calls, and preserve the `C` register between calls too.
 
@@ -1122,6 +1156,8 @@ Besides finding filecard matches, the other main use for this API is to resolve 
 
 It is not necessary to use this API call to resolve paths for use with the MOS-native API calls, as those will all automatically resolve paths for you.
 
+NB as this API requires a pointer in `IX(U)`, and is therefore difficult to use from C code, the underlying C function this API uses can be accessed using the [`mos_getfunction`](#0x50-mos_getfunction) API.
+
 Returns:
 
 - `A`: Status code (`0` = Success, `22` = Out of memory, `5` = No path, `4` = No file)
@@ -1148,6 +1184,8 @@ Parameters:
 - `IX(U)`: Pointer to the buffer to store the directory in (optional - omit for count only)
 - `DE(U)`: Length of the buffer
 - `C`: Search index
+
+NB as this API requires a pointer in `IX(U)`, and is therefore difficult to use from C code, the underlying C function this API uses can be accessed using the [`mos_getfunction`](#0x50-mos_getfunction) API.
 
 Returns:
 
@@ -1197,6 +1235,8 @@ Parameters:
 - `IX(U)`: Pointer to the buffer to store the absolute path in
 - `DE(U)`: Length of the buffer
 
+NB as this API requires a pointer in `IX(U)`, and is therefore difficult to use from C code, the underlying C function this API uses can be accessed using the [`mos_getfunction`](#0x50-mos_getfunction) API.
+
 Returns:
 
 - `A`: Status code
@@ -1209,13 +1249,15 @@ If the buffer is too short for the resolved path then a status code of `22` (Out
 
 Functions in this range are used for VDP protocol, and other miscellaneous functions.
 
+All of the API calls in this range require MOS 3.0 or above.
+
 ### `0x40`: mos_clearvdpflags
 
 Clears VDP Protocol status flags from the `sysvar_vpd_pflags` [sysvar](#sysvars).
 
 Bits in this status value will be set when various different VDP Protocol message packet types are received by MOS from the VDP.  Such packets may be sent for user-initiated actions, such as pressing a key on the keyboard, or moving the mouse, or for system-initiated actions, such as a VDU command being sent to the VDP.  Please note that in general use these bits are not automatically cleared, so if you wish to detect a response from the VDP to a VDU command your program sends it is important to clear out the corresponding protocol flags before sending the command.  You can then use the [`mos_waitforvdpflags`](#0x41-mos_waitforvdpflags) API call to wait for the VDP to respond, and check the status of the flags in `sysvar_vpd_pflags` to see if the command was successful.
 
-Further information on the VDP protocol and the flag bits can be found in the [VDP Protocol documentation](vdp/System-Commands.md#vdp-serial-protocol).
+Further information on the VDP protocol and the flag bits can be found in the [VDP Protocol documentation](../vdp/System-Commands.md#vdp-serial-protocol).
 
 Parameters:
 
@@ -1265,40 +1307,17 @@ This API includes a flags byte which must be set to zero in MOS 3.0.  This is re
 
 Similarly, if the function number passed to this API is higher than the highest available function, then the API will return a status code of `20` (Invalid command).
 
-Many of the functions returned by this API have equivalent MOS API calls.  They have been included here because the MOS API calls use the `IX(U)` register for arguments, which makes them difficult to use for programs written in C.  The manner in which the APIs work often have subtle differences from their underlying functions, owing to the fact that the functions return multiple values.  When needed, the APIs will store register-provided values in a temporary workspace and call the underlying function with appropriate pointers, and then fetch values from temporary workspace placing them in registers before returning to the caller.
-
-The function numbers are as follows:
-
-| Number | C function prototype | Description |
-| ------ | -------------------- | ----------- |
-| 0x00   | `BYTE	SD_init();` | Initialises the low-level SD card handling system | 
-| 0x01   | `BYTE	SD_readBlocks(DWORD sector, BYTE *buf, WORD count);` | Read raw sector data from SD card |
-| 0x02   | `BYTE	SD_writeBlocks(DWORD sector, BYTE *buf, WORD count);` | Write raw sector data to SD card |
-| 0x03   | n/a (returns a `NULL` pointer) | Reserved for potential future `SD_status` function |
-| 0x04   | n/a (returns a `NULL` pointer) | Reserved for potential future `SD_ioctl` function |
-| 0x05   | `int	f_printf (FIL* fp, const TCHAR* str, ...);` | The FatFS `f_printf` function |
-| 0x06   | `FRESULT	f_findfirst (DIR* dp, FILINFO* fno, const TCHAR* path, const TCHAR* pattern);` | The FatFS `f_findfirst` function, equivalent to the [`ffs_dfindfirst`](#0x94-ffs_dfindfirst) API call. |
-| 0x07   | `FRESULT	f_findnext (DIR* dp, FILINFO* fno);` | The FatFS `f_findnext` function, equivalent to the [`ffd_dfindnext`](#0x95-ffs_dfindnext) API call |
-| 0x08   | `BYTE	open_UART1(UART * pUART);` | Equivalent to the [`mos_uopen`](#0x15-mos_uopen) API call | 
-| 0x09   | `int		setVarVal(char * name, void * value, char ** actualName, BYTE * type);` | The underlying function the [`mos_setvarval`](#0x30-mos_setvarval) API call uses.<br/>Please note that the way the API call implementation wraps this function means that the `actualName` and `type` arguments need to be handled differently than the API. |
-| 0x0A   | `int		readVarVal(char * namePattern, void * value, char ** actualName, int * length, BYTE * typeFlag);` | The underlying function the [`mos_readvarval`](#0x31-mos_readvarval) API call uses.<br/>As with the `setVarVal` function, the `actualName`, `length` and `typeFlags` are handled differently than the equivalent API. | 
-| 0x0B   | `int		gsTrans(char * source, char * dest, int destLen, int * read, BYTE flags);` | The underlying function the [`mos_gstrans`](#0x34-mos_gstrans) API call uses.<br/>The pointer to `read` is used to return the calculated total length of the translated string. |
-| 0x0C   | `int	substituteArgs(char * template, char * args, char * dest, int length, BYTE flags);` | The underlying function the [`mos_substituteargs`](#0x35-mos_substituteargs) API call uses. |
-| 0x0D   | `int	resolvePath(char * filepath, char * resolvedPath, int * length, BYTE * index, DIR * dir, BYTE flags);` | The underlying function the [`mos_resolvepath`](#0x38-mos_resolvepath) API call uses.<br/>The `length` pointer used both for the `resolvedPath` buffer size, and to return the resolved path length.  The `index` pointer can be null, but when pointing to a value will work the same as the `C` register in the API.  As with the API, the `dir` pointer can be omitted. |
-| 0x0E   | `int getDirectoryForPath(char * srcPath, char * dir, int * length, BYTE index);`	 | The underlying function the [`mos_getdirforpath`](#0x39-mos_getdirforpath) API call uses.<br/>As with the `resolvePath` function, the value pointed to by `length` is used both as the buffer size for the `dir` output buffer, and to return the actual length. |
-| 0x0F   | `int resolveRelativePath(char * path, char * resolved, int * length);` | This is the underlying function that [`mos_api_getabsolutepath`](#0x3c-mos_getabsolutepath) uses. |
-| 0x10   | `void * getsysvars()` | Returns a pointer to the system variables area.  Directly equivalent to the [`mos_sysvars`](#0x08-mos_sysvars) API call. | 
-| 0x11   | `void * getkbmap()` | Returns a pointer to the keyboard map.  Directly equivalent to the [`mos_getkbmap`](#0x1e-mos_getkbmap) API call. | 
-
-Please note that whilst MOS APIs will return `FRESULT` or "status" values in the 8-bit `A` register, most of the underlying functions return an `FRESULT` or an `int` for their status, which are actually 24-bit values.  The calling convention means they will be returned in `HL(U)`.
+Full details of the functions available through this API, and more information about how to use them, can be found in the documentation about [C Functions](./C-Functions.md)
 
 ***
 
-## Low-level SD card access
+## `0x70-0x73`: Low-level SD card access 
 
-MOS 3.0 provides a set of APIs that provide low-level access to the SD card.  These are not intended for general use, but are provided for some special use-cases, such as for an operating system that uses a different filing system than FatFS, or for tools that wish to access the SD card in ways that are not supported by the FatFS library.
+These APIs provide low-level access to the SD card.  They are not intended for general use, but are provided for some special use-cases, such as for an operating system that uses a different filing system than FatFS, or for tools that wish to access the SD card in ways that are not supported by the FatFS library.
 
 As the use of these APIs can potentialy cause data corruption in order to use them you need to use an "unlock code".  It is possible to avoid using the unlock mechanism by using the underlying functions directly via the [`mos_getfunction`](#0x50-mos_getfunction) API call.
+
+All of the APIs in this range require MOS 3.0 or above.
 
 ### `0x70`: sd_getunlockcode
 
@@ -1362,21 +1381,23 @@ Returns:
 
 ***
 
-## FatFS commands
+## `0x80-0xA6`: FatFS APIs {#fatfs-commands}
 
 MOS makes use of the [FatFS library](http://elm-chan.org/fsw/ff/00index_e.html) to access the SD card.  Some of FatFS's functionality is exposed as APIs in MOS.  These APIs are essentially provide a way to call the underlying FatFS functions that MOS uses to perform file operations.  The API calls are prefixed with `ffs_` to indicate that they are FatFS functions, and the `mos_` prefix is used for the native MOS API calls.
 
 Our naming convention for FatFS APIs in MOS is to remove the `f_` prefix from the FatFS function name, and replace it with `ffs_`, plus an optionally `f` or `d` prefix.  For example, the API that exposes the `f_open` FatFS function is named `ffs_fopen`.
 
-The variety of FatFS APIs supported in the MOS 1.x and MOS 2.x releases was limited to a restricted subset of functionality.  MOS 3.0 includes support for all of the FatFS API calls that our current FatFS configuration supports.  The documentation below describes all potential FatFS API calls, including those not supported by our configuration - those APIs that are not supported will a status value of `23` (Not implemented) in the A register.  Future versions of MOS may include support for additional API calls, and the documentation will be updated to reflect this.
+The variety of FatFS APIs supported in the MOS 1.x and MOS 2.x releases was limited to a restricted subset of functionality.  The first version of MOS that supported FatFS API calls was 1.03.  Versions of MOS 2.x added support for some additional APIs.  MOS 3.0 includes support for all of the possible FatFS APIs that are practical to support with our current configuration of FatFS, which greatly expands the available set of APIs.  For completeness, all potential FatFS APIs are documented below, including those that are not supported by our current configuration.  The APIs that are not supported will return a status code of `23` (Not implemented) in the A register.
 
-Please note that the FatFS API calls documented below expect file paths to be fully resolved, i.e. they should not include [path prefixes](mos/System-Variables.md#path-variables) or [system variables](mos/System-Variables.md).  This means programs running on MOS 3 should use the [`mos_resolvepath` API call](#0x38-mos_resolvepath) to resolve any paths before using them with a FatFS API call.  If you do not resolve the path then the FatFS API call may fail or produce unexpected results.  For many API calls you can instead open the file using the MOS API call [`mos_fopen`](#0x0a-mos_fopen) and then use [`mos_getfil`](#0x19-mos_getfil) to get a pointer to a `FIL` structure that many FatFS API calls require.
+When reading the documentation below, you should assume that the API calls are only available in MOS 3.0 or above, unless otherwise stated.
+
+Please note that the FatFS API calls documented below expect file paths to be fully resolved, i.e. they should not include [path prefixes](./System-Variables.md#path-variables) or [system variables](./System-Variables.md).  This means programs running on MOS 3 should use the [`mos_resolvepath` API call](#0x38-mos_resolvepath) to resolve any paths before using them with a FatFS API call.  If you do not resolve the path then the FatFS API call may fail or produce unexpected results.  For many API calls you can instead open the file using the MOS API call [`mos_fopen`](#0x0a-mos_fopen) and then use [`mos_getfil`](#0x19-mos_getfil) to get a pointer to a `FIL` structure that many FatFS API calls require.
 
 For more information on FatFS data structures (the `FIL`, `DIR` and `FILINFO` objects), functions, and info on which bits to set in fields such as "File open mode" please see the [FatFS documentation](http://elm-chan.org/fsw/ff/00index_e.html).  The FatFS configuration can affect the contents of these data structures - our configuration has the `FF_USE_LFN` and `FF_USE_FIND` options set, and does _not_ set `FF_READ_ONLY` or `FF_USE_FASTSEEK`.
 
 ### `0x80`: ffs_fopen
 
-Open a file (Requires MOS 1.03 or above)
+Open a file (Available from MOS 1.03)
 
 Parameters:
 
@@ -1415,7 +1436,7 @@ buffer:			DS	256				; Buffer for storing read data
 
 ### `0x81`: ffs_fclose
 
-Close a file (Requires MOS 1.03 or above)
+Close a file (Available from MOS 1.03)
 
 Parameters:
 
@@ -1433,7 +1454,7 @@ NB: you should not use this call to close a file that had been opened using [`mo
 
 ### `0x82`: ffs_fread
 
-Read from a file (Requires MOS 1.03 or above)
+Read from a file (Available from MOS 1.03)
 
 Parameters:
 
@@ -1452,7 +1473,7 @@ See ffs_fopen for an example
 
 ### `0x83`: ffs_fwrite
 
-Write to a file (Requires MOS 1.03 or above)
+Write to a file (Available from MOS 1.03)
 
 Parameters:
 
@@ -1488,7 +1509,7 @@ buffer:		DS	256				; Buffer containing data to write out
 
 ### `0x84`: ffs_flseek
 
-Move the read/write pointer in a file (Requires MOS 1.03 or above)
+Move the read/write pointer in a file (Available from MOS 1.03)
 
 NB this API is deprecated and kept for compatibility reasons.  You are advised to use the [`ffs_flseek_p`](#0xa6-ffs_flseek_p) API instead.  As this API requires a full 24-bit value to be provided in the `DE(U)` register it is not directly compatible with programs written to run in Z80 mode.
 
@@ -1508,7 +1529,7 @@ Preserves: `HL(U)`, `DE(U)`, `BC(U)`
 
 ### `0x85`: ffs_ftruncate
 
-Truncate a file to the current file pointer offset (Requires Console8 MOS 2.3.0 or above)
+Truncate a file to the current file pointer offset (Available from MOS 2.3.0)
 
 To truncate to a specified size you will need to use [`ffs_flseek_p`](#0xa6-ffs_flseek_p) to move the file pointer to the desired location before calling `ffs_ftruncate`.
 
@@ -1524,11 +1545,11 @@ Preserves: `HL(U)`
 
 ### `0x86`: ffs_fsync
 
-Flushes cached information of a writing file (Requires Console8 MOS 3.0 or above)
+Flushes cached information of a writing file
 
 When writing to a file, file data may be cached in memory until the file is closed.  This function will flush the cache to the SD card, ensuring that all data has been written.  This can be useful to minimise the risks of data loss in the event of a power failure, SD card removal, or other unexpected shutdown.
 
-As of MOS 3.0, the underlying SD card access layer does not cache writes, so this API call is not actually needed.  It is implemented in case we do add caching in the future.
+Please note that MOS 3.0 does not currently cache writes to the SD card.  This API call is provided in case we do add caching in the future.  You may still wish to use this call to ensure that data is guaranteed to be written to the SD card in the event that a future version of MOS adds caching support.  Calling this API on systems that do not support caching will have no effect and be harmless.
 
 Parameters:
 
@@ -1560,7 +1581,7 @@ Returns:
 
 ### `0x89`: ffs_fgets
 
-Reads a string from a file (Requires MOS 3.0 or above)
+Reads a string from a file
 
 Reads characters into a buffer until a newline `\n` character is reached, the end of file encountered, or the buffer is filled.  The string read will be zero terminated.
 
@@ -1580,7 +1601,7 @@ Preserves: `HL(U)`, `BC(U)`
 
 ### `0x8A`: ffs_fputc
 
-Writes a single character to a file (Requires MOS 3.0 or above)
+Writes a single character to a file
 
 It should be noted that this API does not return a status code in the `A` register.
 
@@ -1597,7 +1618,7 @@ Preserves: `HL(U)`
 
 ### `0x8B`: ffs_fputs
 
-Writes a zero-terminated string to a file.  The termination character will not be written to the file. (Requires MOS 3.0 or above)
+Writes a zero-terminated string to a file.  The termination character will not be written to the file.
 
 It should be noted that this API does not return a status code in the `A` register.
 
@@ -1620,7 +1641,7 @@ The `f_printf` function is made available via the [`mos_getfunction`](#0x50-mos_
 
 ### `0x8D`: ffs_ftell
 
-Get the current read/write offset pointer of a file.  (Requires MOS 3.0 or above)
+Get the current read/write offset pointer of a file
 
 Parameters:
 
@@ -1635,7 +1656,7 @@ Preserves: `HL(U)`, `DE(U)`
 
 ### `0x8E`: ffs_feof
 
-Detect end of file (Requires MOS 3.0 or above)
+Detect end of file
 
 Please note that whilst this API has been present since MOS 1.03 its implementation had an error which meant that it would return the value of the `L` register passed in as a parameter, rather than the correct value.  This was fixed in MOS 3.0.
 
@@ -1651,7 +1672,7 @@ Preserves: `HL(U)`
 
 ### `0x8F`: ffs_fsize
 
-Get the size of a file (Requires MOS 3.0 or above)
+Get the size of a file
 
 Parameters:
 
@@ -1666,7 +1687,7 @@ Preserves: `HL(U)`
 
 ### `0x90`: ffs_ferror
 
-Tests for an error on a file (Requires MOS 3.0 or above)
+Tests for an error on a file
 
 Returns a non-zero value if a hard error has returned, otherwise will return a status of `0` (OK).
 
@@ -1682,7 +1703,7 @@ Preserves: `HL(U)`
 
 ### `0x91`: ffs_dopen
 
-Open a directory (Requires Console8 MOS 2.2.0 or above)
+Open a directory (Available from MOS 2.2.0)
 
 Parameters:
 
@@ -1697,7 +1718,7 @@ Preserves: `HL(U)`, `DE(U)`
 
 ### `0x92`: ffs_dclose
 
-Close a directory (Requires Console8 MOS 2.2.0 or above)
+Close a directory (Available from MOS 2.2.0)
 
 Parameters:
 
@@ -1711,7 +1732,7 @@ Preserves: `HL(U)`
 
 ### `0x93`: ffs_dread
 
-Read next directory entry into a `FILINFO` data structure (Requires Console8 MOS 2.2.0 or above)
+Read next directory entry into a `FILINFO` data structure (Available from MOS 2.2.0)
 
 Parameters:
 
@@ -1726,7 +1747,7 @@ Preserves: `HL(U)`, `DE(U)`
 
 ### `0x94`: ffs_dfindfirst
 
-Searches a directory for a matching item (Requires MOS 3.0 or above)
+Searches a directory for a matching item
 
 Parameters:
 
@@ -1739,6 +1760,8 @@ The directory path provided in `BC(U)` must be a fully resolved path, and the ma
 
 If a matching file is found, the `FILINFO` structure will be populated with information about the file.
 
+NB as this API requires a pointer in `IX(U)`, and is therefore difficult to use from C code, the underlying C function this API uses can be accessed using the [`mos_getfunction`](#0x50-mos_getfunction) API.
+
 Returns:
 
 - `A`: `FRESULT`
@@ -1747,7 +1770,7 @@ Preserves: `HL(U)`, `DE(U)`, `BC(U)`, `IX(U)`
 
 ### `0x95`: ffs_dfindnext
 
-Find next matching item in a directory (Requires MOS 3.0 or above)
+Find next matching item in a directory
 
 This API call is used to find the next matching item in a directory after a successful call to [`ffs_dfindfirst`](#0x94-ffs_dfindfirst).  It will return the next matching file or directory in the same way as `ffs_dfindfirst`, but will not require the path and pattern strings to be passed in again.  Please note that whilst it is not a parameter for this API, the pattern string passed to `ffs_dfindfirst` must be preserved, as it will be used to match against the directory entries.
 
@@ -1755,6 +1778,8 @@ Parameters:
 
 - `HL(U)`: Pointer to a `DIR` structure, as set up by [`ffs_dfindfirst`](#0x94-ffs_dfindfirst)
 - `DE(U)`: Pointer to a `FILINFO` structure
+
+NB for completeness/convenience as the [`ffs_dfindfirst`](#0x94-ffs_dfindfirst) API is available as a C function via the [`mos_getfunction`](#0x50-mos_getfunction) API, this API is also available as a C function.
 
 Returns:
 
@@ -1764,7 +1789,7 @@ Preserves: `HL(U)`, `DE(U)`
 
 ### `0x96`: ffs_stat
 
-Get file information (Requires MOS 1.03 or above)
+Get file information (Available from MOS 1.03)
 
 Parameters:
 
@@ -1806,7 +1831,7 @@ Preserves: `HL(U)`
 
 ### `0x98`: ffs_rename
 
-Rename and/or move a file or sub-directory (Requires MOS 3.0 or above)
+Rename and/or move a file or sub-directory
 
 This is a raw rename function that does not perform any path resolution, and does not support wildcards.  For more sophisticated behaviour you should use the [`mos_ren` API](#0x06-mos_ren) instead.
 
@@ -1843,7 +1868,7 @@ Returns:
 
 ### `0x9B`: ffs_mkdir
 
-Creates a new directory (Requires MOS 3.0 or above)
+Creates a new directory
 
 Parameters:
 
@@ -1855,9 +1880,9 @@ Returns:
 
 ### `0x9C`: ffs_chdir
 
-Change the current working directory (Requires MOS 3.0 or above)
+Change the current working directory
 
-It is strongly recommended to use the [`mos_cd` API](#0x03-mos_cd) API call instead of this one, as it will automatically resolve the path for you.  Using this API may result in MOS not understand the current working directory until a call to `mos_cd` is made or a version of the [`CD` command](mos/Star-Commands.md#cd) is run.
+It is strongly recommended to use the [`mos_cd` API](#0x03-mos_cd) API call instead of this one, as it will automatically resolve the path for you.  Using this API may result in MOS not understand the current working directory until a call to `mos_cd` is made or a version of the [`CD` command](./Star-Commands.md#cd) is run.
 
 Parameters:
 
@@ -1873,7 +1898,7 @@ This API is not implemented, as no Agon platform computer currently supports mul
 
 ### `0x9E`: ffs_getcwd
 
-Get the current working directory (Requires Console8 MOS 2.2.0 or above)
+Get the current working directory (Available from MOS 2.2.0)
 
 Parameters:
 
@@ -1888,7 +1913,7 @@ Preserves: `HL(U)`, `BC(U)`
 
 ### `0x9F`: ffs_mount
 
-Mounts a volume/SD card (Requires MOS 3.0 or above)
+Mounts a volume/SD card
 
 Whilst this API has documented parameters, as the current hardware configurations of Agon machines do not support multiple volumes or drives all of the parameters will be ignored.  They are documented here for completeness, and to allow for future expansion of the API in case a future Agon model is released that does support multiple SD cards.  For future compatibility you are advised to set all parameters to zero.
 
@@ -1920,7 +1945,7 @@ Returns
 
 ### `0xA2`: ffs_getfree
 
-Get free space information on a volume (Requires MOS 3.0 or above)
+Get free space information on a volume
 
 Please note that this call does not directly return the number of free bytes on the volume, but instead returns the number of free clusters and the size of each cluster.  The number of free bytes can be calculated by multiplying these two values together.
 
@@ -1938,7 +1963,7 @@ Whilst this API will let you pass in a pointer to a path in the `HL(U)` register
 
 ### `0xA3`: ffs_getlabel
 
-Gets the label of a volume (Requires MOS 3.0 or above)
+Gets the label of a volume
 
 - `HL(U)`: Pointer to a path string (ideally caller should set this to zero)
 - `DE(U)`: Pointer to a buffer to store the label in (for safety and future proofing this should be 23 bytes long)
@@ -1954,7 +1979,7 @@ It should be noted that this API call does not include a parameter for the size 
 
 ### `0xA4`: ffs_setlabel
 
-Sets the label of a volume (Requires MOS 3.0 or above)
+Sets the label of a volume
 
 Please note that the label string must be a valid FAT volume label, which basically means that it must be 11 characters or less.  Setting a label to an empty string will remove the label.
 
@@ -1980,7 +2005,7 @@ Returns:
 
 ### `0xA6`: ffs_flseek_p
 
-Move the read/write offset pointer in a file (Requires MOS 3.0 or above)
+Move the read/write offset pointer in a file
 
 This API can be used to expand the size of a file, although you should note that the file data in the expanded part will be undefined.
 
@@ -2001,7 +2026,7 @@ Returns:
 
 ## Status Codes
 
-Many MOS API calls will return a status code in the `A` register.  In general these follow a consistent set of result values, with a few exceptions which are documented against the individual API calls.  Programs and commands will also return a status code when they complete.  If you are using MOS 3, the status code value can be captured in a system variable if the command or program is run using the [`try` command](mos/Star-Commands.md#try).
+Many MOS API calls will return a status code in the `A` register.  In general these follow a consistent set of result values, with a few exceptions which are documented against the individual API calls.  Programs and commands will also return a status code when they complete.  If you are using MOS 3, the status code value can be captured in a system variable if the command or program is run using the [`try` command](./Star-Commands.md#try).
 
 API calls that are documented above as returning an `FRESULT` value are returning a status code from the FatFS library.  These directly equate to status codes 0-19 in the table below.
 
@@ -2037,15 +2062,15 @@ The possible status codes are as follows:
 | 23   | Not implemented | The API call is not implemented in this version of MOS |
 | 24   | Load overlaps system area | File load prevented to stop overlapping system memory |
 | 25   | Bad string | A bad or incomplete string has been encountered |
-| 26   | Too deep | Too many nested commands have been detected<br>This is usually caused by a faulty [alias](mos/System-Variables.md#command-aliases) definition including [file load/run types](mos/System-Variables.md#file-type-variables) |
+| 26   | Too deep | Too many nested commands have been detected<br>This is usually caused by a faulty [alias](./System-Variables.md#command-aliases) definition including [file load/run types](./System-Variables.md#file-type-variables) |
 
-Please note that Quark MOS 1.04 will only return status codes 0-21.  The Console8 MOS 2.x release series added status codes 22-25, and MOS 3.0 added status code 26.  
+Please note that Quark MOS 1.04 will only return status codes 0-21.  The MOS 2.x release series added status codes 22-25, and MOS 3.0 added status code 26.  
 
 ## System State Information (SysVars) {#sysvars}
 
-The MOS API command [mos_sysvars](#0x08-mos_sysvars) returns a pointer to the base of the MOS SysVars (system state variables/information) area in IXU as a 24-bit pointer.  These are different from [System Variables](mos/System-Variables.md) which can be used in commands and scripts, so these these internal MOS system state variables are often simply referred to as sysvars.
+The MOS API command [mos_sysvars](#0x08-mos_sysvars) returns a pointer to the base of the MOS SysVars (system state variables/information) area in IXU as a 24-bit pointer.  These are different from [System Variables](./System-Variables.md) which can be used in commands and scripts, so these these internal MOS system state variables are often simply referred to as sysvars.
 
-The following sysvars are available in [mos_api.inc](#usage-from-z80-assembler):
+The following sysvars are available in [mos_api.inc](#rst):
 
 ```
 ; SysVars (System State Information) indexes for api_sysvars
@@ -2075,7 +2100,7 @@ sysvar_keydelay:		EQU	22h	; 2: Keyboard repeat delay
 sysvar_keyrate:			EQU	24h	; 2: Keyboard repeat rate
 sysvar_keyled:			EQU	26h	; 1: Keyboard LED status
 sysvar_scrMode:			EQU	27h	; 1: Screen mode (from MOS 1.04)
-sysvar_rtc_enable:		EQU 28h ; 1: RTC enable status (from Console8 MOS 2.0.0)
+sysvar_rtc_enable:		EQU 28h ; 1: RTC enable status (from MOS 2.0.0)
 sysvar_mouseX:			EQU 29h ; 2: Mouse X position
 sysvar_mouseY:			EQU 2Bh ; 2: Mouse Y position
 sysvar_mouseButtons:	EQU 2Dh ; 1: Mouse left+right+middle buttons (bits 0-2, 0=up, 1=down)
@@ -2115,4 +2140,4 @@ void rtc_unpack(UINT8 * sysvar_rtc, vdp_time_t * t) {
 }
 ```
 
-This real-time clock data is also available to programs, scripts, and the command line via [system variables](mos/System-Variables.md#time-and-date).
+This real-time clock data is also available to programs, scripts, and the command line via [system variables](./System-Variables.md#time-and-date).

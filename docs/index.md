@@ -4,11 +4,11 @@ This is the community-driven documentation for the Agon Platform, covering the A
 
 This site is intended to supercede the official documentation, and to provide a more comprehensive and up-to-date guide to the Agon Platform.  It is intended to be a living document, and to be updated as new features are added to the platform.
 
-The original documentation for Quark firmware can be found [here](https://github.com/breakintoprogram/agon-docs/wiki). This community documentation was started because GitHub's wiki system does not allow easy contributions by users, and the original documentation contains some errors and omissions.  We don't use the wiki here, but just markdown files which are also automatically generated into a [website](https://agonconsole8.github.io/agon-docs/).
+The original documentation for Quark firmware can be found [here](https://github.com/breakintoprogram/agon-docs/wiki). This community documentation was started because GitHub's wiki system does not allow easy contributions by users, and the original documentation contains some errors and omissions.  We don't use the wiki here, but just markdown files which are also automatically generated into a [website](https://agonplatform.github.io/agon-docs/).
 
 ## Want to contribute?
 
-Great, please go to the [github repository](https://github.com/AgonConsole8/agon-docs) and create a Pull Request with your changes.
+Great, please go to the [github repository](https://github.com/AgonPlatform/agon-docs) and create a Pull Request with your changes.
 
 ## What is the Agon Light, and what is the Agon Console8
 
@@ -24,13 +24,17 @@ The eZ80F92 integrates a number of standard peripherals, including a UART, and h
 
 There is a second CPU dedicated to handling video, sound, and keyboard, an ESP32-Pico-D4. This co-processor is linked to the eZ80F92 via a UART (a high speed serial communications link), and acts as a graphics terminal.
 
-## What is the Quark Firmware
+## What is the Agon Platform Firmware
 
-The Quark firmware is the official operating system for the Agon Light. It consists of three main components:
+The Agon Platform firmware is the software that runs on the Agon Light, Olimex Agon Light 2, and the Agon Console8. It is responsible for managing the hardware, providing a programming environment, and running applications.  It consists of three main components:
 
 * [MOS](MOS.md): Machine Operating System
 * [VDP](VDP.md): Visual Display Processor
 * [BBC BASIC for Agon](BBC-BASIC-for-Agon.md): A specially adapted port of R.T.Russell's excellent BASIC interpreter
+
+### What is Agon Quark?
+
+Agon Quark is the name of the original firmware for the Agon Light, and is now deprecated.  The Agon Platform firmware versions are the latest available for your Agon platform computer.
 
 ## How can I find out more?
 

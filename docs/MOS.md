@@ -2,9 +2,9 @@
 
 The MOS is a command line Machine Operating System, similar to CP/M or DOS, that provides a human interface to the Agon file system.
 
-It also provides the [MOS API](MOS-API.md) for programmers to use that provides some basic facilities for file I/O and other common operations for BBC BASIC and other third-party applications.
+It also provides the [MOS API](mos/API.md) for programmers to use that provides some basic facilities for file I/O and other common operations for BBC BASIC and other third-party applications.
 
-This documentation explains the general features of MOS, as well as commands it offers and how to use them.  It covers the Quark 1.04 version of MOS, and the later Console8 MOS releases up to and including MOS 3.0.  Versions of MOS prior to Quark 1.04 may be missing some features described below.
+This documentation explains the general features of MOS, as well as commands it offers and how to use them.  It covers the Quark 1.04 version of MOS, the later Console8 MOS releases, and the Agon Platform MOS up to and including MOS 3.0.  Versions of MOS prior to Quark 1.04 may be missing some features described below.
 
 Please note that if you are running Quark 1.04 or earlier, the capabilities of MOS are very limited, and quite a few features described in this documentation will not be available to you.  You are strongly advised to upgrade to a later version of MOS.  MOS 2.x and MOS 3.x releases are fully compatible with software written for Quark 1.04, and will run all Quark 1.04 software without modification.
 
@@ -18,7 +18,7 @@ Technically MOS will work without an SD card, but you won't be able to do much w
 
 ## Using an SD card
 
-MOS supports the use of an SD card to store files and programs.  The SD card must be formatted as FAT32.  This documentation previously advised that the card should be 32GB or less in size, however several users report successfully using 64GB cards.  MOS supports automatically running a script file on boot and a way of adding new commands.
+MOS supports the use of an SD card to store files and [programs](./mos/Executables.md).  The SD card must be formatted as FAT32.  This documentation previously advised that the card should be 32GB or less in size, however several users report successfully using 64GB cards.  MOS supports automatically [running a script file on boot](#boot-script) and a way of adding new commands.
 
 ### Moslets
 
@@ -32,7 +32,7 @@ From MOS 3.0 onwards it is possible to specify a different directory, or multipl
 
 ### The "run path"
 
-Console8 MOS 2.2.0 effectively added the concept of a "run path" to MOS, which would be used by the CLI to either search for commands not built into MOS, or to run programs.  In MOS 2.2.0 to MOS 2.3.2 the order of directories searched would be fixed, with the `mos` folder being searched first for moslets, followed by the current directory, and then the `bin` folder.  In MOS 2.x the order could not be changed.  MOS 3.0 provides a way to change this.
+MOS 2.2.0 effectively added the concept of a "run path" to MOS, which would be used by the CLI to either search for commands not built into MOS, or to run programs.  In MOS 2.2.0 to MOS 2.3.2 the order of directories searched would be fixed, with the `mos` folder being searched first for moslets, followed by the current directory, and then the `bin` folder.  In MOS 2.x the order could not be changed.  MOS 3.0 provides a way to change this.
 
 Programs located outside of the moslet folder are expected to be full standalone programs that will be run and executed at the default memory address of `0x040000`, and thus will overwrite existing programs.
 
@@ -131,7 +131,7 @@ From MOS 3.0 onwards, MOS supports the concept of [system variables](mos/System-
 
 ## Script files
 
-All Console8 versions of MOS support the concept of a script file.  This is a file that contains a series of MOS commands that can be executed in sequence.  This is useful for automating tasks, or for setting up your Agon in a particular way.  When a script file is run, if an error is encountered the system will stop executing the script and report the error, as well as which line the error occurred on.
+All Agon Platform and Console8 MOS releases support the concept of a script file.  This is a file that contains a series of MOS commands that can be executed in sequence.  This is useful for automating tasks, or for setting up your Agon in a particular way.  When a script file is run, if an error is encountered the system will stop executing the script and report the error, as well as which line the error occurred on.
 
 The first type of script file is an "Exec" file, which is a simple text file containing a series of MOS commands, one per line.  You can run an Exec file using the [`Exec` command](mos/Star-Commands.md#exec).
 
@@ -139,16 +139,25 @@ MOS 3.0 has added a second type of script file, which  is an "Obey" file, which 
 
 Quark MOS 1.04 only supports a single script file, `autoexec.txt` that will be run at boot, and offers no command to run a script file.
 
+## Programs and Modules
+
+Executable program files on MOS need to be in a specific format.  This is described in the [Executable file format](mos/Executables.md) documentation.
+
+A future version of MOS is also likely to support the concept of ["modules"](mos/Modules.md).  This will be a way to extend the functionality of MOS to add in new features, whether they are commands, APIs or something else.  The exact details of the module system are still in development.
 
 ## Memory map
 
 Addresses are 24-bit, unless otherwise specified
 
 - `&000000 - &01FFFF`: MOS (Flash ROM)
-- `&040000 - &0BDFFF`: User RAM
-- `&0B0000 - &0B7FFF`: Storage for loading MOS star command executables off SD card
-- `&0BC000 - 0BFFFFF`: Global heap and stack
+- `&040000 - &0AFFFF`: User RAM *
+- `&0B0000 - &0B7FFF`: [Moslet](#moslets)/[Module](mos/Modules.md) memory space
+- `&0B8000 - &0BBFFF`: Reserved for MOS
+- `&0BC000 - 0BFFFFF`: Global (MOS) heap and stack
+- ...
+- `&B7E000 - &B7FFFF`: The eZ80's 8kb of internal (fast) RAM
 
+\* Technically, user programs can actually use the whole RAM space from `&040000` to `&0BBFFF`, but programs that use memory above `&0AFFFF` may have limitations.  A program that uses the moslet/module memory space for instance will not be able to use moslet-based commands, and when modules are introduced will have limitations on access to functionality provided by modules.  Programs should need to indicate in their [header](mos/Executables.md#advanced-header) whether they are "module safe" or "module compatible".  Guidance on how to make your program "module safe" will be provided in the [MOS Modules](mos/Modules.md) documentation.
 
 ## The Stack
 

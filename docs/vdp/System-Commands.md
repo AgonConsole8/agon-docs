@@ -87,7 +87,7 @@ Any other value will be interpreted as UK.
 
 ## `VDU 23, 0, &82`: Request text cursor position
 
-This command will return the current text cursor position to MOS.  Once the cursor position has been returned the text cursor position data inside MOS's [system state variables](../MOS-API.md#sysvars) will be updated to reflect the current cursor position.
+This command will return the current text cursor position to MOS.  Once the cursor position has been returned the text cursor position data inside MOS's [system state variables](../mos/API.md#sysvars) will be updated to reflect the current cursor position.
 
 ## `VDU 23, 0, &83, x; y;`: Get ASCII code of character at character position x, y
 
@@ -99,7 +99,7 @@ This command will not recognise characters that have been mapped to bitmaps usin
 
 ## `VDU 23, 0, &84, x; y;`: Get colour of pixel at pixel position x, y
 
-This command will return the colour of the pixel at the given pixel position to MOS.  The corresponding [MOS sysvars](../MOS-API.md#sysvars) will be updated to reflect the read pixel colour.
+This command will return the colour of the pixel at the given pixel position to MOS.  The corresponding [MOS sysvars](../mos/API.md#sysvars) will be updated to reflect the read pixel colour.
 
 ## `VDU 23, 0, &85, channel, command, <args>`: Audio commands
 
@@ -116,7 +116,7 @@ Returns the screen dimensions to MOS.  Generally applications should not need to
 This command controls the Real Time Clock within the Agon VDP.
 
 - `VDU 23, 0, &87, 0`: Read the RTC
-    - a data packet will be sent to MOS with the current RTC data, and [MOS sysvars](../MOS-API.md#sysvars) updated accordingly
+    - a data packet will be sent to MOS with the current RTC data, and [MOS sysvars](../mos/API.md#sysvars) updated accordingly
 
 - `VDU 23, 0, &87, 1, y, m, d, h, m, s`: Set the RTC
 
@@ -228,7 +228,7 @@ Sets the wheel acceleration factor to a 24-bit value.  Setting the value to `0` 
 
 ### Mouse data packets
 
-Mouse data packets are sent in response to all of the above commands, and if the mouse has been enabled whenever the mouse is moved.  This ensures that mouse data is constantly updated in [MOS sysvars](../MOS-API.md#sysvars).
+Mouse data packets are sent in response to all of the above commands, and if the mouse has been enabled whenever the mouse is moved.  This ensures that mouse data is constantly updated in [MOS sysvars](../mos/API.md#sysvars).
 
 
 ## `VDU 23, 0, &8A, n`: Set the cursor start column §§§§
@@ -285,7 +285,7 @@ This command will not recognise characters that have been mapped to bitmaps usin
 
 ## `VDU 23, 0, &94, n`: Read colour palette entry n (returns a pixel colour data packet) §§
 
-This command will return the colour of the given palette entry to MOS.  This data is sent using a "screen pixel" data packet.  The corresponding [MOS sysvars](../MOS-API.md#sysvars) related to screen pixel colour will be updated to reflect the read palette entry.
+This command will return the colour of the given palette entry to MOS.  This data is sent using a "screen pixel" data packet.  The corresponding [MOS sysvars](../mos/API.md#sysvars) related to screen pixel colour will be updated to reflect the read palette entry.
 
 The Agon VDP system supports a 64 colour palette, so values in the range of 0-63 will return data on that palette entry.  The following special values are also supported:
 
@@ -483,7 +483,7 @@ Data sent from the VDP to the eZ80's UART0 is sent as a packet in the following 
 
 Words are 16 bit, and sent in little-endian format
 
-In general, as a programmer using an Agon you should not need to worry about the format and contents of any of these packets, as they are handled by MOS.  On receipt of one of these packets, MOS will set [system state variables (sysvars)](../MOS-API.md#sysvars) accordingly.  It may also set a bit in the VDPProtocol status byte sysvar corresponding to the type of data packet received.
+In general, as a programmer using an Agon you should not need to worry about the format and contents of any of these packets, as they are handled by MOS.  On receipt of one of these packets, MOS will set [system state variables (sysvars)](../mos/API.md#sysvars) accordingly.  It may also set a bit in the VDPProtocol status byte sysvar corresponding to the type of data packet received.
 
 If you are performing a command where you need to wait for a response from the VDP, then you will need to wait for the appropriate bit to be set in the VDP protocol byte.  Before you send a command to the VDP you should clear the bit that relates to the command you are about to send.  Once the command has been processed the VDP will set the bit again.  If the bit is not set then there may have been an error processing the command.
 
@@ -500,7 +500,7 @@ Packets:
 - `0x08, delay, rate, led`: Keyboard status - delay and rate are words
 - `0x09, x; y; buttons, wheelDelta, deltaX; deltaY;`: Mouse status - x, y, deltaX and deltaY are words
 
-\* as of VDP 1.04 the RTC data is sent in a packed format, and is stored in the [MOS sysvars](../MOS-API.md#sysvars) in this packed format.  Prior to VDP 1.04 the `dayOfYear` value could be incorrect, as it cannot be guaranteed to fit into a byte.
+\* as of VDP 1.04 the RTC data is sent in a packed format, and is stored in the [MOS sysvars](../mos/API.md#sysvars) in this packed format.  Prior to VDP 1.04 the `dayOfYear` value could be incorrect, as it cannot be guaranteed to fit into a byte.
 
 MOS VDP Protocol flag bits:
 
