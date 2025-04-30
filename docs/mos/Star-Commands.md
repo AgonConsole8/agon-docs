@@ -51,6 +51,8 @@ The flags supported by the `Cat` command are as follows:
 - `-s`: Show system files, introduced in MOS 3.0
 - `-v`: Hide volume information, introduced in MOS 3.0
 
+When running MOS 3.0 with VDP 2.14.0 or later, the output of the `Cat` command and its various aliases can be [automatically paged](./System-Variables.md#autopaged).  When auto-paging is enabled and the output is longer than the screen output will pause at the end of a page, and you will need to press the "shift" key to continue.
+
 ## `CD`
 
 Syntax: `*CD <path>`
@@ -180,7 +182,9 @@ Displays help information for a command.  If no command is provided, a list of a
 
 NB prior to MOS 2.2.0 the `Help` command required a command name to be provided, or the `all` keyword to display all commands.
 
-As of MOS 3.0, the `Help` command will accept a space-separated list of commands to show help for, and will also match commands abreviated with a `.` in the same manner as the command line.  `*Help c.` for example would show help for all commands beginning with `C`.  When running MOS 3.0 with VDP 2.14.0 or later, the output of the `Help` command will automatically be paged; to move on to the next page you will need to press the "shift" key.
+As of MOS 3.0, the `Help` command will accept a space-separated list of commands to show help for, and will also match commands abreviated with a `.` in the same manner as the command line.  `*Help c.` for example would show help for all commands beginning with `C`.
+
+When running MOS 3.0 with VDP 2.14.0 or later, the output of the `Help` command can be [automatically paged](./System-Variables.md#autopaged).  When auto-paging is enabled and the output is longer than the screen output will pause at the end of a page, and you will need to press the "shift" key to continue.
 
 ## `Hotkey`
 
@@ -459,13 +463,17 @@ The name given can use wildcards, specifically `*` to match any number of charac
 
 This command was added in MOS 3.0.
 
+When running MOS 3.0 with VDP 2.14.0 or later, the output of the `Show` command can be [automatically paged](./System-Variables.md#autopaged).  When auto-paging is enabled and the output is longer than the screen output will pause at the end of a page, and you will need to press the "shift" key to continue.
+
 ## `Time`
 
-Syntax:
-- `*Time`
-- `*Time <yyyy> <mm> <dd> <hh> <mm> <ss>`
+Syntax: `*Time [<YYYY> <MM> <DD> <hh> <mm> <ss>]`
 
-Set and read the ESP32 real-time clock
+Set and read the ESP32 real-time clock.
+
+When no parameters are provided, the current date and time will be displayed.  Setting the real-time clock requires a complete set of parameters, including the year, month, day, hour, minute and second.  
+
+It should be noted that the Agon platform has no concept of time zones, or daylight savings time, so you should consider the time set as your local time.
 
 ## `Try`
 
@@ -482,6 +490,10 @@ This command was added in MOS 3.0.
 Syntax: `*Type <filename>`
 
 Display the contents of a text file on the screen.
+
+From MOS 3.0 onwards the `Type` command is tolerant of control characters in the file, and will display them by "escaping" them, showing them as a two character combination of a `|` character followed by a letter corresponding to the control character.  For example, a carriage return will be displayed as `|M`, and a line feed as `|J`.  This is similar to how the `echo` command works.  Prior to MOS 3.0 the `Type` command would not check for control characters and just output the file as-is to the screen which could cause unexpected results.
+
+When running MOS 3.0.1 with VDP 2.14.0 or later, the output of the `Type` command can be [automatically paged](./System-Variables.md#autopaged).  When auto-paging is enabled and the output is longer than the screen output will pause at the end of a page, and you will need to press the "shift" key to continue.
 
 ## `Unset`
 

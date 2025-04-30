@@ -348,7 +348,7 @@ This command will send an updated keycode data packet to MOS with the current st
 
 (This command is used by MOS 3.0 at boot time to determine if the left shift key is pressed to signals that the boot file should not be run from the SD card.)
 
-## `VDU 23,0, &9A`: Temporarily enable paged mode §§§§§§§§
+## `VDU 23,0, &9A`: Temporarily enable paged mode §§§§§§§§ {#vdu-23-0-9a}
 
 This command temporarily enables the VDP's "paged mode", as if a `VDU 14` command had been sent.  Temporary paged mode remains active until one frame after the VDP no longer has any VDU commands to process, at which point the paged mode is restored to its previous setting.
 
