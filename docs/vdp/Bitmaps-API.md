@@ -218,7 +218,7 @@ Please note that at this time to use hardware sprites you need to enable the cor
 
 This command reverses the effect of the `VDU 23, 27, 19` command, and sets the current sprite to be drawn as a software sprite.  This command is only supported on VDP 2.12.0 or later.
 
-### `VDU 23, 27, 21, n`; Replace currently frame of current sprite with bitmap n ***
+### `VDU 23, 27, 21, n`; Replace currently selected frame of current sprite with bitmap n ***
 
 This command replaces the currently selected frame of the current sprite with the bitmap with the given 8-bit ID.  The bitmap must already be set up and available for use.  Attempting to assign a bitmap has not yet been defined to a frame will be ignored.  This command is only supported in VDP 2.12.0 or later.
 
@@ -226,7 +226,7 @@ This command replaces the currently selected frame of the current sprite with th
 
 This command is identical to `VDU 23, 27, 6, n`, but uses a 16-bit buffer ID instead of an 8-bit bitmap ID.
 
-### `VDU 23, 27, &35, n;`: Replace currently frame of current sprite with bitmap n using a 16-bit buffer ID ***
+### `VDU 23, 27, &35, n;`: Replace currently selected frame of current sprite with bitmap n using a 16-bit buffer ID ***
 
 This command replaces the currently selected frame of the current sprite with the bitmap with the given 16-bit buffer ID.  The bitmap must already be set up and available for use.  Attempting to assign a bitmap has not yet been defined to a frame will be ignored.  This command is only supported in VDP 2.12.0 or later.
 

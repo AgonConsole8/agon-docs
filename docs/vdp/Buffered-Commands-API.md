@@ -580,10 +580,10 @@ It is useful for constructing a single buffer from multiple sources, such as for
 
 ## Commands 32 and 33: Create or manipulate a 2D or 3D affine transformation matrix
 
-`VDU 23, 0, &A0, bufferId; 32, operation, [<format>, <arguments...>]`
+`VDU 23, 0, &A0, bufferId; 32, operation, [<format>, <arguments...>]`<br>
 `VDU 23, 0, &A0, bufferId; 33, operation, [<format>, <arguments...>]`
 
-As of the time of writing, this command is experimental and subject to change.  It features in the Console8 VDP 2.9.0 release, but to use this command you need to enable the feature by setting the affine transforms test flag.  This is done using the command `VDU 23, 0, &F8, 1; 1;`.  The exact operations and arguments supported by this command may change in the future.  Command 33 was added in the Console8 VDP 2.10.0 release.
+As of the time of writing, this command is experimental and subject to change.  It features in the VDP 2.9.0 release, but to use this command you need to enable the feature by setting the affine transforms test flag.  This is done using the command `VDU 23, 0, &F8, 1; 1;`.  The exact operations and arguments supported by this command may change in the future.  Command 33 was added in the VDP 2.10.0 release.
 
 The purpose of these commands is to create or manipulate an affine transform matrix stored in a buffer.  Affine transforms are used to manipulate 2D or 3D points, and can be used to perform operations such as translation, rotation, scaling, and shearing.  Command 32 creates or manipulates a 2D affine transform matrix, and command 33 creates or manipulates a 3D affine transform matrix.  Affine transforms are used to manipulate 2D or 3D points, and can be used to perform operations such as translation, rotation, scaling, and shearing.
 
@@ -609,6 +609,7 @@ Several different operations are supported by this command.  When an operation i
 | 9 | 2 (3 for 3D) | Skew X and Y by angle in degrees |
 | 10 | 2 (3 for 3D) | Skew X and Y by angle in radians |
 | 11 | 6 (12 for 3D) | Transform (combine with another transform matrix - requires 6 values to be sent, or 12 values for 3D - the final matrix row will be set to `0, 0, 1`, or `0, 0, 0, 1` for a 3D matrix) |
+| 12 | `bitmapId;`, 2 | Translate X and Y by a proportion of the size (width/height) of a given bitmap.  This operation requires a 16-bit bitmap ID to immediately follow the operation byte, before the format byte and X, Y values.  NB the 3D version of this command will also only perform an X, Y translation, and thus also only accepts 2 arguments |
 
 Repeatedly calling this command with different operations will build up a transform matrix in the buffer.  It should be noted that if the buffer is not cleared out before starting to build up a new matrix (or set to an identity matrix) then the results may not be as expected.
 
@@ -648,9 +649,9 @@ When the "Separate arguments have individual format bits" flag is set then each 
 
 ## Command 34: Create or combine a matrix of arbitrary dimensions
 
-`VDU 23, 0, &A0, bufferId; 23, operation, rows, columns, [<arguments>]`
+`VDU 23, 0, &A0, bufferId; 34, operation, rows, columns, [<arguments>]`
 
-As of the time of writing, this command is experimental and subject to change.  It features in the Console8 VDP 2.10.0 release, but to use this command you need to enable the feature by setting the affine transforms test flag.  This is done using the command `VDU 23, 0, &F8, 1; 1;`.  The exact operations and arguments supported by this command may change in the future.
+As of the time of writing, this command is experimental and subject to change.  It features in the VDP 2.10.0 release, but to use this command you need to enable the feature by setting the affine transforms test flag.  This is done using the command `VDU 23, 0, &F8, 1; 1;`.  The exact operations and arguments supported by this command may change in the future.
 
 This command expands on commands 32 and 33 to allow for the creation of a matrix of arbitrary dimensions.  The matrix is stored in a buffer, and is stored in row-major order.  The matrix is stored as 32-bit single-precision IEEE-754 floating point values.  The matrix is stored in a single block in the buffer.
 
@@ -691,7 +692,7 @@ Similar to commands 32 and 33, it is possible to perform some advanced operation
 
 `VDU 23, 0, &A0, bufferId; 40, options, transformBufferId; sourceBitmapId; [width; height;]`
 
-As of the time of writing, this command is experimental and subject to change.  It features in the Console8 VDP 2.10.0 release, but to use this command you need to enable the feature by setting the affine transforms test flag.  This is done using the command `VDU 23, 0, &F8, 1; 1;`.  The exact options and arguments supported by this command may change in the future.
+As of the time of writing, this command is experimental and subject to change.  It features in the VDP 2.10.0 release, but to use this command you need to enable the feature by setting the affine transforms test flag.  This is done using the command `VDU 23, 0, &F8, 1; 1;`.  The exact options and arguments supported by this command may change in the future.
 
 This command applies an affine transformation to a bitmap, creating a new RGBA2222 format bitmap.  It will replace the target buffer with the new bitmap, and creates a corresponding bitmap.
 
@@ -710,7 +711,7 @@ Usually the target bitmap will be the same size as the source bitmap, but it is 
 
 `VDU 23, 0, &A0, bufferId; 41, options, format, transformBufferId; sourceBufferId; [<arguments>]`
 
-As of the time of writing, this command is experimental and subject to change.  It features in the Console8 VDP 2.10.0 release, but to use this command you need to enable the feature by setting the affine transforms test flag.  This is done using the command `VDU 23, 0, &F8, 1; 1;`.  The exact options and arguments supported by this command may change in the future.
+As of the time of writing, this command is experimental and subject to change.  It features in the VDP 2.10.0 release, but to use this command you need to enable the feature by setting the affine transforms test flag.  This is done using the command `VDU 23, 0, &F8, 1; 1;`.  The exact options and arguments supported by this command may change in the future.
 
 This command will copy the source buffer and transform sets of values held within it using the given format and transform matrix.  The transformed values will be stored in the target buffer, replacing any existing data that may have been there.  The options byte, and optional arguments (depending on which bits of the options byte are set), control how the transformation is applied.
 
@@ -857,7 +858,7 @@ This command is a debugging command that will print out info on a buffer to the 
 
 The info printed to the console will tell you how many blocks/streams are stored against the `bufferId`.  If the buffer contains a transform matrix, then the matrix will be printed out in a human-readable format.  For other buffers the whole of the first block/stream will be output to the console in hexadecimal format.  NB the whole block/stream will be output, so be aware that if the buffer is large then a lot of data will be sent to the console.
 
-Before Console8 VDP 2.10.0 this command would only work if you were using a VDP compiled with the `DEBUG` flag set.  As of Console8 VDP 2.10.0 this command will now work without the flag being set.
+Before VDP 2.10.0 this command would only work if you were using a VDP compiled with the `DEBUG` flag set.  As of VDP 2.10.0 this command will now work without the flag being set.
 
 
 ## Examples

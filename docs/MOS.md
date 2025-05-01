@@ -91,6 +91,8 @@ The MOS CLI is loosely inspired by the Acorn MOS present in the BBC Micro and la
 
 MOS works alongside the Agon's VDP, using the facilities of the VDP to display text on the screen and accept input from the keyboard.  The VDP provides some useful facilities, such as a "paged mode" that will stop the screen from scrolling until you press the `SHIFT` key to continue, or `ESCAPE` to exit.  Paged mode can be toggled on and off by pressing `CTRL+N` and `CTRL+O` respectively.
 
+In MOS 3 (when used with VDP 2.14.0 or later) the MOS CLI can also [automatically use paged mode](mos/System-Variables.md#autopaged) with commands that produce a lot of output.
+
 ### The MOS line editor
 
 MOS provides a simple line editor that allows you to edit the current command line before submitting it to the system.  This same line editor is available for third-party applications like BBC BASIC to use.

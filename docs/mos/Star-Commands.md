@@ -2,15 +2,15 @@
 
 MOS contains a number of inbuilt commands that are always available to the MOS CLI.  These are sometimes referred to as "star commands" because the MOS command line interpreter has historically used a `*` character as its command prompt, and additionally these commands can be used from inside BBC BASIC by prefixing them with a `*` character.
 
-MOS commands are case-insensitive, and can be abbreviated with a dot `.`.  For example, `DELETE myfile` and `DEL. myfile` are equivalent.  When you abbreviate a command, the first matching command is used, so whilst there are several commands that begin with `C`, `C.` will execute the `CAT`.  Commands that accept multiple parameters will expect those parameters to be space-delimited.
+MOS commands are case-insensitive, and can be abbreviated with a dot `.`.  For example, `Delete myfile`, `DELETE myfile` and `DEL. myfile` are all equivalent.  When you abbreviate a command, the first matching command is used, so whilst there are several commands that begin with `C`, `C.` will execute the `CAT`.  Commands that accept multiple parameters will expect those parameters to be space-delimited.
 
 You should note that across versions of MOS, command abbreviations may change, as new commands may be added.  When writing script files, or using commands in BBC BASIC programs, it is recommended to use the full command name to avoid any potential issues with command abbreviations changing.
 
 Commands that expect a number will, by default, expect that number to be given in decimal.  To specify a hexadecimal number, prefix it with an ampersand `&`.  For example, `*JMP &8000` will jump to address `&8000`.
 
-MOS 3 extends the number format support of MOS 2, allowing numbers to be provided in various other formats.  Hexadecimal numbers can be specified with a `0x` prefix, or an `h` suffix.  Numbers in any numeric base from 2 to 36 can also be used by prefixing the number with the base (in decimal) followed by an underscore and then the number.  For instance, `2_111` indicates the binary number `111` (7 in decimal), `16_41` is hexadecimal number `41` (65 in decimal), and `8_72` is octal `72` (58 in decimal).
+MOS 3 extends the CLI number support allowing them to be provided in various other formats.  Hexadecimal numbers can be specified with a `0x` prefix, or an `h` suffix.  Numbers in any numeric base from 2 to 36 can also be used by prefixing the number with the base (in decimal) followed by an underscore and then the number.  For instance, `2_111` indicates the binary number `111` (7 in decimal), `16_41` is hexadecimal number `41` (65 in decimal), and `8_72` is octal `72` (58 in decimal).
 
-To aid users coming from other systems, several commands have aliases built in, for example `DELETE` and `ERASE` are equivalent.  The aliases are listed in the command descriptions below.
+To aid users coming from other systems, several commands have aliases built in, for example [`Delete`](#delete) and [`Erase`](#erase) are equivalent.  The aliases are listed in the command descriptions below.
 
 As of MOS 3.0, MOS also supports [user-defined aliases](System-Variables.md#command-aliases).  For compatibility the existing aliases supported in MOS 2 are maintained.  MOS 3.0 also allows the use of [system variables](System-Variables.md) in the command line.  For information on how variables are interpreted and expanded in commands, see the [`echo` command](#echo).  Support for [custom files paths](System-Variables.md#path-variables) in commands, which can be used for any command that requires a file or directory name, is also now included.
 
@@ -20,7 +20,23 @@ Any command that requires a memory address will expect a 24-bit address value.
 
 The commands available in MOS are as follows:
 
-## `%`
+## '#' {#comment-hash}
+
+Syntax: `*#<text>`
+
+The command interpreter ignores any command that starts with a `#` character.  This can be used to add comments to a script file, or to disable a command in a script without deleting it.
+
+Support for comments using `#` was added in MOS 2.2.0.
+
+## `| ` {#comment-pipe}
+
+Syntax: `*| <text>`
+
+The command interpreter will ignore any command that starts with a `|` character followed by a space.  As with [`#`](#comment-hash), this can be used to add comments to a script file, or to disable a command in a script without deleting it.
+
+Support for comments using `| ` was added in MOS 3.0.
+
+## `%` {#skip-aliases}
 
 Syntax: `*%<command>`
 
@@ -50,6 +66,8 @@ The flags supported by the `Cat` command are as follows:
 - `-a`: Show hidden files, introduced in MOS 3.0
 - `-s`: Show system files, introduced in MOS 3.0
 - `-v`: Hide volume information, introduced in MOS 3.0
+
+When running MOS 3.0 with VDP 2.14.0 or later, the output of the `Cat` command and its various aliases can be [automatically paged](./System-Variables.md#autopaged).  When auto-paging is enabled and the output is longer than the screen output will pause at the end of a page, and you will need to press the "shift" key to continue.
 
 ## `CD`
 
@@ -87,7 +105,7 @@ From MOS 2.2.0 onwards, the `Copy` command will also support the use of wildcard
 
 Syntax: `*CP <source> <destination>`
 
-This command is an alias for the `Copy` command.
+This command is an alias for the [`Copy`](#copy) command.
 
 Available from MOS 2.2.0 onwards.
 
@@ -115,7 +133,7 @@ This command is an alias for the [`Cat`](#cat) command.  Please see the `Cat` co
 
 Syntax: `*Do <command>`
 
-Execute a command.  The command string used here will be sent through the GSTrans transformation process before use, expanding any [system variables](System-Variables.md) that may be present in the arguments.  One use of this would be to allow for a variable to define which command to execute, which is not usually possible with the command interpreter.  Another use is to allow for commands that do not expand variables by default to include variable values, such as the [`PrintF`](#printf) command.
+Execute a command.  The command string passed to `Do` will be sent through the GSTrans transformation process before use, expanding any [system variables](System-Variables.md) that may be present in the arguments.  One use of this would be to allow for a variable to define which command to execute, which is not usually possible with the command interpreter.  Another use is to allow for commands that do not expand variables by default to use variable values, such as the [`PrintF`](#printf) command.
 
 This command was added in MOS 3.0.
 
@@ -142,7 +160,7 @@ The `|char` and `<num>` tokens provide a simple way to send "control codes" to t
 
 The `|char` token works with a single character, which will be replaced with the ASCII value of the uppercase character minus 64.  This means that a value of `|A` or `|a` will be replaced with character 1, `|B` or `|b` will be replaced with character 2, and so on, equivalent to performing a `VDU 1` or `VDU 2` respectively for `|a` and `|b`.  This provides a simple way to insert control codes into your text.  For example using `|M|J` will send characters 13 and 10, a carriage return and a line feed.  Using `|g` will send a "bell" character and make a beep sound.
 
-Similarly the `<num>` token will be replaced with the character represented by the number given.  For example using `|65` will send the character `A`, and `|13` will send a carriage return.  The number conversion however will support various formats of number.  You can specify a specific base to be used for a number, so `<2_111>` specifies using number 111 in base 2, which will equate to 7 in decimal, and thus be the same as `|g` and make a beeping sound.  Similarly `<3_21>` also produces a beep.  Bases up to 36 are supported, with "digits" in bases over 10 using letters - the most common base over 10 would be base 16, hexadecimal.  You can also specify a hexadecimal number using the `&` prefix, so `<&41>` will also send the character `A`.
+A `<num>` token will be replaced with the character represented by the number given.  For example using `<65>` will send the character `A`, and `<13>` will send a carriage return.  Various formats of number are recognised.  You can specify a specific base to be used for a number, so `<2_111>` specifies using number 111 in base 2, which will equate to 7 in decimal, and thus be the same as `|g` and make a beeping sound.  Similarly `<3_21>` also produces a beep (as 21 in base 3 is 7 in decimal).  Bases up to 36 are supported, with "digits" in bases over 10 using letters - the most common base over 10 would be base 16, hexadecimal.  You can also specify a hexadecimal number using the `&` prefix, so `<&41>` will also send the character `A`.
 
 These options are essentially just VDU commands that are being sent to the VDP - you should refer to the VDP documentation for all the commands available.
 
@@ -180,7 +198,9 @@ Displays help information for a command.  If no command is provided, a list of a
 
 NB prior to MOS 2.2.0 the `Help` command required a command name to be provided, or the `all` keyword to display all commands.
 
-As of MOS 3.0, the `Help` command will accept a space-separated list of commands to show help for, and will also match commands abreviated with a `.` in the same manner as the command line.  `*Help c.` for example would show help for all commands beginning with `C`.  When running MOS 3.0 with VDP 2.14.0 or later, the output of the `Help` command will automatically be paged; to move on to the next page you will need to press the "shift" key.
+As of MOS 3.0, the `Help` command will accept a space-separated list of commands to show help for, and will also match commands abreviated with a `.` in the same manner as the command line.  `*Help c.` for example would show help for all commands beginning with `C`.
+
+When running MOS 3.0 with VDP 2.14.0 or later, the output of the `Help` command can be [automatically paged](./System-Variables.md#autopaged).  When auto-paging is enabled and the output is longer than the screen output will pause at the end of a page, and you will need to press the "shift" key to continue.
 
 ## `Hotkey`
 
@@ -198,7 +218,7 @@ Using this command you can set the function keys `F1-F12` on your to perform a s
 
 Pressing a function key that has a hotkey definition set will result in the current input line being replaced with the defined hotkey string and "return" being automatically pressed.
 
-As of MOS 3.0, hotkeys are stored using [system variables](System-Variables.md#hotkeys), and can be defined using the `Set` or `SetMacro` commands.  Via the use of `Set` or `SetMacro` you can define hotkeys that do not automatically press "return".  For more information how how hotkeys are handled, and suggestions on how to allow a hotkey to trigger multiple commands, see the [hotkey system variable documentation](System-Variables.md#hotkeys).
+As of MOS 3.0, hotkeys are stored using [system variables](System-Variables.md#hotkeys), and can be defined using the [`Set`](#set) or [`SetMacro`](#setmacro) commands.  By directly setting the corresponding variables you can define hotkeys that do not automatically press "return".  For more information how how hotkeys are handled, and suggestions on how to allow a hotkey to trigger multiple commands, see the [hotkey system variable documentation](System-Variables.md#hotkeys).
 
 ## `If`
 
@@ -272,23 +292,23 @@ If you have ejected your SD card, you can use this command to re-mount it.
 
 Syntax: `*Move <source> <destination>`
 
-This command is an alias for the `RENAME` command.
+This command is an alias for the [`Rename`](#rename) command.
 
 ## `MV`
 
 Syntax: `*MV <source> <destination>`
 
-This command is an alias for the `RENAME` command, and is only available from MOS 2.2.0 onwards.
+This command is an alias for the [`Rename`](#rename) command, and is available from MOS 2.2.0 onwards.
 
 ## `Obey`
 
 Syntax: `*Obey [-v] <filename> [<arguments>]`
 
-Runs an Obey (script) file. The `Obey` command works in a similar manner to [`Exec`](#exec) but offers a few more features. Firstly running a script file with `obey` will set a system variable `Obey$Dir` to reflect the directory in which the obey file is located. Secondly lines in an Obey file will have [argument substitution](Argument-Substitution.md) run on them before they are executed.
+Runs an Obey (script) file. The `Obey` command works in a similar manner to [`Exec`](#exec) but offers a few more features. Firstly running a script file with `Obey` will set a system variable `Obey$Dir` to reflect the directory in which the obey file is located. Secondly lines in an Obey file will have [argument substitution](Argument-Substitution.md) run on them before they are executed.
 
 The `-v` flag makes the Obey file execute in "verbose" mode, printing each line out before it is executed.
 
-As with `exec`, if a command fails in an obey file then the file execution will stop and the error from that command reported.
+As with [`Exec`](#exec), if a command fails in an obey file then the file execution will stop and the error from that command reported.
 
 By convention, an Obey file should use the file extension `.obey`.
 
@@ -298,7 +318,7 @@ Support for this command was added in MOS 3.0.
 
 Syntax: `*PrintF <string>`
 
-Prints the given string to the screen.  This command is similar to the `Echo` command, but supports a subset of unix-style escape transformations for the string, does not expand system variables by default, and does not automatically add a newline to the printed output.  Support for this command was added in MOS 2.3.0.
+Prints the given string to the screen.  This command is similar to the [`Echo`](#echo) command, but supports a subset of unix-style escape transformations for the string, does not expand system variables by default, and does not automatically add a newline to the printed output.  Support for this command was added in MOS 2.3.0.
 
 The following escape sequences are supported:
 
@@ -313,7 +333,7 @@ The following escape sequences are supported:
 
 If an invalid escape sequence is found, it will be ignored/skipped.
 
-Please note that if you wish to use the `PrintF` command with [system variable](System-Variables.md) values then you can run this command via the [`do`](#do) command.  For example `*PrintF <Sys$Time>` would normally just output the string `<Sys$Time>`, but as the `do` command expands any variables before processing the resultant command `*do PrintF <Sys$Time>` would print the current time.
+Please note that using the [`Do`](#do) command will allow you to use [system variables](System-Variables.md) with the `PrintF` command, as any variables will be expanded.  So whilst `*PrintF <Sys$Time>` would just output the string `<Sys$Time>`, the current time can be printed using `*Do PrintF <Sys$Time>`.
 
 ## `Rename`
 
@@ -337,7 +357,7 @@ As of MOS 3.0, the `Rename` command supports the use of [system variables](Syste
 
 Syntax: `*RM [-f] <filename>`
 
-This command is an alias for the [`Delete`](#delete) command, and is only available from MOS 2.2.0 onwards.
+This command is an alias for the [`Delete`](#delete) command, and is available from MOS 2.2.0 onwards.
 
 ## `Run`
 
@@ -353,7 +373,7 @@ More information about parameters that will be passed to an executable when it i
 
 Syntax: `*RunBin <filename> [<arguments>]`
 
-This command will load and run a binary file. It differs from performing a `load` followed by a `run` in that it will work out the appropriate memory address to load the file into.  This is done by comparing the path to the given file with the current [`Moslet$Path` system variable](System-Variables.md#system-path-variables), so moslets will get loaded and run at the appropriate moslet memory location.
+This command will load and run a binary file. It differs from performing a [`Load`](#load) followed by a [`Run`](#run) in that it will work out the appropriate memory address to load the file into.  This is done by comparing the path to the given file with the current [`Moslet$Path` system variable](System-Variables.md#system-path-variables), so moslets will get loaded and run at the appropriate moslet memory location.
 
 This command was added in MOS 3.0.
 
@@ -427,9 +447,9 @@ From MOS 3.0 onwards, the `Set` command can also be used to set [system variable
 
 When you use this command a string-type system variable of the given name will either be set or changed to the given value.
 
-Some variables provided by MOS are "code" type variables, which means that they are not just a simple string, but have some special behaviour.  Examples of these are the `Sys$Date`, `Sys$Time` and `Sys$Year` variables which expose the real-time clock as system variables.  Attempting to set either the time or date variable will adjust the real-time clock on the system.  The prior uses of the `Set` command for `keyboard` and `console` are both supported via "code" variables, so existing scripts that use those commands will continue to work.
+Some variables provided by MOS are "code" type variables, which means that they are not just a simple string, but have some special behaviour.  Examples of these are the `Sys$Date`, `Sys$Time` and `Sys$Year` variables which expose the real-time clock as system variables.  Attempting to set any of these date/time variables will adjust the real-time clock on the system.  The prior uses of the `Set` command for `keyboard` and `console` are both supported via "code" variables, so existing scripts that use those commands will continue to work.
 
-It should be noted that the "value" part of this command is transformed when the variable is set, so for example `Set TimeNow The time is <sys$time>` will set the `TimeNow` variable to a string with the time when the command was executed.  Thus if you then did an `echo <timenow>` you would see the time when the `set` command was run.  To avoid this problem you should use the `SetMacro` command instead.
+It should be noted that the "value" part of this command is transformed when the variable is set, so for example `Set TimeNow The time is <sys$time>` will set the `TimeNow` variable to a string with the time when the command was executed.  Thus if you then did an `Echo <timenow>` you would see the time when the `Set` command was run.  To avoid this problem you should use the [`SetMacro`](#setmacro) command instead.
 
 ## `SetEval`
 
@@ -445,7 +465,7 @@ This command was added in MOS 3.0.
 
 Syntax: `*SetMacro <variable-name> <value>`
 
-This works in a similar manner to the `set` command but will set a "macro" style variable.  With a macro, the variable value is not pre-transformed when the variable is set, but instead will get transformed when the variable is used.  This means that `SetMacro TimeNow The time is <sys$time>` would mean that a command to `echo <TimeNow>` would show the time when the `echo` command is executed.
+This works in a similar manner to the [`Set`](#set) command but will set a "macro" style variable.  With a macro, the variable value is not pre-transformed when the variable is set, but instead will get transformed when the variable is used.  This means that `SetMacro TimeNow The time is <sys$time>` would mean that a command to `Echo <TimeNow>` would show the time when the command is executed, not when the variable was defined.
 
 This command was added in MOS 3.0.
 
@@ -459,13 +479,17 @@ The name given can use wildcards, specifically `*` to match any number of charac
 
 This command was added in MOS 3.0.
 
+When running MOS 3.0 with VDP 2.14.0 or later, the output of the `Show` command can be [automatically paged](./System-Variables.md#autopaged).  When auto-paging is enabled and the output is longer than the screen output will pause at the end of a page, and you will need to press the "shift" key to continue.
+
 ## `Time`
 
-Syntax:
-- `*Time`
-- `*Time <yyyy> <mm> <dd> <hh> <mm> <ss>`
+Syntax: `*Time [<YYYY> <MM> <DD> <hh> <mm> <ss>]`
 
-Set and read the ESP32 real-time clock
+Set and read the ESP32 real-time clock.
+
+When no parameters are provided, the current date and time will be displayed.  Setting the real-time clock requires a complete set of parameters, including the year, month, day, hour, minute and second.  
+
+It should be noted that the Agon platform has no concept of time zones, or daylight savings time, so you should consider the time set as your local time.
 
 ## `Try`
 
@@ -473,7 +497,7 @@ Syntax: `*Try <command>`
 
 `Try` will perform the given command, trapping any errors that may occur.  It will set `Try$ReturnCode` with the return code value for the command, and if an error occurred it will set `Try$Error` to the corresponding error string.
 
-The `Try` command allows for commands that can fail to be included in script files that are run using `exec` or `obey` as they allow for the execution of the script to continue.
+The `Try` command allows for commands that can fail to be included in script files that are run using [`Exec`](#exec) or [`Obey`](#obey) as they allow for the execution of the script to continue.
 
 This command was added in MOS 3.0.
 
@@ -483,11 +507,15 @@ Syntax: `*Type <filename>`
 
 Display the contents of a text file on the screen.
 
+From MOS 3.0 onwards the `Type` command is tolerant of control characters in the file, and will display them by "escaping" them, showing them as a two character combination of a `|` character followed by a letter corresponding to the control character.  For example, a carriage return will be displayed as `|M`, and a line feed as `|J`.  This is similar to how the [`Echo`](#echo) command works.  Prior to MOS 3.0 the `Type` command would not check for control characters and just output the file as-is to the screen which could cause unexpected results.
+
+When running MOS 3.0.1 with VDP 2.14.0 or later, the output of the `Type` command can be [automatically paged](./System-Variables.md#autopaged).  When auto-paging is enabled and the output is longer than the screen output will pause at the end of a page, and you will need to press the "shift" key to continue.
+
 ## `Unset`
 
 Syntax: `*Unset <variable-name>`
 
-Unsets a system variable matching the given variable name.  This will work for any variable set, except for code variables which cannot be unset.  As with the `show` command, the variable name given can include wildcards, in which case all variables that match the given name pattern will be removed.
+Unsets a system variable matching the given variable name.  This will work for any variable set, except for code variables which cannot be unset.  As with the [`Show`](#show) command, the variable name given can include wildcards, in which case all variables that match the given name pattern will be removed.
 
 ## `VDU`
 

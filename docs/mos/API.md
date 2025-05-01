@@ -337,6 +337,8 @@ Returns:
 
 - `A`: File handle, or 0 if couldn't open
 
+Please note that whilst this API has always been documented as requiring a zero-terminated string for the filename, this was not actually _strictly_ true.  It actually interpreted any control character (0-31) as a termination character.  MOS 3.0.0 changed this behaviour to be a strict zero-terminated string, but it was found that several keywords in BBC BASIC (`OPENIN`, `OPENOUT` and `OPENUP`) were failing to work because they were sending a carriage-return (13) as their termination character.  MOS 3.0.1 has been changed to support control-character termination again, thus fixing compatibility with BBC BASIC.  You are, however, strongly advised to use zero-terminated strings in your code, as relying on control character termination can cause other issues.
+
 #### File open modes 
 
 The mode is a number that indicates rules as to how the file will be opened.  Several different modes are available, and these values can be combined using a bitwise OR operation.  The values supported are inherited from FatFS, and are as follows:
@@ -1118,7 +1120,7 @@ NB path resolution does not support resolving paths that contain wildcards in th
 
 Parameters:
 
-- `HL(U)`: Pointer to the path to resolve
+- `HL(U)`: Pointer to the path to resolve (zero terminated)
 - `IX(U)`: Pointer to destination buffer to store the resolved path (optional - set to zero for length count only)
 - `DE(U)`: Length of the destination buffer
 - `IY(U)`: Pointer to a directory object to persist between calls (optional, set to zero to omit)

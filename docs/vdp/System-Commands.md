@@ -15,6 +15,7 @@ Please note that not all versions of the VDP support the complete command set.  
  §§§§§ Requires Console8 VDP 2.8.0 or above<br>
  §§§§§§ Requires Console8 VDP 2.9.0 or above<br>
  §§§§§§§ Requires Console8 VDP 2.12.0 or above<br>
+ §§§§§§§§ Requires Console8 VDP 2.14.0 or above<br>
 
 Commands between &80 and &89 will return their data back to the eZ80 via the [VDP serial protocol](#vdp-serial-protocol).
 
@@ -340,6 +341,18 @@ Irrespective of whether the VDP has done anything with a control key, or whether
 Until Console8 VDP 2.6.0, this control key behaviour on the VDP was always enabled, and could not be turned off.
 
 From Console8 VDP 2.6.0 onwards, the control keys can be turned off, which may help ensure that unexpected behaviour on the VDP does not occur when using applications running on MOS that may also wish to use these control key combinations.
+
+## `VDU 23, 0, &99, virtualKey`: Request updated keyboard data for a key §§§§§§§
+
+This command will send an updated keycode data packet to MOS with the current state of the given key, using a vdp-gl/fab-gl virtual key code.  Usually you should not have to use this command, as the keyboard data packets are sent automatically whenever a key is pressed or released.
+
+(This command is used by MOS 3.0 at boot time to determine if the left shift key is pressed to signals that the boot file should not be run from the SD card.)
+
+## `VDU 23,0, &9A`: Temporarily enable paged mode §§§§§§§§ {#vdu-23-0-9a}
+
+This command temporarily enables the VDP's "paged mode", as if a `VDU 14` command had been sent.  Temporary paged mode remains active until one frame after the VDP no longer has any VDU commands to process, at which point the paged mode is restored to its previous setting.
+
+This command is useful for applications that need to temporarily enable paged mode, but do not want to change the paged mode setting for the VDP permanently.  For example, MOS 3.0 uses this command to ensure that star commands that can output a lot of text to screen will be automatically paged.
 
 ## `VDU 23, 0, &9B, bufferId;`: Print the contents of a buffer to the screen §§§§§§
 

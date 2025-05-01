@@ -14,7 +14,7 @@ MOS essentially supports two different types of programs; ["moslets"](../MOS.md#
 
 Moslets are always built to be loaded and run at address `0x0B0000`, the start of the "moslet" memory space in the Agon platform's [memory map](../MOS.md#memory-map), and should be smaller than 32 kilobytes in size to fit into that space.
 
-Regular prograns are usually built to be loaded and run at address `0x040000`, the start of the "user RAM" area of memory.  This is the address that MOS will automatically use when loading and running a program.
+Regular programs are usually built to be loaded and run at address `0x040000`, the start of the "user RAM" area of memory.  This is the address that MOS will automatically use when loading and running a program.
 
 MOS 2.3 and later will additionally check to ensure that a program cannot be loaded into memory that will overlap the MOS system area of memory.
 
