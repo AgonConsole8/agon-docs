@@ -13,12 +13,12 @@ There are a few different data types that system variables can be.  The followin
 
 | Type | Description | How to set | How to remove |
 |------|-------------|------------|--------------|
-| String | A string of characters | `*Set` | `*Unset` |
-| Integer | Three-byte integers | `*SetEval` | `*Unset` |
-| Macros | Macros are strings that can be expanded, passed through the GSTrans mechanism, when they are read | `*SetMacro` | `*Unset` |
+| String | A string of characters | [`*Set`](./Star-Commands.md#set) | [`*Unset`](./Star-Commands.md#unset) |
+| Integer | Three-byte integers | [`*SetEval`](./Star-Commands.md#seteval) | [`*Unset`](./Star-Commands.md#unset) |
+| Macros | Macros are strings that can be expanded, passed through the GSTrans mechanism, when they are read | [`*SetMacro`](./Star-Commands.md#setmacro) | [`*Unset`](./Star-Commands.md#unset) |
 | Code | A machine code routine will be called when the variable is read or set. This allows the OS to provide some more sophisticated behaviour, such as access to real-time clock data | n/a | n/a |
 
-The GSTrans mechanism is used by the command line in various ways.  For instance, when setting a system variable using the `*set` command, the string value in the command line will first be passed through the GSTrans mechanism, allowing for variables to be expanded in the string before the variable is set.  The `*echo` command also uses the GSTrans mechanism, allowing for variables to be expanded in the string that is echoed to the screen.
+The GSTrans mechanism is used by the command line in various ways.  For instance, when setting a system variable using the [`*Set`](./Star-Commands.md#set) command, the string value in the command line will first be passed through the GSTrans mechanism, allowing for variables to be expanded in the string before the variable is set.  The [`*Echo`](./Star-Commands.md#echo) command also uses the GSTrans mechanism, allowing for variables to be expanded in the string that is echoed to the screen.
 
 
 ## Naming of system variables
@@ -61,7 +61,11 @@ If an application is started up using an `obey` file, then often the obey file w
 
 ## Command aliases
 
-If you set up a system variable in the format `Alias$Name` then this will set up a new command alias that can be used from the command line with the given name.  For example, one could add a new `mode` command using `*set Alias$Mode vdu 22 %0`.  This would allow you to run the command `mode 1` to change the screen mode to mode 1.  The command will be expanded to `vdu 22 1` when the command is run.
+If you set up a system variable in the format `Alias$Name` then this will set up a new command alias that can be used from the command line with the given name.  For example, one could add a new `Mode` command using `*set Alias$Mode vdu 22 %0`.  This would allow you to run the command `mode 1` to change the screen mode to mode 1.  The command will be expanded to `vdu 22 1` when the command is run.
+
+When attempting to interpret a command, the MOS command interpreter checks for aliases first.  As with regular commands the matching of the command name is not case-sensitive, and the command can be abbreviated with a `.` character.  So if you have defined the `Mode` command alias above, and no other aliases beginning with `m`, then `*m. 1` will be interpreted as `*mode 1`.  Only if no matching alias is found will the system look for a matching in-built command.
+
+Alias resolution can be disabled by prefixing a command with the [`%`](./Star-Commands.md#skip-aliases) character.  So `*%m.` will skip alias resolution and run the first in-built command that matches `m.`, which in MOS 3.0 would be the [`Mem`](./Star-Commands.md#mem) command.  Disabling alias resolution can be useful in script files to ensure you're running the command you expect, and not an alias that may have been defined by the user.
 
 Aliases support [argument substitution](Argument-Substitution.md).  Any unused arguments (beyond the last used argument) will be automatically appended to the end of the resultant command.
 
@@ -115,9 +119,9 @@ If you unset the `CLI$Prompt` variable, the system will revert to displaying the
 
 Setting a variable `CLI$AutoPaged` to any value will enable the auto-paging feature of the CLI, if you are using VDP 2.14.0 or later by [temporarily enabling paged mode](../vdp/System-Commands.md#vdu-23-0-9a).  By default this variable is not set.
 
-When this variable is set then commands that can produce a lot of output will automatically use the VDP's "paged mode" for output.  This means that output will pause after a page of text has been displayed, and output will continue when the user presses the "shift" key.  This behaviour specifically applies to `*dir` (and its various aliases), `*help`, `*show` and `*type`.  Other commands that could produce a lot of output such as running a program or a script explicitly do not use this feature so as to allow the user to control the output.
+When this variable is set then commands that can produce a lot of output will automatically use the VDP's "paged mode" for output.  This means that output will pause after a page of text has been displayed, and output will continue when the user presses the "shift" key.  This behaviour specifically applies to [`*Dir`](./Star-Commands.md#dir) (and its various aliases), [`*Help`](./Star-Commands.md#help), [`*Show`](./Star-Commands.md#show) and [`*Type`](./Star-Commands.md#type).  Other commands that could produce a lot of output such as running a program or a script explicitly do not use this feature so as to allow the user to control the output.
 
-Auto-paging applies whether you are using the MOS command line, or executing MOS commands via some other means, such as using the `mos_oscli` API, or using the command from a BBC BASIC program.
+Auto-paging applies whether you are using the MOS command line, or executing MOS commands via some other means, such as using the [`mos_oscli`](./API.md#0x10-mos_oscli) API, or using the command from a BBC BASIC program.
 
 Support for this variable was added in MOS 3.0.1.  In MOS 3.0.0 the system would always use auto-paging, and the feature could not be disabled.
 
@@ -138,22 +142,22 @@ It should be noted that the `Obey$Dir` variable will not include a trailing `/` 
 
 MOS provides three system variables that expose the current real-time clock information.  These are `Sys$Date`, `Sys$Time` and `Sys$Year`.  The date variable is in the format of `Day, n Mon`.  It is possible to set these variables, and the real-time clock should update accordingly.  The exception to that is setting `Sys$Date` if the value cannot be interpreted as a valid date.
 
-The real-time clock information can also be displayed and updated using the `*time` command
+The real-time clock information can also be displayed and updated using the [`*Time`](./Star-Commands.md#time) command
 
 
 ## Hotkeys: `Hotkey$<n>` {#hotkeys}
 
-Hotkey definitions are stored as system variables in the format `Hotkey$n` where `n` is a number from 1-12 equating to the F1-F12 keys on your keyboard.  Hotkeys can also be defined using the `*hotkey` command.
+Hotkey definitions are stored as system variables in the format `Hotkey$n` where `n` is a number from 1-12 equating to the F1-F12 keys on your keyboard.  Hotkeys can also be defined using the [`*Hotkey`](./Star-Commands.md#hotkey) command.
 
 Hotkey definitions support [argument substitution](Argument-Substitution.md).  Any unused arguments are discarded.
 
-If a hotkey definition is set as a macro variable (using `SetMacro`), then the system will expand the macro when the hotkey is pressed.
+If a hotkey definition is set as a macro variable (using [`SetMacro`](./Star-Commands.md#setmacro)), then the system will expand the macro when the hotkey is pressed.
 
-A hotkey definition that ends with a carriage return character (`|M`) will automatically press return when the hotkey is pressed.  When used in a CLI this means the command will execute immediately.  Hotkeys set using the `*hotkey` will automatically append a carriage return to the end of the command.
+A hotkey definition that ends with a carriage return character (`|M`) will automatically press return when the hotkey is pressed.  When used in a CLI this means the command will execute immediately.  Hotkeys set using the [`*Hotkey`](./Star-Commands.md#hotkey) will automatically append a carriage return to the end of the command.
 
 In MOS 3.0, whilst a hotkey variable can technically contain multiple lines, split by `|M`, the system will only use the first line of the variable, and the rest will be discarded.  This limitation is due to how the MOS line editor works.
 
-If you wish to create a hotkey that can run a sequence of commands then there are two options.  Firstly you could create an obey file, and define a hotkey to run the obey file passing in all the arguments.  Alternatively you could define a command alias that can run a sequence of commands, and define a hotkey to use that alias.  Please note that both of these options are only really suitable for running multiple MOS commands, and cannot be used for multi-line input in other environments such as the BBC BASIC command line.
+If you wish to create a hotkey that can run a sequence of commands then there are two options.  Firstly you could create an obey file, and define a hotkey to run the obey file passing in all the arguments.  Alternatively you could define a command alias that can run a sequence of commands, and define a hotkey to use that alias.  Please note that both of these options are only suitable for running multiple MOS commands, and cannot be used for multi-line input in other environments such as the BBC BASIC command line.
 
 Support for multiple commands in a hotkey may be added in a future version of MOS.
 
