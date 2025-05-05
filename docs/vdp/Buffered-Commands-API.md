@@ -21,7 +21,7 @@ Many of the commands accept an offset within a buffer.  An offset is typically a
 
 At this time the VDP Buffered Commands API does not send any messages back to MOS to indicate the status of a command, or support a mechanism for sending contents of buffers back to MOS.  This will likely change in the future, but that will require changes to agon-mos to support it.
 
-## Command 0: Write block to a buffer
+## Command 0: Write block to a buffer {#command-0}
 
 `VDU 23, 0 &A0, bufferId; 0, length; <buffer-data>`
 
@@ -119,7 +119,7 @@ Care should be taken when using this command within a buffer, as it is possible 
 
 Using a `bufferId` of -1 (65535) will cause the current buffer to be executed.  This can be useful for creating loops within a buffer.  It will be ignored if used outside of a buffered command sequence.
 
-## Command 2: Clear a buffer
+## Command 2: Clear a buffer {#command-2}
 
 `VDU 23, 0 &A0, bufferId; 2`
 
@@ -129,47 +129,52 @@ Please note that this clears out all of the blocks sent to a buffer via command 
 
 Calling this command with a `bufferId` value of -1 (65535) will clear out all buffers.
 
-## Command 3: Create a writeable buffer
+## Command 3: Create a writeable buffer {#create-buffer}
 
 `VDU 23, 0 &A0, bufferId; 3, length;`
 
-This command will create a new writeable buffer with the given ID.  If a buffer with the given ID already exists then this command will do nothing.  This command is primarily intended for use to create a buffer that can be used to capture output using the "set output stream" command (see below), or to store data that can be used for other commands.
+NB it is quite rare that you will want to use this command.  In general, new buffers are best created using the [write buffer](#command-0) command.  You do not need to use this command to create a buffer before using the [write buffer](#command-0) command; doing so will usually lead to errors as you will end up with _two_ blocks in the buffer, the first of which will be empty.  The use of this command to create a buffer in which to store reference data can largely be replaced through the use of [VDP Variables](./VDP-Variables.md).
 
-It is generally quite rare that you will want to use this command.  Typically you will instead want to use command 0 to write data to a buffer.  It is not necessary to use this command before using command 0, and indeed doing so will lead to errors as you will end up with _two_ blocks in the buffer, the first of which will be empty.  If you _do_ wish to use this command to create a buffer for data and then write to it, you would need to use operation 2 of command 5, the "set" operation in the "buffer adjust" command, to set a sequence of bytes in the buffer to the data you want to write.  This is not recommended, as it is much easier to just use command 0 to write a data block to a buffer.
+This command will create a new writeable buffer with the given ID.  If a buffer with the given ID already exists then this command will do nothing; you may therefore wish to [clear the buffer](#command-2) first before using this command.  This command was primarily intended for use to create a buffer that can be used to capture output using the ["set output stream"](#command-4) command, or to store data that can be used for other commands.
+
+If you do wish to use this command to create a buffer to store program data, after using this command you will typically use the "set" operation in the ["buffer adjust"](#command-5) command to change the buffer's contents.  As the [buffer adjust](#command-5) command does not require a "writeable buffer" this is not recommended; it is generally easier to use command 0 to write a data block to a buffer.
 
 This new buffer will be a single empty single block upon creation, containing zeros.
 
 The `length` parameter is a 16-bit integer that specifies the maximum size of the buffer.  This is the maximum number of bytes that can be stored in the buffer.  If the buffer is full then no more data can be written to it, and subsequent writes will be ignored.
 
-After creating a buffer with this command it is possible to use command 0 to write further blocks to the buffer, however this is _probably_ not advisable.
+After creating a buffer with this command it is possible to use the [write buffer](#command-0) command to write further blocks to the buffer, however this is _probably_ not advisable.
 
-A `bufferId` of -1 (65535) and 0 will be ignored, as these values have special meanings for writable buffers.  See command 4.
+Using this command with a `bufferId` of `65535` (-1) and `0` will be ignored, as these values have special meanings for writable buffers.  See [command 4](#command-4).
 
-## Command 4: Set output stream to a buffer
+## Command 4: Set output stream to a buffer {#command-4}
 
 `VDU 23, 0 &A0, bufferId; 4`
 
-NB as of VDP 2.12.0, with the introduction of [VDP Variables](VDP-Variables.md), the primary use case of this command is arguably obsolete, as that provides different mechanisms for buffered command sequences to determine the VDP state.  You are therefore strongly advised to use VDP Variables instead of this command.
+NB: The original intent of this command was to provide a way for buffered command sequences to access to VDP state information.  In general this is no longer necessary, as most of this data can now be accessed via [VDP Variables](./VDP-Variables.md).  As of VDP 2.15, the primary use case for this command is to temporarily prevent the VDP from sending data to MOS when certain commands are being executed.
 
-Sets then current output stream to the buffer with the given ID.  With two exceptions, noted below, this needs to be a writable buffer created with command 3.  If the buffer does not exist, or the first block within the buffer is not writable, then this command will do nothing.
+This command changes the current output stream of the VDP, allowing [VDP protocol](./System-Commands.md#vdp-serial-protocol) data packets to be send to a buffer, or prevented from being sent, instead of being sent to MOS.
 
-By capturing responses to commands, a buffered command sequence can interogate the state of the VDP, using the same commands that programs running on MOS can use, and make decisions based on that state.
+The default output stream for the main VDU command processor is the communications channel from the VDP to MOS running on the eZ80.
 
-Following this command, any subsequent VDU commands that send response packets will have those packets written to the specified output buffer.  This allows the user to capture the response packets from a command sent to the VDP.
+Changes made with this command apply to the current command stream, and any other buffered command sequences that are called from within that sequence.  Once the buffered command sequence has completed, the output stream will be reset to its original value.  (Please note that from VDP 2.8 until 2.14 a bug meant that this behaviour was not observed, and any changes to the output stream applied globally and permanently.  This has been fixed in VDP 2.15.)
 
-By default, the output stream (for the main VDU command processor) is the communications channel from the VDP to MOS running on the eZ80.
+The target buffer must be a writable buffer created with [command 3](#create-buffer), or one of two special buffer IDs.  If the buffer does not exist, or the first block within the target buffer is not writable, then this command will do nothing.
 
-Passing a buffer ID of -1 (65535) to this command will remove/detach the output buffer.  From that point onwards, any subsequent VDU commands that send response packets will have those responses discarded/ignored.
+The two special buffer IDs are:
 
-Passing a buffer ID of 0 to this command will set the output buffer back to its original value for the current command stream.  Typically that will be the communications channel from the VDP to MOS running on the eZ80, but this may not be the case if a nested call has been made.
+- `65535` (-1): This removes/detaches the output stream.  Any subsequent interactions that cause VDP protocol packets to be sent will have those responses discarded/ignored.
+    * This includes both responses from VDU commands and user interactions such as keyboard or mouse update events.
+- `0`: This will set the output stream back to its original value for the current command stream.  Typically that will be the communications channel from the VDP to MOS running on the eZ80, but this may not be the case if a nested call has been made.
+    * NB From VDP 2.8 until 2.14 setting the output stream to 0 would always set the output stream back to the MOS communication channel.  This was a bug that has been fixed in VDP 2.15.
 
-When used inside a buffered command sequence, this command will only affect the output stream for that sequence of commands, and any other buffered command sequences that are called from within that sequence.  Once the buffered command sequence has completed, the output stream will effectively be reset to its original value.
+It should be noted that writable buffers can only be written to until the end of the buffer has been reached; once that happens no more data will be written to the buffer.  It is not currently possible to "rewind" an output stream.  If you are using the command to capture VDP protocol pavkets you should ensure that the buffer is large enough to capture all of the data that is expected to be written to it.  The only current way to "rewind" an output stream would be to clear the buffer and create a new one, and then call set output stream again with the newly created buffer.
 
-It is strongly recommended to only use this command from within a buffered command sequence.  Whilst it is possible to use this command from within a normal VDU command sequence, it is not recommended as it may cause unexpected behaviour.  If you _do_ use it in that context, it is very important to remember to restore the original output channel using `VDU 23, 0, &A0, 0; 4`.  (In the future, this command may be disabled from being used outside of a buffered command sequence.)
+This command should be used with care, as it can cause unexpected behaviour if used incorrectly.  It is strongly recommended to only use this command from within a buffered command sequence.  If you do use it outside of a buffered command sequence, it is important to remember to restore the original output channel using `VDU 23, 0, &A0, 0; 4`.  Failing to do this will mean VDP will stop communicating with MOS, and so basic information such as key presses won't be sent across, effectively causing your Agon to hang.
 
-At present, writable buffers can only be written to until the end of the buffer has been reached; once that happens no more data will be written to the buffer.  It is not currently possible to "rewind" an output stream.  It is therefore advisable to ensure that the buffer is large enough to capture all of the data that is expected to be written to it.  The only current way to "rewind" an output stream would be to clear the buffer and create a new one, and then call set output stream again with the newly created buffer.
+As of VDP 2.15 when this command is used outside of a buffered command sequence the change will be temporary, protecting you from the hanging scenario that has just been described.  As soon as the VDP detects that the current command stream has completed (i.e. there are no pending commands, and a screen refresh has been performed) the output stream will be restored to communicate with MOS.  This can be useful for performing some operations that will set [VDP Variables](./VDP-Variables.md) without having to worry about them also sending data back to MOS.
 
-## Command 5: Adjust buffer contents
+## Command 5: Adjust buffer contents {#command-5}
 
 `VDU 23, 0, &A0, bufferId; 5, operation, offset; [count;] <operand>, [arguments]`
 
