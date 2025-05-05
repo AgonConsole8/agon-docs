@@ -162,7 +162,7 @@ For more information on the various plot commands, please see the [VDP PLOT comm
 
 This command is identical to the BASIC `GCOL` keyword.
 
-## `VDU 19, l, p, r, g, b`: Define logical colour
+## `VDU 19, l, p, r, g, b`: Define logical colour {#vdu-19}
 
 This command sets the colour palette, by mapping a logical colour (i.e. the colour as selected via [`VDU 17, colour`](#vdu-17) or [`VDU 18, mode, colour`](#vdu-18)) to a physical colour.  This is useful for defining custom colours, or for redefining the default colours.
 
@@ -184,11 +184,15 @@ It should be noted that from Console8 VDP 2.10.1 onwards, if you are in a screen
 
 (This is a result of improvements in how the palette is handled.  Prior to VDP 2.10.0 the palette was not being properly changed when an entry was adjusted, which could result in the VDP using incorrect colours when drawing bitmaps.  This issue was fixed in VDP 2.10.0.  That this results in the above described behaviour is considered to be the least worst option.  This may be addressed in a future version of the VDP firmware.)
 
+As of VDP 2.15.0, when this command successfuly changes a palette entry the ["last colour"](./VDP-Variables.md#last-colour) variables will be updated to reflect the palette change that has been made, and any [callbacks](./Buffered-Commands-API.md#command-80) looking for a "palette change" event will be triggered.  
+
 This command is equivalent to the two ways the BASIC `COLOUR` keyword can be used to redefine the colour palette: `COLOUR l, p` or `COLOUR l, r, g, b`.
 
-## `VDU 20`: Reset palette and text/graphics colours and drawing modes §§
+## `VDU 20`: Reset palette and text/graphics colours and drawing modes §§ {#vdu-20}
 
 This command will reset the colour palette to the default palette, and will reset the text and graphics colours and drawing modes to their default values.
+
+From VDP 2.15.0 onwards this command will also set the ["last colour"](./VDP-Variables.md#last-colour) variables, and will trigger a "palette change" [callback](./Buffered-Commands-API.md#command-80) event.  The "last colour" variables will have their red, green and blue values all set to 0, and the logical and physical colour values set to 255.  As 255 is not a valid value for either of these variables this can be used to detect that the palette has been reset.
 
 ## `VDU 21`: Disable screen §§
 

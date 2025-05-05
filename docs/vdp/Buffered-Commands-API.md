@@ -281,7 +281,7 @@ VDU 23, 0, &A0, 3; 5, &C4, 12; 5; 42; 0; 0  : REM 5 bytes; a 40-bit integer
 Take note of how the operand value is padded out with zeros to match the size of the target value.  `42;` is used as a base to send a 16-bit value, with zeros added of either 8-bit or 16-bits to pad it out to the required size.  The "carry" value will be stored at the next offset in the target buffer after the complete target value.  So for a 16-bit value, the carry will be stored at offset 14, for a 24-bit value it will be stored at offset 15, and so on.
 
 
-## Command 6: Conditionally call a buffer
+## Command 6: Conditionally call a buffer {#command-6}
 
 `VDU 23, 0, &A0, bufferId; 6, operation, <checkBufferId; checkOffset; | vduVariableId;> [arguments]`
 
@@ -359,7 +359,7 @@ Call buffer 5 if the value in buffer 2 at offset 7 is less than the value in buf
 VDU 23, 0, &A0, 5; 6, &24, 2; 7; 2; 8;
 ```
 
-## Command 7: Jump to a buffer
+## Command 7: Jump to a buffer {#command-7}
 
 `VDU 23, 0, &A0, bufferId; 7`
 
@@ -369,7 +369,7 @@ This essentially works the same as the call command (command 1), except that it 
 
 Using this command to jump to buffer 65535 (buffer ID -1) is treated as a "jump to end of current buffer".  This will return execution to the caller, and can be useful for exiting a loop.
 
-## Command 8: Conditional Jump to a buffer
+## Command 8: Conditional Jump to a buffer {#command-8}
 
 `VDU 23, 0, &A0, bufferId; 8, operation, checkBufferId; checkOffset; [arguments]`
 
@@ -389,7 +389,7 @@ When jumping to an offset, using buffer ID 65535 is treated as meaning "jump wit
 
 Jumping to an offset that is beyond the end of the buffer is equivalent to jumping to the end of the buffer.
 
-## Command 10: Conditional jump to an offset in a buffer
+## Command 10: Conditional jump to an offset in a buffer {#command-10}
 
 `VDU 23, 0, &A0, bufferId; 10, offset; offsetHighByte, [blockNumber;] [arguments]`
 
@@ -749,7 +749,7 @@ Once this example command has been executed, buffer 30 would contain the same se
 It should be noted that since it is only the coordinates that are transformed, the nature of the PLOT commands themselves will not be changed.  If the transform matrix was created with only "translate" or "scale" operations then the effect will work as expected for all PLOT commands (except for bitmap plots, which would not be drawn scaled as only the target coordinates woulld have changed), but if the transform included "rotate", "shear" or "skew" then results may differ.  PLOT commands that only draw lines, or fill triangles, will draw properly transformed versions of those shapes.  The effect on some other PLOT commands, such as those to fill a rectangle, or plot a circle/arc/sector will differ, as it is just the coordinates that are being transformed.  A rectangle may be drawn with a different size, but its sides will still be drawn aligned to the X and Y axis, and a circle will still be round.
 
 
-## Command 48: Read a VDP variable into a buffer
+## Command 48: Read a VDP variable into a buffer {#command-48}
 
 `VDU 23, 0, &A0, bufferId; 48, options, offset; variableId; [default[;]]`
 
@@ -829,14 +829,20 @@ Support for callbacks was added in VDP 2.12.0.
 
 The `type;` argument is a 16-bit value that specifies which type of callback the buffer is to be used for.  The following types are supported:
 
-| Type | Event |
-| ---- | ----------- |
-| 0 | VSYNC |
-| 1 | Mode change |
+| Type | Event | Caused by |
+| ---- | ----------- | ----------------- |
+| 0 | VSYNC | A new video frame has been displayed |
+| 1 | Mode change | The screen mode has been changed |
+| 3 | Mouse update * | A mouse change has been detected (movement or button press) |
+| 4 | Palette change * | A palette entry has been changed using [`VDU 19`](./VDU-Commands.md#vdu-19) |
 
-When a callback is triggered, the buffer will be run as if a "buffer call" command has been performed.  A buffer can be set to be used for multiple types of callback, and a type can have multiple buffers set to be used for it.  Adding the same buffer to the same type of callback multiple times will have no effect, it will only be called once when the event happens.
+\* Support for mouse and palette change events were added in VDP 2.15.0.
+
+When a callback is triggered, the buffer will be run as if a "buffer call" command has been performed.  A buffer can be set to be used as a callback for events, and an event can have multiple buffers set to be called as callbacks when the event occurs.  Adding the same buffer as a callback for the same event type multiple times will have no effect; it will only be called once when the event happens.
 
 Any VSYNC callbacks that may have been set will be cleared after any mode change.  If you wish to automatically restore VSYNC callbacks after a mode change then you should set a mode change callback with commands to set up your VSYNC callback.
+
+If you are using a palette change event callback in order to derive other palette entries you should note that calling [`VDU 19`](./VDU-Commands.md#vdu-19) from within your callback routine will also trigger your callback, creating an infinite loop.  There are several ways this can be avoided.  The simplest way is to set your derived palette using their corresponding [palette entry variables](./VDP-Variables.md#palette-entries).  This will not trigger the callback, or update the ["last colour" VDP variables](./VDP-Variables.md#last-colour).  There are other methods that can be used which would allow the use of `VDU 19` without causing an infinite loop; this is left as an exercise for the reader.
 
 A buffer will remain as a callback until it is removed or the buffer deleted.  If you wish to have a "one-shot" callback then you should remove the buffer from the callback after it has been triggered.
 

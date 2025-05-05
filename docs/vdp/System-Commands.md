@@ -90,7 +90,7 @@ Any other value will be interpreted as UK.
 
 This command will return the current text cursor position to MOS.  Once the cursor position has been returned the text cursor position data inside MOS's [system state variables](../mos/API.md#sysvars) will be updated to reflect the current cursor position.
 
-## `VDU 23, 0, &83, x; y;`: Get ASCII code of character at character position x, y
+## `VDU 23, 0, &83, x; y;`: Get ASCII code of character at character position x, y {#vdu-23-0-83}
 
 This command will return the ASCII code of the character at the given character position to MOS.  There is a corresponding command `VDU 23, 0, &93, x; y;` that works in the graphics coordinate system.
 
@@ -98,9 +98,11 @@ This command works by comparing pixels on the screen at the given position to th
 
 This command will not recognise characters that have been mapped to bitmaps using `VDU 23, 0, &92, char, bitmapId;`.
 
-## `VDU 23, 0, &84, x; y;`: Get colour of pixel at pixel position x, y
+From VDP 2.15 onwards calling this command will set the ["last character read"](./VDP-Variables.md#last-char) system variable to the character that was read, or set it to zero if the character could not be read.
 
-This command will return the colour of the pixel at the given pixel position to MOS.  The corresponding [MOS sysvars](../mos/API.md#sysvars) will be updated to reflect the read pixel colour.
+## `VDU 23, 0, &84, x; y;`: Get colour of pixel at graphics coordinate x, y {#vdu-23-0-84}
+
+This command will return the colour of the pixel at the graphics coordinate position to MOS.  The corresponding [MOS sysvars](../mos/API.md#sysvars) will be updated to reflect the read pixel colour.
 
 ## `VDU 23, 0, &85, channel, command, <args>`: Audio commands
 
@@ -194,7 +196,7 @@ There are several system mouse cursors available for use.  These have been inher
 
 Additional cursors can be added using [`VDU 23, 27, &40, hotX, hotY`](./Bitmaps-API.md#mouse-cursor) which will allow you to create a custom mouse cursor using a bitmap.  Once your new cursor has been defined you will be able to select it using this command.  Please note the inbuilt system mouse cursors cannot be overridden.
 
-Whilst this command will only work if the mouse has been successfully [enabled](#enable-mouse), it is possible to display a mouse cursor without a mouse being connected/enabled by setting the equivalent [VDP Variable](./VDP-Variables.md#mouse-cursor) to the desired cursor ID.
+Whilst this command will only work if the mouse has been successfully [enabled](#enable-mouse), it is possible to display a mouse cursor without a mouse being connected/enabled by setting the equivalent [VDP Variable](./VDP-Variables.md#mouse-vars) to the desired cursor ID.
 
 ### `VDU 23, 0, &89, 4, x; y;`: Set mouse cursor position
 
@@ -288,7 +290,7 @@ That last point is important.  It means that if you use a bitmap that is larger 
 
 Bitmaps mapped to characters in this way are plotted using the current foreground GCOL paint mode.
 
-## `VDU 23, 0, &93, x; y;`: Get ASCII code of character at graphics position x, y §§§§§
+## `VDU 23, 0, &93, x; y;`: Get ASCII code of character at graphics position x, y §§§§§ {#vdu-23-0-93}
 
 This command will return the ASCII code of the character at the given graphics position to MOS.  This command is similar to `VDU 23, 0, &83, x; y;`, but uses coordinates from the currently selected graphics coordinate system.  The position is for the top left of the character.
 
@@ -296,7 +298,7 @@ This command works by comparing pixels on the screen at the given position to th
 
 This command will not recognise characters that have been mapped to bitmaps using `VDU 23, 0, &92, char, bitmapId;`.
 
-## `VDU 23, 0, &94, n`: Read colour palette entry n (returns a pixel colour data packet) §§
+## `VDU 23, 0, &94, n`: Read colour palette entry n (returns a pixel colour data packet) §§ {#vdu-23-0-94}
 
 This command will return the colour of the given palette entry to MOS.  This data is sent using a "screen pixel" data packet.  The corresponding [MOS sysvars](../mos/API.md#sysvars) related to screen pixel colour will be updated to reflect the read palette entry.
 
