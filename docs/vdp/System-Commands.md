@@ -142,9 +142,11 @@ The LED value is a bit mask that controls the state of the keyboard LEDs.  The f
 
 Commands beginning with `VDU 23, 0, &89` are reserved for mouse control, and are implemented from VDP 1.04 onwards.
 
-### `VDU 23, 0, &89, 0`: Enable the mouse
+### `VDU 23, 0, &89, 0`: Enable the mouse {#enable-mouse}
 
-Enables the mouse cursor, and will start sending mouse data packets to MOS.
+Enables the mouse.
+
+If this command is successful then the currently selected mouse cursor will be shown on the screen, and mouse movements will result in mouse update information being sent to MOS.  On first enabling the mouse the default mouse cursor will be shown.
 
 If there is no mouse connected then this command will have no effect.
 
@@ -152,19 +154,25 @@ If there is no mouse connected then this command will have no effect.
 
 Disables the mouse cursor, and will stop sending mouse data packets to MOS.
 
-### `VDU 23, 0, &89, 2`: Reset the mouse
+### `VDU 23, 0, &89, 2`: Reset the mouse {#reset-mouse}
 
 Resets the mouse system restoring default settings.
 
-### `VDU 23, 0, &89, 3, cursorId;`: Set mouse cursor
+NB this command does not reset the selected mouse cursor.  If a reset is successful the mouse will be enabled and the mouse cursor will be shown.
 
-Sets the mouse cursor to the given cursor ID.
+### `VDU 23, 0, &89, 3, cursorId;`: Select a mouse cursor {#select-mouse-cursor}
 
-There are several built-in mouse cursors that are available for use.  These have been inherited from fab-gl and are numbered from 0-18.  The "Cursor" column in the table below shows the fab-gl name for the cursor.
+Changes the mouse cursor to the given cursor ID.
+
+NB This command will only work if the mouse has been successfully [enabled](#enable-mouse).
+
+If you attempt to select an invalid cursor ID (i.e. the cursor not exist) then the mouse cursor will be hidden, but the system will keep track of the previously selected cursor.  The previous cursor be re-shown if you call the [enable](#enable-mouse) or [reset](#reset-mouse) command.  As the system supports [user-defined cursors](./Bitmaps-API.md#mouse-cursor), to explicitly hide the mouse cursor you should use a cursor ID of `65535`.
+
+There are several system mouse cursors available for use.  These have been inherited from FabGL and are numbered from 0-18.  The "Cursor" column in the table below shows the FabGL name for the cursor.
 
 | ID | Cursor | Description |
 | -- | ------ | ----------- |
-| 0  | PointerAmigaLike | 11x11 Amiga like colored mouse pointer |
+| 0  | PointerAmigaLike | 11x11 Amiga like colored mouse pointer (default) |
 | 1  | PointerSimpleReduced | 10x15 mouse pointer |
 | 2  | PointerSimple | 11x19 mouse pointer |
 | 3  | PointerShadowed | 11x19 shadowed mouse pointer |
@@ -184,11 +192,15 @@ There are several built-in mouse cursors that are available for use.  These have
 | 17 | Resize4 | 17x11 resize orientation 4 |
 | 18 | TextInput | 7x15 text input |
 
-Additional cursors can be defined using the `VDU 23, 27, &40, hotX, hotY` command.  For details of that command see the [Bitmaps API](Bitmaps-API.md) documentation.  Using that API it is possible to define a custom mouse cursor using a bitmap, which can then be selected using this command passing in the 16-bit bitmapId in place of a cursorId.
+Additional cursors can be added using [`VDU 23, 27, &40, hotX, hotY`](./Bitmaps-API.md#mouse-cursor) which will allow you to create a custom mouse cursor using a bitmap.  Once your new cursor has been defined you will be able to select it using this command.  Please note the inbuilt system mouse cursors cannot be overridden.
+
+Whilst this command will only work if the mouse has been successfully [enabled](#enable-mouse), it is possible to display a mouse cursor without a mouse being connected/enabled by setting the equivalent [VDP Variable](./VDP-Variables.md#mouse-cursor) to the desired cursor ID.
 
 ### `VDU 23, 0, &89, 4, x; y;`: Set mouse cursor position
 
 Explicitly moves the mouse cursor to a given position on the screen.
+
+This command works whether the mouse is enabled or not, and will even work if the mouse is not visible.
 
 ### `VDU 23, 0, &89, 5, x1; y1; x2; y2;`: Reserved
 
@@ -344,7 +356,7 @@ From Console8 VDP 2.6.0 onwards, the control keys can be turned off, which may h
 
 ## `VDU 23, 0, &99, virtualKey`: Request updated keyboard data for a key §§§§§§§
 
-This command will send an updated keycode data packet to MOS with the current state of the given key, using a vdp-gl/fab-gl virtual key code.  Usually you should not have to use this command, as the keyboard data packets are sent automatically whenever a key is pressed or released.
+This command will send an updated keycode data packet to MOS with the current state of the given key, using a vdp-gl/FabGL virtual key code.  Usually you should not have to use this command, as the keyboard data packets are sent automatically whenever a key is pressed or released.
 
 (This command is used by MOS 3.0 at boot time to determine if the left shift key is pressed to signals that the boot file should not be run from the SD card.)
 

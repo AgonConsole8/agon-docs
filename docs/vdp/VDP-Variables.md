@@ -75,10 +75,13 @@ The sub-ranges within system variables are broadly as follows:
 | &210-&21F | VDP memory information |
 | &220-&22F | Keyboard settings |
 | &230-&23F | Context management |
-| &240-&2FF | Reserved for future use |
+| &240-&24F | Mouse settings * |
+| &250-&2FF | Reserved for future use |
 | &300-&3FF | Graphical system enhancement settings/flags |
 | &400-&4FF | Bitmap/Sprite system control settings |
 | &500-&FFF | Reserved for future use |
+
+\* The mouse settings variables were added to this range in VDP 2.15.0, as these represent global settings for the mouse system.
 
 Many system variables can be set and adjusted by other VDU commands
 
@@ -104,9 +107,23 @@ As of Console8 VDP 2.12.0 the following system variables are supported:
 | &0220 | 0-17 | | | Keyboard layout (setting to an invalid number will set to zero) |
 | &0221 | 0/1 | | | Control keys on/off (setting to any non-zero value sets to 1) |
 | &0230 | 0-255 | | | Current active context ID |
+| &0240 | | | X | Mouse cursor ID * {#mouse-cursor} |
+| &0241 | 0/1 | | X | Mouse enabled.  The mouse can only be enabled if a mouse is physically connected to your Agon's PS/2 mouse port |
+| &0242 | | | | Mouse cursor X position in screen coordinates |
+| &0243 | | | | Mouse cursor Y position in screen coordinates |
+| &0244 | 0-7 | X | | Mouse cursor button status.  Bit 0 indicates left button pressed, bit 1 the right button, and bit 2 the middle button |
+| &0245 | | X | | Mouse wheel delta |
+| &0246 | | | | Mouse sample rate |
+| &0247 | | | | Mouse resolution |
+| &0248 | | | | Mouse scaling |
+| &0249 | | | | Mouse acceleration |
+| &024A | | | | Mouse wheel acceleration |
+| &024B | 0/1 | | X | Mouse cursor visible |
 | &0300 | 0 (any) | | X | Tile engine flag (enables layers commands, available from VDP 2.11.0) |
 | &0310 | 0 (any) | | X | Enables copper features flag |
 | &0400 | 0 (any) | | X | Prefer hardware sprites flag. When set, all sprites will be set to be hardware sprites after calling the "Reset sprites" API, if the "Enable hardware sprites" test flag has also been set |
+
+\* Setting the mouse cursor ID to a valid cursor ID will (as of VDP 2.15) always show the mouse cursor, and setting to an invalid ID will hide it, but not change the stored value.  Clearing the value will reset the mouse cursor ID to the default (0) and hide the cursor.  (This variable was not supported on earlier versions of the VDP.)
 
 
 ## VDU Variables
@@ -114,6 +131,10 @@ As of Console8 VDP 2.12.0 the following system variables are supported:
 VDU variables are numbered in the range &1000-&1FFF and are used to expose information on the current graphics system state.  This includes both information about the current screen mode, and the current context state.
 
 The set of variables are loosely based on the VDU variables available in Acorn's RISC OS operating system, and where appropriate they are numbered the same.  The Agon VDP includes many extensions to include additional information that is specific to the Agon platform.
+
+In general, most of the variables within this range are specific to the currently selected [graphics context](./Context-Management-API.md).  This means that when the context is changed, the values of these variables may change.  Within this range are some variables specific to the current screen mode which will not change when the context changes, plus variables that are derived from both the current context and the screen mode, such as the number of text columns and rows; in general these variables are read-only.
+
+Some information is specific to the current screen mode and will not change if the context is changed.  This includes the screen width and height, the number of screen banks, and the maximum logical colour number for the current screen mode, and the graphics palette definition.  Some information is derived from both the current context and the screen mode, such as the number of text columns and rows.
 
 All variables within this range are reserved for use by the VDU system.  Any values that are not recognised will not be stored, and cannot be read.
 
@@ -123,8 +144,8 @@ Some variables provide coordinates.  For those variables that are marked as "scr
 
 | Variable ID | Value | Read-only | Clearable | Description |
 | ------- | ----- | --- | --- | ----------- |
-| 0x1001 | | X | | Text columns - (characters) |
-| 0x1002 | | X | | Text rows - (characters) |
+| 0x1001 | | X | | Screen text columns - (characters) |
+| 0x1002 | | X | | Screen text rows - (characters) |
 | 0x1003 | 1/3/15/63 | X | | Max logical colour number for current screen mode |
 | 0x100B | | X | | Screen width in pixels - 1 |
 | 0x100C | | X | | Screen height in pixels - 1 |
@@ -141,7 +162,7 @@ Some variables provide coordinates.  For those variables that are marked as "scr
 | 0x1057 | 0/1 | | | Coordinate system (0 = screen/pixel coordinates, 1 = logical/OS (default)) |
 | 0x1058 | 0/1/2*/3* | | | Paged mode flag (0 = disabled, 1 = enabled, 2 = disabled, but temporary paged mode is on *, 3 = enabled, and temporary paged mode is on *) |
 | 0x1059 | | | | Paged mode context row count * |
-| 0x1066 | 0-255 | | | Cursor behaviour flags byte, as set via VDU 23,16,x,y |
+| 0x1066 | 0-255 | | | Cursor behaviour flags byte, as set via [VDU 23,16,setting,mask](./VDU-Commands.md#cursor-behaviour) |
 | 0x1067 | 0/1 | | | Text cursor visibility |
 | 0x1068 | | | | Text cursor block horizontal start column |
 | 0x1069 | | | | Text cursor block horizontal end column |
@@ -194,22 +215,23 @@ Some variables provide coordinates.  For those variables that are marked as "scr
 | 0x111A | | | | X position of text cursor in screen coordinates |
 | 0x111B | | | | Y position of text cursor in screen coordinates |
 | 0x1200-0x123F | 0-63 | | | Palette entries.  Maps logical colours to physical screen colours. The entries used will depend on the number of colours in the current screen mode |
-| 0x1300-0x13FF | | | | Character to bitmap mapping.  Value is a 16-bit bitmap ID, or 65535 if character is not mapped.  See `VDU 23, 0, &92, char, bitmapId;` |
+| 0x1300-0x13FF | | | | Character to bitmap mapping.  Value is a 16-bit bitmap ID, or 65535 if character is not mapped.  See [`VDU 23, 0, &92, char, bitmapId;`](./System-Commands.md#vdu-23-0-92) |
 | 0x1400 | | | | Currently selected bitmap ID (16-bit bitmap ID) |
 | 0x1401 | | X | | Count of bitmaps used |
 | 0x1402 | | | | Current bitmap transform ID. Must be set to a buffer ID containing a valid affine transform.  The affine transforms flag must be set to change this value |
 | 0x1410 | 0-255 | | | Current sprite ID |
 | 0x1411 | | X | | Number of sprites active (not necessarily visible) |
-| 0x1420 | | | | Mouse cursor ID |
-| 0x1441 | 0/1 | | | Mouse cursor enabled. Mouse data can only be read if the mouse is enabled |
-| 0x1442 | | | | Mouse cursor X position in screen coordinates |
-| 0x1443 | | | | Mouse cursor Y position in screen coordinates |
-| 0x1444 | 0-7 | X | | Mouse cursor button status.  Bit 0 indicates left button pressed, bit 1 the right button, and bit 2 the middle button |
-| 0x1445 | | X | | Mouse wheel delta |
-| 0x1446 | | | | Mouse sample rate |
-| 0x1447 | | | | Mouse resolution |
-| 0x1448 | | | | Mouse scaling |
-| 0x1449 | | | | Mouse acceleration |
-| 0x144A | | | | Mouse wheel acceleration |
+| 0x1440 | | | | Mouse cursor ID ** |
+| 0x1441 | 0/1 | | | Mouse enabled.  The mouse can only be enabled if a mouse is physically connected to your Agon's PS/2 mouse port ** |
+| 0x1442 | | | | Mouse cursor X position in screen coordinates ** |
+| 0x1443 | | | | Mouse cursor Y position in screen coordinates ** |
+| 0x1444 | 0-7 | X | | Mouse cursor button status.  Bit 0 indicates left button pressed, bit 1 the right button, and bit 2 the middle button ** |
+| 0x1445 | | X | | Mouse wheel delta ** |
+| 0x1446 | | | | Mouse sample rate ** |
+| 0x1447 | | | | Mouse resolution ** |
+| 0x1448 | | | | Mouse scaling ** |
+| 0x1449 | | | | Mouse acceleration ** |
+| 0x144A | | | | Mouse wheel acceleration ** |
 
-\* Support for these variables was added in VDP 2.14.0
+\* Support for these variables was added in VDP 2.14.0<br>
+\** As of VDP 2.15.0 the mouse cursor variables in this range are deprecated; you are advised to use the equivalent variables in the system range, numbering from 0x0240-0x024F.  On earlier versions of the VDP setting the mouse cursor ID would only work if the mouse was enabled<br>
